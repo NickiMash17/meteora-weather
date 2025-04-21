@@ -1,0 +1,164 @@
+.forecast-container {
+  background: var(--card-bg-light);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  transition: var(--transition);
+}
+
+.dark .forecast-container {
+  background: var(--card-bg-dark);
+  box-shadow: var(--shadow-dark);
+}
+
+.forecast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.forecast-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary-light);
+  margin: 0;
+}
+
+.dark .forecast-title {
+  color: var(--text-primary-dark);
+}
+
+.forecast-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius-sm);
+  padding: 0.3rem;
+}
+
+.dark .forecast-tabs {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary-light);
+}
+
+.dark .tab-button {
+  color: var(--text-secondary-dark);
+}
+
+.tab-button.active {
+  background: var(--primary-light);
+  color: white;
+}
+
+.dark .tab-button.active {
+  background: var(--primary-dark);
+}
+
+/* Hourly Forecast */
+.hourly-forecast {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.day-selection {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.day-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary-light);
+}
+
+.dark .day-button {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary-dark);
+}
+
+.day-button.active {
+  background: var(--primary-light);
+  color: white;
+}
+
+.dark .day-button.active {
+  background: var(--primary-dark);
+}
+
+.hourly-cards {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-light) transparent;
+}
+
+.dark .hourly-cards {
+  scrollbar-color: var(--primary-dark) transparent;
+}
+
+.hourly-cards::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hourly-cards::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hourly-cards::-webkit-scrollbar-thumb {
+  background-color: var(--primary-light);
+  border-radius: 3px;
+}
+
+.dark .hourly-cards::-webkit-scrollbar-thumb {
+  background-color: var(--primary-dark);
+}
+
+/* Daily Forecast */
+.daily-forecast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .forecast-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .forecast-tabs {
+    width: 100%;
+  }
+  
+  .tab-button {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .daily-forecast {
+    grid-template-columns: 1fr;
+  }
+}

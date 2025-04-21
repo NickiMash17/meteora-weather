@@ -1,0 +1,180 @@
+.current-weather {
+  position: relative;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  padding: 2rem;
+  color: white;
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-light);
+  transition: var(--transition);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.dark .current-weather {
+  box-shadow: var(--shadow-dark);
+}
+
+.weather-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 0;
+}
+
+.current-weather > * {
+  position: relative;
+  z-index: 1;
+}
+
+.current-weather-header {
+  margin-bottom: 1.5rem;
+}
+
+.location-info {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.location-name {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-accent);
+}
+
+.location-country {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.current-date {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.current-weather-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.current-weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weather-icon-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.temperature-container {
+  flex: 1;
+  text-align: center;
+}
+
+.current-temperature {
+  font-size: 5rem;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.temperature-unit {
+  position: absolute;
+  top: 0.5rem;
+  right: -1.2rem;
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.feels-like {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.current-weather-condition {
+  text-align: center;
+  margin-top: -1rem;
+}
+
+.condition-text {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+.min-max-temp {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.min-temp, .max-temp {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1.1rem;
+}
+
+.temp-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  opacity: 0.8;
+}
+
+.last-updated {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 1.5rem;
+}
+
+.update-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .current-weather {
+    padding: 1.5rem;
+  }
+  
+  .location-name {
+    font-size: 1.8rem;
+  }
+  
+  .current-temperature {
+    font-size: 4rem;
+  }
+  
+  .weather-icon-container svg {
+    width: 80px;
+    height: 80px;
+  }
+}

@@ -1,0 +1,181 @@
+.weather-card {
+  background: var(--card-bg-light);
+  border-radius: var(--border-radius-sm);
+  padding: 1rem;
+  transition: var(--transition);
+  min-width: 120px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dark .weather-card {
+  background: var(--card-bg-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.weather-card.hourly {
+  flex: 0 0 auto;
+}
+
+.weather-card.daily {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dark .weather-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.card-header .time {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary-light);
+  margin: 0;
+}
+
+.dark .card-header .time {
+  color: var(--text-primary-dark);
+}
+
+.card-header .day {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary-light);
+  margin: 0.2rem 0 0;
+}
+
+.dark .card-header .day {
+  color: var(--text-secondary-dark);
+}
+
+.card-header .date {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin: 0.2rem 0 0;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-temperature {
+  text-align: center;
+}
+
+.temperature {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-primary-light);
+}
+
+.dark .temperature {
+  color: var(--text-primary-dark);
+}
+
+.minmax-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.min, .max {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.min {
+  color: var(--accent-light);
+}
+
+.dark .min {
+  color: var(--accent-dark);
+}
+
+.max {
+  color: var(--text-secondary-light);
+}
+
+.dark .max {
+  color: var(--text-secondary-dark);
+}
+
+.temp-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  position: relative;
+  max-width: 60px;
+}
+
+.dark .temp-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.temp-progress {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-light), var(--primary-light));
+  border-radius: 2px;
+  top: 0;
+}
+
+.dark .temp-progress {
+  background: linear-gradient(90deg, var(--accent-dark), var(--primary-dark));
+}
+
+.card-footer {
+  text-align: center;
+}
+
+.condition {
+  font-size: 0.9rem;
+  color: var(--text-secondary-light);
+  margin: 0 0 0.5rem;
+  text-transform: capitalize;
+}
+
+.dark .condition {
+  color: var(--text-secondary-dark);
+}
+
+.precipitation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--accent-light);
+}
+
+.dark .precipitation {
+  color: var(--accent-dark);
+}
+
+.precipitation-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  opacity: 0.8;
+}

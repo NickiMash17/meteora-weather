@@ -1,0 +1,99 @@
+.error-boundary {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--card-bg-light);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    margin: 1rem 0;
+  }
+  
+  .dark .error-boundary {
+    background: var(--card-bg-dark);
+    box-shadow: var(--shadow-dark);
+  }
+  
+  .error-content {
+    text-align: center;
+    max-width: 500px;
+  }
+  
+  .error-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .error-boundary h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary-light);
+  }
+  
+  .dark .error-boundary h2 {
+    color: var(--text-primary-dark);
+  }
+  
+  .error-message {
+    color: var(--text-secondary-light);
+    margin-bottom: 1.5rem;
+  }
+  
+  .dark .error-message {
+    color: var(--text-secondary-dark);
+  }
+  
+  .error-details {
+    text-align: left;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-secondary-light);
+  }
+  
+  .dark .error-details {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary-dark);
+  }
+  
+  .error-details summary {
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .error-details pre {
+    white-space: pre-wrap;
+    font-size: 0.8rem;
+    font-family: monospace;
+  }
+  
+  .error-retry {
+    padding: 0.8rem 1.5rem;
+    background: var(--primary-light);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark .error-retry {
+    background: var(--primary-dark);
+  }
+  
+  .error-retry:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
