@@ -1,11 +1,22 @@
+/* Make search bar narrower */
 .search-container {
-  margin-bottom: 2rem;
-  position: relative;
+  max-width: 600px; /* Adjust this value as needed */
+  margin: 0 auto; 
+  transition: width 0.3s ease;/* Center the search bar */
 }
 
 .search-form {
-  position: relative;
-  transition: var(--transition);
+  width: 100%;
+}
+.search-container:focus-within {
+  max-width: 600px; /* Expands slightly when focused */
+}
+/* Keep responsive behavior */
+@media (max-width: 768px) {
+  .search-container {
+    max-width: 90%; /* Full width on mobile */
+    padding: 0 1rem;
+  }
 }
 
 .search-form.focused {

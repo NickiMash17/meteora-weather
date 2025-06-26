@@ -35,18 +35,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
   };
   
   const handleSuggestionClick = (suggestion: string) => {
-    onSearch(suggestion);
     saveSearch(suggestion);
+    onSearch(suggestion);
     setShowSuggestions(false);
   };
-  
-  const popularCities = [
-    { name: 'New York', emoji: '🏙️' },
-    { name: 'London', emoji: '🇬🇧' },
-    { name: 'Tokyo', emoji: '🗼' },
-    { name: 'Paris', emoji: '🇫🇷' },
-    { name: 'Sydney', emoji: '🇦🇺' }
-  ];
   
   return (
     <div className="search-container">
@@ -98,23 +90,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
                       <span className="suggestion-text">{search}</span>
                     </button>
                   ))}
-              </div>
-            )}
-            
-            {(!value || value.length < 2) && (
-              <div className="suggestion-section">
-                <h4 className="suggestion-title">Popular Cities</h4>
-                {popularCities.map((city, index) => (
-                  <button
-                    key={`popular-${index}`}
-                    className="suggestion-item"
-                    onClick={() => handleSuggestionClick(city.name)}
-                    type="button"
-                  >
-                    <span className="suggestion-icon">{city.emoji}</span> 
-                    <span className="suggestion-text">{city.name}</span>
-                  </button>
-                ))}
               </div>
             )}
             

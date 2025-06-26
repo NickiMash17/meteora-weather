@@ -3,7 +3,7 @@
   border-radius: var(--border-radius);
   overflow: hidden;
   padding: 2rem;
-  color: white;
+  color: var(--card-text-light);
   background-size: cover;
   background-position: center;
   box-shadow: var(--shadow-light);
