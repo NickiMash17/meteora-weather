@@ -113,22 +113,22 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-8">
       {/* Enhanced Main Weather Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl sm:rounded-3xl p-6 sm:p-12 text-center relative overflow-hidden"
+        className="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-12 text-center relative overflow-hidden"
       >
         {/* Greeting and Weather Emoji */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-col items-center justify-center mb-4 sm:mb-6"
+          className="flex flex-col items-center justify-center mb-2 sm:mb-6"
         >
           <motion.span
-            className="text-5xl sm:text-7xl mb-2 cursor-pointer select-none drop-shadow-xl"
+            className="text-4xl sm:text-7xl mb-2 cursor-pointer select-none drop-shadow-xl min-w-[44px] min-h-[44px] flex items-center justify-center"
             whileHover={{ scale: 1.15, rotate: [0, 10, -10, 0] }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300 }}
@@ -136,14 +136,14 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
           >
             {getWeatherEmoji(weather.condition.main)}
           </motion.span>
-          <span className="text-lg sm:text-2xl font-semibold text-white/90 text-shadow capitalize">
+          <span className="text-base sm:text-2xl font-semibold text-white/90 text-shadow capitalize">
             {getGreeting()}! Here's your weather in {weather.location}
           </span>
         </motion.div>
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-4 w-24 sm:w-32 h-24 sm:h-32 bg-white/20 rounded-full blur-2xl sm:blur-3xl" />
-          <div className="absolute bottom-4 left-4 w-16 sm:w-24 h-16 sm:h-24 bg-white/20 rounded-full blur-xl sm:blur-2xl" />
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute top-4 right-4 w-16 sm:w-32 h-16 sm:h-32 bg-white/20 rounded-full blur-2xl sm:blur-3xl" />
+          <div className="absolute bottom-4 left-4 w-12 sm:w-24 h-12 sm:h-24 bg-white/20 rounded-full blur-xl sm:blur-2xl" />
         </div>
 
         <div className="relative z-10">
@@ -234,7 +234,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6"
       >
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
@@ -243,14 +243,15 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
               key={metric.label}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.7 + index * 0.1, type: "spring", stiffness: 100 }}
-              className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-8 text-center card-hover group"
+              transition={{ delay: 0.7 + index * 0.1, type: 'spring', stiffness: 100 }}
+              className="glass-card rounded-xl sm:rounded-2xl p-2 sm:p-8 text-center card-hover group min-w-[44px] min-h-[44px]"
+              aria-label={metric.label}
             >
-              <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br ${metric.gradient} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
-                <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className={`w-10 h-10 sm:w-16 sm:h-16 bg-gradient-to-br ${metric.gradient} rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                <Icon className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
               </div>
               <p className="text-white/60 text-xs sm:text-sm mb-1 sm:mb-2 font-medium">{metric.label}</p>
-              <p className="text-white text-lg sm:text-2xl font-bold text-shadow">{metric.value}</p>
+              <p className="text-white text-base sm:text-2xl font-bold text-shadow">{metric.value}</p>
             </motion.div>
           );
         })}
@@ -261,10 +262,10 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
-        className="glass-card rounded-xl sm:rounded-2xl p-6 sm:p-8"
+        className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-8"
       >
-        <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6 text-shadow">Sun Schedule</h3>
-        <div className="flex items-center justify-between flex-col sm:flex-row space-y-4 sm:space-y-0">
+        <h3 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-6 text-shadow">Sun Schedule</h3>
+        <div className="flex items-center justify-between flex-col sm:flex-row space-y-2 sm:space-y-0">
           <motion.div 
             className="flex items-center space-x-3 sm:space-x-4"
             whileHover={{ scale: 1.05 }}
@@ -303,27 +304,26 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.0 }}
-          className="glass-card rounded-xl sm:rounded-2xl p-6 sm:p-8"
+          className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-8"
         >
-          <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6 text-shadow">Next 24 Hours</h3>
-          <div className="flex space-x-3 sm:space-x-6 overflow-x-auto pb-4 custom-scrollbar">
+          <h3 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-6 text-shadow">Next 24 Hours</h3>
+          <div className="flex space-x-2 sm:space-x-6 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
             {forecast.hourly.slice(0, 24).map((hour: any, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1.1 + index * 0.05 }}
-                className="flex-shrink-0 text-center group"
+                className="flex-shrink-0 text-center group snap-center min-w-[60px] sm:min-w-[80px]"
+                aria-label={`Hour ${new Date(hour.timestamp * 1000).getHours()}`}
               >
-                <p className="text-white/60 text-xs sm:text-sm mb-2 sm:mb-3 font-medium">
+                <p className="text-white/60 text-xs sm:text-sm mb-1 sm:mb-3 font-medium">
                   {new Date(hour.timestamp * 1000).getHours()}:00
                 </p>
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 rounded-full flex items-center justify-center mb-2 sm:mb-3 group-hover:bg-white/20 transition-colors">
+                <div className="w-10 h-10 sm:w-16 sm:h-16 bg-white/10 rounded-full flex items-center justify-center mb-1 sm:mb-3 group-hover:bg-white/20 transition-colors">
                   {getWeatherIcon(hour.condition.main)}
                 </div>
-                <p className={`text-sm sm:text-lg font-bold ${getTemperatureColor(hour.temperature)}`}>
-                  {Math.round(hour.temperature)}°
-                </p>
+                <p className={`text-xs sm:text-lg font-bold ${getTemperatureColor(hour.temperature)}`}>{Math.round(hour.temperature)}°</p>
               </motion.div>
             ))}
           </div>

@@ -185,35 +185,31 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-2xl p-6"
+          className="glass-card rounded-2xl p-3 sm:p-6"
         >
-          <h3 className="text-xl font-semibold text-white mb-6">24-Hour Forecast</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">24-Hour Forecast</h3>
+          <div className="flex space-x-2 sm:space-x-4 overflow-x-auto pb-2 custom-scrollbar snap-x snap-mandatory">
             {forecast.hourly.slice(0, 24).map((hour: any, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
-                className="text-center p-4 bg-white/5 rounded-xl"
+                className="text-center p-2 sm:p-4 bg-white/5 rounded-xl flex-shrink-0 snap-center min-w-[60px] sm:min-w-[80px]"
               >
-                <p className="text-white/60 text-sm mb-2">
+                <p className="text-white/60 text-xs mb-1">
                   {formatTime(hour.timestamp)}
                 </p>
-                
-                <div className="flex justify-center mb-2">
+                <div className="flex justify-center mb-1">
                   {getWeatherIcon(hour.condition.main)}
                 </div>
-                
-                <p className="text-white font-semibold mb-1">
+                <p className="text-white font-semibold mb-1 text-sm">
                   {Math.round(hour.temperature)}°C
                 </p>
-                
                 <p className="text-white/60 text-xs capitalize">
                   {hour.condition.description}
                 </p>
-                
-                <div className="flex items-center justify-center space-x-2 mt-2">
+                <div className="flex items-center justify-center space-x-1 mt-1">
                   <Droplets className="w-3 h-3 text-blue-400" />
                   <span className="text-white/60 text-xs">
                     {hour.humidity}%

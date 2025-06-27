@@ -70,13 +70,13 @@ const ImageSlider: React.FC = () => {
 
   return (
     <div className="relative w-full max-w-2xl mx-auto glass-card rounded-2xl overflow-hidden p-0">
-      <div className="relative h-72 sm:h-96 flex items-center justify-center bg-black/20">
+      <div className="relative h-56 sm:h-96 flex items-center justify-center bg-black/20">
         <AnimatePresence initial={false} custom={direction}>
           <motion.img
             key={images[index].url}
             src={images[index].url}
             alt={images[index].caption}
-            className="absolute w-full h-full object-cover object-center"
+            className="absolute w-full h-full object-cover object-center select-none"
             initial={{ x: direction > 0 ? 300 : -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
@@ -89,28 +89,28 @@ const ImageSlider: React.FC = () => {
         {/* Image icon fallback */}
         {!images[index].url && (
           <div className="flex items-center justify-center w-full h-full">
-            <ImageIcon className="w-16 h-16 text-white/40" />
+            <ImageIcon className="w-12 h-12 sm:w-16 sm:h-16 text-white/40" />
           </div>
         )}
         {/* Navigation Buttons */}
         <button
           onClick={prev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2 z-20 focus:outline-none"
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 text-white rounded-full p-3 sm:p-4 z-20 focus:outline-none min-w-[44px] min-h-[44px]"
           aria-label="Previous image"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
         </button>
         <button
           onClick={next}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2 z-20 focus:outline-none"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 text-white rounded-full p-3 sm:p-4 z-20 focus:outline-none min-w-[44px] min-h-[44px]"
           aria-label="Next image"
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
         </button>
       </div>
       {/* Caption and Dots */}
-      <div className="relative z-20 p-4 flex flex-col items-center bg-white/10 backdrop-blur-md">
-        <div className="text-white text-lg font-semibold mb-2 text-center drop-shadow">
+      <div className="relative z-20 p-3 sm:p-4 flex flex-col items-center bg-white/10 backdrop-blur-md">
+        <div className="text-white text-base sm:text-lg font-semibold mb-2 text-center drop-shadow">
           {images[index].caption}
         </div>
         <div className="flex space-x-2 mt-2">
