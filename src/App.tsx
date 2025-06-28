@@ -32,27 +32,10 @@ import {
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useSwipeable } from 'react-swipeable';
-import useWeather from './hooks/useWeather';
-import WeatherDashboard from './components/WeatherDashboard';
-import WeatherForecast from './components/WeatherForecast';
-import WeatherAnalytics from './components/WeatherAnalytics';
-import WeatherAlerts from './components/WeatherAlerts';
-import LocationSearch from './components/LocationSearch';
-import WeatherMap from './components/WeatherMap';
-import LoadingScreen from './components/LoadingScreen';
-import WelcomeScreen from './components/WelcomeScreen';
-import WeatherInsights from './components/WeatherInsights';
-import WeatherHero from './components/WeatherHero';
-import ParticleSystem from './components/ParticleSystem';
-import ImageSlider from './components/ImageSlider';
-import AuroraParallaxStars from './components/AuroraParallaxStars';
-import useWeatherSound from './hooks/useWeatherSound';
+
+// Custom hooks
 import { useWeatherOptimized } from './hooks/useWeatherOptimized';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
-import ErrorBoundary from './components/ErrorBoundary';
-import LoadingSkeleton from './components/LoadingSkeleton';
-
-type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
 
 // Lazy load components for code splitting
 const WeatherHero = lazy(() => import('./components/WeatherHero'));
@@ -62,6 +45,8 @@ const WelcomeScreen = lazy(() => import('./components/WelcomeScreen'));
 const ParticleSystem = lazy(() => import('./components/ParticleSystem'));
 const ErrorBoundary = lazy(() => import('./components/ErrorBoundary'));
 const LoadingSkeleton = lazy(() => import('./components/LoadingSkeleton'));
+
+type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -129,10 +114,9 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-  
-  const { weather, forecast, error } = useWeather(location);
-  const weatherCondition = weather?.condition?.main || 'default';
-  const { isPlaying: isSoundOn, toggle: toggleSound } = useWeatherSound(weatherCondition);
+
+  // Weather data with React Query
+  const { weather, forecast, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
 
   // Performance monitoring
   const { trackInteraction, trackError, trackAPICall, getMetrics } = usePerformanceMonitor();
@@ -430,15 +414,6 @@ function App() {
     { id: 'gallery', label: 'Gallery', icon: Sparkles, mobileLabel: 'Gallery' }
   ], []);
 
-  // Weather data with React Query
-  const { weather: weatherQuery, forecast: forecastQuery, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
-
-  // Initialize app
-  useEffect(() => {
-    // Track app initialization
-    trackInteraction('component_render', { timestamp: Date.now() });
-  }, [trackInteraction]);
-
   // Error handling
   useEffect(() => {
     if (isError && queryError) {
@@ -461,10 +436,6 @@ function App() {
           <Suspense fallback={<LoadingSkeleton type="hero" />}>
             <WelcomeScreen
               onSearch={handleSearch}
-              onLocationPermission={handleLocationPermission}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              isSearching={isLoading}
             />
           </Suspense>
         </div>
@@ -484,7 +455,7 @@ function App() {
           
           {/* Particle System Background */}
           <Suspense fallback={null}>
-            <ParticleSystem weatherCondition={weather?.condition?.main} />
+            <ParticleSystem weather={weather} theme={theme} />
           </Suspense>
 
           {/* Header */}
@@ -608,19 +579,15 @@ function App() {
                 >
                   <Suspense fallback={<LoadingSkeleton type="hero" />}>
                     {activeTab === 'dashboard' && weather && (
-                      <WeatherHero weather={weather} forecast={forecast} />
+                      <WeatherHero weather={weather} theme={theme} />
                     )}
                     
-                    {activeTab === 'forecast' && forecast && (
-                      <WeatherForecast forecast={forecast} />
-                    )}
-                    
-                    {activeTab === 'analytics' && weather && (
-                      <WeatherAnalytics weather={weather} forecast={forecast} />
+                    {activeTab === 'insights' && weather && (
+                      <WeatherInsights weather={weather} forecast={forecast} />
                     )}
                     
                     {activeTab === 'map' && weather && (
-                      <WeatherMap weather={weather} />
+                      <WeatherMap weather={weather} forecast={forecast} />
                     )}
                   </Suspense>
                 </motion.div>
