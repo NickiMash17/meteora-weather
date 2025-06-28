@@ -38,12 +38,13 @@ import WeatherMap from './components/WeatherMap';
 import LoadingScreen from './components/LoadingScreen';
 import WelcomeScreen from './components/WelcomeScreen';
 import WeatherInsights from './components/WeatherInsights';
+import WeatherHero from './components/WeatherHero';
 import ParticleSystem from './components/ParticleSystem';
 import ImageSlider from './components/ImageSlider';
 import AuroraParallaxStars from './components/AuroraParallaxStars';
 import useWeatherSound from './hooks/useWeatherSound';
 
-type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery';
+type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
 
 function App() {
   const [location, setLocation] = useState('');
@@ -272,6 +273,7 @@ function App() {
     { id: 'analytics', label: 'Analytics', icon: BarChart3, mobileLabel: 'Stats' },
     { id: 'map', label: 'Map', icon: Globe, mobileLabel: 'Map' },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle, mobileLabel: 'Alerts' },
+    { id: 'insights', label: 'Insights', icon: Sparkles, mobileLabel: 'AI' },
     { id: 'gallery', label: 'Gallery', icon: Sparkles, mobileLabel: 'Gallery' }
   ], []);
 
@@ -280,7 +282,7 @@ function App() {
   }
 
   return (
-    <div className={`app ${theme} theme-transition`} style={{ minHeight: '100vh', minHeight: 'calc(var(--vh, 1vh) * 100)' }}>
+    <div className={`app ${theme} theme-transition`} style={{ minHeight: 'calc(var(--vh, 1vh) * 100)' }}>
       {/* Enhanced Mobile-Responsive Background */}
       <div className={`fixed inset-0 ${weatherGradient} transition-all duration-1000 ease-in-out`}>
         {/* Desktop/Tablet Enhanced Background Effects */}
@@ -478,7 +480,9 @@ function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  className="space-y-6"
                 >
+                  <WeatherHero weather={weather} theme={theme} />
                   <WeatherDashboard weather={weather} forecast={forecast} />
                 </motion.div>
               )}
@@ -515,11 +519,7 @@ function App() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="glass-card p-6 sm:p-8 text-center">
-                    <Globe className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Weather Map</h3>
-                    <p className="text-white/70">Interactive weather map coming soon...</p>
-                  </div>
+                  <WeatherMap weather={weather} forecast={forecast} />
                 </motion.div>
               )}
 
@@ -536,6 +536,18 @@ function App() {
                     <h3 className="text-xl font-semibold mb-2">Weather Alerts</h3>
                     <p className="text-white/70">No active alerts for your area.</p>
                   </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'insights' && weather && (
+                <motion.div
+                  key="insights"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <WeatherInsights weather={weather} forecast={forecast} />
                 </motion.div>
               )}
 

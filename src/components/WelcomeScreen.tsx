@@ -1,277 +1,271 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, MapPin, Sparkles, Globe, BarChart3, Zap, Cloud, Sun, Moon, Star, Wind, Thermometer } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Search, 
+  Sun, 
+  Moon, 
+  Cloud, 
+  CloudRain, 
+  CloudLightning, 
+  Snowflake,
+  Wind,
+  Sparkles,
+  Globe,
+  ArrowRight,
+  MapPin,
+  Zap,
+  Star
+} from 'lucide-react';
 
 interface WelcomeScreenProps {
-  onSearch?: (query: string) => void;
+  onSearch: (query: string) => void;
 }
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isSearching, setIsSearching] = useState(false);
+  const [currentWeather, setCurrentWeather] = useState(0);
+  const [showFeatures, setShowFeatures] = useState(false);
+
+  const weatherIcons = [
+    { icon: Sun, color: 'text-yellow-400', delay: 0 },
+    { icon: Cloud, color: 'text-gray-400', delay: 0.5 },
+    { icon: CloudRain, color: 'text-blue-400', delay: 1 },
+    { icon: CloudLightning, color: 'text-purple-400', delay: 1.5 },
+    { icon: Snowflake, color: 'text-blue-300', delay: 2 },
+    { icon: Wind, color: 'text-green-400', delay: 2.5 }
+  ];
+
+  const features = [
+    {
+      icon: Globe,
+      title: 'Global Coverage',
+      description: 'Get weather data from anywhere in the world',
+      color: 'text-blue-400'
+    },
+    {
+      icon: Sparkles,
+      title: 'AI Insights',
+      description: 'Smart recommendations based on weather conditions',
+      color: 'text-purple-400'
+    },
+    {
+      icon: Zap,
+      title: 'Real-time Updates',
+      description: 'Live weather data and instant notifications',
+      color: 'text-yellow-400'
+    },
+    {
+      icon: Star,
+      title: 'Beautiful Design',
+      description: 'Stunning visuals and smooth animations',
+      color: 'text-pink-400'
+    }
+  ];
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    const interval = setInterval(() => {
+      setCurrentWeather((prev) => (prev + 1) % weatherIcons.length);
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowFeatures(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim() && onSearch) {
-      onSearch(searchQuery);
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+      onSearch(searchQuery.trim());
     }
   };
 
-  const isDaytime = currentTime.getHours() >= 6 && currentTime.getHours() < 18;
-
   return (
-    <div className="min-h-screen relative overflow-hidden pro-bg-gradient">
-      {/* Professional + Creative Background Layers */}
-      <div className="absolute inset-0">
-        {/* Animated Aurora Overlay */}
-        <div className="pro-aurora" />
-        {/* Bokeh Circles */}
-        <div className="pro-bokeh">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="pro-bokeh-circle"
-              style={{
-                width: `${60 + Math.random() * 80}px`,
-                height: `${60 + Math.random() * 80}px`,
-                left: `${Math.random() * 90}%`,
-                top: `${Math.random() * 80}%`,
-                animationDelay: `${Math.random() * 8}s`,
-                opacity: 0.5 + Math.random() * 0.3,
-              }}
-            />
-          ))}
-        </div>
-        {/* Floating Particles */}
-        <div className="pro-particles">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <div
-              key={i}
-              className="pro-particle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 10}s`,
-                opacity: 0.12 + Math.random() * 0.18,
-              }}
-            />
-          ))}
-        </div>
-        {/* Existing animated weather icons, meteors, and stars remain layered above */}
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute"
-              animate={{
-                x: [0, 100, 0],
-                y: [0, -50, 0],
-                rotate: [0, 360],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 15 + i * 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.5
-              }}
-              style={{
-                left: `${10 + i * 12}%`,
-                top: `${20 + i * 8}%`,
-              }}
-            >
-              {i % 4 === 0 && <Cloud className="w-8 h-8 text-white/30" />}
-              {i % 4 === 1 && <Sun className="w-8 h-8 text-white/30" />}
-              {i % 4 === 2 && <Moon className="w-8 h-8 text-white/30" />}
-              {i % 4 === 3 && <Star className="w-8 h-8 text-white/30" />}
-            </motion.div>
-          ))}
-        </div>
-        {/* Meteor Shower */}
-        <div className="meteor-shower">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="meteor"
-              style={{
-                top: `${Math.random() * 50}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`
-              }}
-            />
-          ))}
-        </div>
-        {/* Stars for Night */}
-        {!isDaytime && (
-          <div className="stars">
-            {Array.from({ length: 50 }).map((_, i) => (
-              <div
-                key={i}
-                className="star"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`
-                }}
-              />
-            ))}
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
       </div>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6">
-        <div className="max-w-4xl sm:max-w-6xl mx-auto text-center">
-          {/* Main Content */}
+      {/* Floating Weather Icons */}
+      <div className="absolute inset-0 overflow-hidden">
+        {weatherIcons.map((weather, index) => {
+          const Icon = weather.icon;
+          return (
+            <motion.div
+              key={index}
+              className={`absolute ${weather.color}`}
+              style={{
+                left: `${20 + (index * 15)}%`,
+                top: `${20 + (index * 10)}%`,
+              }}
+              initial={{ opacity: 0, scale: 0, y: 50 }}
+              animate={{ 
+                opacity: currentWeather === index ? 1 : 0.3,
+                scale: currentWeather === index ? 1.2 : 0.8,
+                y: currentWeather === index ? 0 : 20
+              }}
+              transition={{ 
+                duration: 0.5,
+                delay: weather.delay,
+                ease: "easeInOut"
+              }}
+            >
+              <Icon className="w-16 h-16" />
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+        {/* Logo and Title */}
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="mb-12"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
+            className="inline-block mb-6"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >
-            {/* Logo and Title */}
-            <motion.div
-              className="flex items-center justify-center mb-8 sm:mb-12 flex-col sm:flex-row mt-12 sm:mt-20 pt-8 sm:pt-16"
-              whileHover={{ scale: 1.05 }}
-            >
-              <motion.div
-                className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-0 sm:mr-6"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto">
+              <Globe className="w-12 h-12 text-white" />
+            </div>
+          </motion.div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Meteora
+            </span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-white/80 font-light">
+            Your Personal Weather Companion
+          </p>
+        </motion.div>
+
+        {/* Search Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="mb-12"
+        >
+          <form onSubmit={handleSearch} className="max-w-md mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Enter city name..."
+                className="w-full px-6 py-4 text-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-white/40 focus:bg-white/15 transition-all duration-300"
+              />
+              <button
+                type="submit"
+                disabled={isSearching}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50"
               >
-                <Sparkles className="w-8 h-8 sm:w-14 sm:h-14 text-white" />
-              </motion.div>
-              <div>
-                <h1 className="text-4xl sm:text-7xl font-bold text-white font-display text-shadow-xl mb-2">
-                  Meteora
-                </h1>
-                <p className="text-sm sm:text-xl text-white/80">Weather Reimagined</p>
-              </div>
-            </motion.div>
+                {isSearching ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Search className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </form>
+        </motion.div>
 
-            {/* Tagline */}
-            <motion.h2
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 1 }}
-              className="text-xl sm:text-3xl text-white/90 mb-10 sm:mb-16 font-light text-shadow-lg px-4"
-            >
-              Experience weather like never before with stunning visualizations and AI-powered insights
-            </motion.h2>
-
-            {/* Search Section */}
+        {/* Features Grid */}
+        <AnimatePresence>
+          {showFeatures && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="max-w-lg sm:max-w-2xl mx-auto mb-16 sm:mb-20 px-4"
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
             >
-              <form onSubmit={handleSubmit} className="relative">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for a city or location..."
-                    className="w-full px-6 sm:px-8 py-4 sm:py-6 pl-12 sm:pl-16 text-base sm:text-xl bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all input-glass"
-                  />
-                  <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 text-white/70" />
-                  <motion.button
-                    type="submit"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 sm:px-8 py-2 sm:py-4 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-all btn-primary text-sm sm:text-base"
-                  >
-                    Explore
-                  </motion.button>
-                </div>
-              </form>
-            </motion.div>
-
-            {/* Features Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 px-4 mb-16 sm:mb-20"
-            >
-              {[
-                {
-                  icon: Globe,
-                  title: "Interactive Maps",
-                  description: "Explore weather patterns across the globe with beautiful interactive maps",
-                  color: "from-blue-400 to-cyan-400"
-                },
-                {
-                  icon: BarChart3,
-                  title: "Advanced Analytics",
-                  description: "Get detailed weather insights and trends with powerful analytics",
-                  color: "from-purple-400 to-pink-400"
-                },
-                {
-                  icon: Zap,
-                  title: "Real-time Updates",
-                  description: "Stay informed with real-time weather updates and smart alerts",
-                  color: "from-yellow-400 to-orange-400"
-                },
-                {
-                  icon: Thermometer,
-                  title: "Precise Forecasts",
-                  description: "Accurate weather predictions with detailed hourly and daily forecasts",
-                  color: "from-green-400 to-emerald-400"
-                }
-              ].map((feature, index) => {
+              {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
                   <motion.div
                     key={feature.title}
-                    className="p-6 sm:p-8 bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/20 card-hover"
-                    whileHover={{ scale: 1.02, y: -8 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 + index * 0.1 }}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                    className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform duration-300"
                   >
-                    <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center mb-4 sm:mb-6 mx-auto shadow-lg`}>
-                      <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                    <div className={`${feature.color} mb-4`}>
+                      <Icon className="w-8 h-8 mx-auto" />
                     </div>
-                    <h3 className="text-lg sm:text-2xl font-semibold text-white mb-3 sm:mb-4 text-shadow">
+                    <h3 className="text-lg font-semibold text-white mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+                    <p className="text-white/70 text-sm">
                       {feature.description}
                     </p>
                   </motion.div>
                 );
               })}
             </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Call to Action */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.5, duration: 1 }}
-              className="px-4 pb-8 sm:pb-12"
-            >
-              <p className="text-white/60 text-base sm:text-lg mb-6 sm:mb-8">
-                Ready to experience the future of weather?
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onSearch?.('New York')}
-                className="px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-lg sm:text-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all shadow-2xl"
-              >
-                Get Started Now
-              </motion.button>
-            </motion.div>
+        {/* Call to Action */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.2 }}
+          className="text-center"
+        >
+          <p className="text-white/60 mb-4">
+            Start exploring weather around the world
+          </p>
+          <motion.div
+            animate={{ x: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-flex items-center text-white/80"
+          >
+            <ArrowRight className="w-5 h-5 mr-2" />
+            <span>Type a city name above</span>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
+
+      {/* Floating Elements */}
+      <motion.div
+        className="absolute top-10 right-10"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      >
+        <Sparkles className="w-8 h-8 text-yellow-400 opacity-60" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-10 left-10"
+        animate={{ y: [0, -20, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Star className="w-6 h-6 text-blue-400 opacity-60" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-1/2 left-10"
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <MapPin className="w-6 h-6 text-purple-400 opacity-60" />
+      </motion.div>
     </div>
   );
 };

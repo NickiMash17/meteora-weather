@@ -1,122 +1,409 @@
-import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { motion } from 'framer-motion';
-import { MapPin, Sun, Cloud, CloudRain, CloudLightning, Snowflake, Wind, Thermometer } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  MapPin, 
+  Navigation, 
+  Layers, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw,
+  Globe,
+  Cloud,
+  CloudRain,
+  Sun,
+  Moon,
+  Wind,
+  Thermometer,
+  Eye,
+  Settings,
+  Info
+} from 'lucide-react';
 
 interface WeatherMapProps {
   weather: any;
+  forecast: any;
 }
 
-const weatherIcons: Record<string, JSX.Element> = {
-  Clear: <Sun className="w-6 h-6 text-yellow-400" />,
-  Clouds: <Cloud className="w-6 h-6 text-gray-300" />,
-  Rain: <CloudRain className="w-6 h-6 text-blue-400" />,
-  Drizzle: <CloudRain className="w-6 h-6 text-blue-300" />,
-  Thunderstorm: <CloudLightning className="w-6 h-6 text-purple-400" />,
-  Snow: <Snowflake className="w-6 h-6 text-blue-200" />,
-  Wind: <Wind className="w-6 h-6 text-green-400" />,
-  Default: <Thermometer className="w-6 h-6 text-pink-400" />,
-};
+const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
+  const [mapType, setMapType] = useState<'temperature' | 'precipitation' | 'wind' | 'satellite'>('temperature');
+  const [zoom, setZoom] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showLegend, setShowLegend] = useState(true);
+  const mapRef = useRef<HTMLDivElement>(null);
 
-const WeatherMap: React.FC<WeatherMapProps> = ({ weather }) => {
-  const mapRef = useRef<any>(null);
+  const mapTypes = [
+    { id: 'temperature', label: 'Temperature', icon: Thermometer, color: 'text-red-400' },
+    { id: 'precipitation', label: 'Precipitation', icon: CloudRain, color: 'text-blue-400' },
+    { id: 'wind', label: 'Wind', icon: Wind, color: 'text-green-400' },
+    { id: 'satellite', label: 'Satellite', icon: Globe, color: 'text-purple-400' }
+  ];
 
-  // Center map on weather location
-  useEffect(() => {
-    if (mapRef.current && weather?.coord) {
-      mapRef.current.setView([weather.coord.lat, weather.coord.lon], 10);
+  const getMapBackground = () => {
+    switch (mapType) {
+      case 'temperature':
+        return 'bg-gradient-to-br from-blue-900 via-purple-900 to-red-900';
+      case 'precipitation':
+        return 'bg-gradient-to-br from-blue-800 via-cyan-800 to-blue-600';
+      case 'wind':
+        return 'bg-gradient-to-br from-green-900 via-emerald-800 to-teal-700';
+      case 'satellite':
+        return 'bg-gradient-to-br from-gray-900 via-slate-800 to-zinc-700';
+      default:
+        return 'bg-gradient-to-br from-blue-900 via-purple-900 to-red-900';
     }
-  }, [weather]);
+  };
 
-  if (!weather?.coord) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center border border-blue-400/20 bg-blue-400/5 mt-4"
-      >
-        <motion.div
-          initial={{ scale: 0.8, rotate: -10 }}
-          animate={{ scale: [0.8, 1.1, 1], rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, repeatType: 'mirror' }}
-          className="mb-4"
-        >
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="8" y="16" width="48" height="32" rx="8" fill="#60a5fa" />
-            <circle cx="32" cy="32" r="10" fill="#fbbf24" />
-            <polygon points="32,22 36,32 32,42 28,32" fill="#2563eb" />
-            <circle cx="32" cy="32" r="4" fill="#fff" />
-          </svg>
-        </motion.div>
-        <h3 className="text-2xl font-bold text-blue-400 mb-2">No Map Data</h3>
-        <p className="text-white/80 text-lg mb-2">No location data available for the map. Search for a city to explore weather on the map! 🗺️</p>
-      </motion.div>
-    );
-  }
+  const getWeatherOverlay = () => {
+    if (!weather) return null;
 
-  // Custom marker icon
-  const customIcon = new L.DivIcon({
-    className: 'custom-weather-marker',
-    html: `<div style="background:rgba(255,255,255,0.8);border-radius:16px;padding:8px;box-shadow:0 2px 8px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;">🌍</div>`
-  });
+    const condition = weather.condition.main.toLowerCase();
+    const temp = weather.temperature.current;
+    const hour = new Date().getHours();
+    const isDaytime = hour >= 6 && hour < 18;
+
+    if (mapType === 'temperature') {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            className="relative"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center ${
+              temp > 25 ? 'bg-red-500/20' : 
+              temp > 15 ? 'bg-yellow-500/20' : 
+              temp > 5 ? 'bg-blue-500/20' : 'bg-purple-500/20'
+            }`}>
+              <div className="text-4xl font-bold text-white">
+                {temp}°
+              </div>
+            </div>
+            <motion.div
+              className="absolute inset-0 rounded-full border-4 border-white/30"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.div>
+        </div>
+      );
+    }
+
+    if (mapType === 'precipitation') {
+      return (
+        <div className="absolute inset-0">
+          {condition.includes('rain') && (
+            <div className="rain-overlay">
+              {Array.from({ length: 50 }, (_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-8 bg-blue-400 rounded-full opacity-60"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                  }}
+                  animate={{
+                    y: [0, 400],
+                    opacity: [0.6, 0],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          {condition.includes('snow') && (
+            <div className="snow-overlay">
+              {Array.from({ length: 30 }, (_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 bg-white rounded-full opacity-80"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 3}s`,
+                  }}
+                  animate={{
+                    y: [0, 400],
+                    x: [0, Math.random() * 50 - 25],
+                    rotate: [0, 360],
+                    opacity: [0.8, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (mapType === 'wind') {
+      return (
+        <div className="absolute inset-0">
+          {Array.from({ length: 20 }, (_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-16 h-1 bg-green-400/60 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+              }}
+              animate={{
+                x: [0, 100],
+                opacity: [0, 0.6, 0],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const getLegend = () => {
+    switch (mapType) {
+      case 'temperature':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/80">Temperature</span>
+              <Thermometer className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-xs text-white/60">Hot (&gt;25°C)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+              <span className="text-xs text-white/60">Warm (15-25°C)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-white/60">Cool (5-15°C)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500 rounded"></div>
+              <span className="text-xs text-white/60">Cold (&lt;5°C)</span>
+            </div>
+          </div>
+        );
+      case 'precipitation':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/80">Precipitation</span>
+              <CloudRain className="w-4 h-4 text-blue-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-400 rounded"></div>
+              <span className="text-xs text-white/60">Rain</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-white rounded"></div>
+              <span className="text-xs text-white/60">Snow</span>
+            </div>
+          </div>
+        );
+      case 'wind':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/80">Wind</span>
+              <Wind className="w-4 h-4 text-green-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-1 bg-green-400 rounded"></div>
+              <span className="text-xs text-white/60">Wind Direction</span>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-2xl p-0 overflow-hidden"
-    >
-      <div className="relative w-full h-[400px] sm:h-[500px] rounded-2xl overflow-hidden">
-        <MapContainer
-          center={[weather.coord.lat, weather.coord.lon]}
-          zoom={10}
-          scrollWheelZoom={true}
-          style={{ width: '100%', height: '100%', zIndex: 1 }}
-          ref={mapRef}
-          className="leaflet-container"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <Marker position={[weather.coord.lat, weather.coord.lon]} icon={customIcon}>
-            <Popup>
-              <div className="text-center">
-                <div className="mb-2 flex items-center justify-center">
-                  {weatherIcons[weather.condition.main] || weatherIcons.Default}
-                  <span className="ml-2 font-semibold text-lg">{weather.location}</span>
-                </div>
-                <div className="text-sm text-gray-700 dark:text-white/80">
-                  <div>Temp: <span className="font-bold">{Math.round(weather.temperature.current)}°C</span></div>
-                  <div>Condition: <span className="capitalize">{weather.condition.description}</span></div>
-                  <div>Humidity: {weather.humidity}%</div>
-                  <div>Wind: {weather.wind.speed} km/h</div>
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        </MapContainer>
-        {/* Map overlay for glass effect */}
-        <div className="absolute inset-0 pointer-events-none rounded-2xl bg-white/10 backdrop-blur-md" style={{zIndex:2}} />
-      </div>
-      <div className="p-4 sm:p-6">
-        <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-blue-400" />
-          {weather.location}
-        </h3>
-        <div className="flex flex-wrap gap-4 text-white/80 text-sm">
+    <div className="space-y-6">
+      {/* Map Controls */}
+      <motion.div
+        className="glass-card p-4 rounded-2xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Interactive Weather Map</h3>
           <div className="flex items-center gap-2">
-            {weatherIcons[weather.condition.main] || weatherIcons.Default}
-            <span className="capitalize">{weather.condition.description}</span>
+            <button
+              onClick={() => setShowLegend(!showLegend)}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <Layers className="w-4 h-4 text-white" />
+            </button>
+            <button
+              onClick={() => setIsLoading(true)}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4 text-white" />
+            </button>
           </div>
-          <div>Temp: <span className="font-bold">{Math.round(weather.temperature.current)}°C</span></div>
-          <div>Humidity: {weather.humidity}%</div>
-          <div>Wind: {weather.wind.speed} km/h</div>
         </div>
-      </div>
-    </motion.div>
+
+        {/* Map Type Selector */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+          {mapTypes.map((type) => {
+            const Icon = type.icon;
+            return (
+              <button
+                key={type.id}
+                onClick={() => setMapType(type.id as any)}
+                className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${
+                  mapType === type.id 
+                    ? 'bg-white/20 border border-white/30' 
+                    : 'bg-white/10 hover:bg-white/15'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${type.color}`} />
+                <span className="text-xs text-white/80">{type.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Zoom Controls */}
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => setZoom(Math.max(5, zoom - 2))}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <ZoomOut className="w-4 h-4 text-white" />
+          </button>
+          <div className="text-sm text-white/80 px-4">
+            {zoom}x
+          </div>
+          <button
+            onClick={() => setZoom(Math.min(20, zoom + 2))}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <ZoomIn className="w-4 h-4 text-white" />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Interactive Map */}
+      <motion.div
+        ref={mapRef}
+        className={`relative h-96 rounded-3xl overflow-hidden glass-card ${getMapBackground()}`}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        style={{
+          transform: `scale(${zoom / 10})`,
+          transformOrigin: 'center',
+        }}
+      >
+        {/* Map Grid */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="grid grid-cols-10 grid-rows-10 h-full">
+            {Array.from({ length: 100 }, (_, i) => (
+              <div key={i} className="border border-white/10"></div>
+            ))}
+          </div>
+        </div>
+
+        {/* Weather Overlay */}
+        {getWeatherOverlay()}
+
+        {/* Location Marker */}
+        {weather && (
+          <motion.div
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="relative">
+              <MapPin className="w-8 h-8 text-red-400 drop-shadow-lg" />
+              <motion.div
+                className="absolute inset-0 w-8 h-8 bg-red-400 rounded-full opacity-30"
+                animate={{ scale: [1, 2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* Floating Elements */}
+        <motion.div
+          className="absolute top-4 right-4"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        >
+          <Navigation className="w-6 h-6 text-white/60" />
+        </motion.div>
+
+        <motion.div
+          className="absolute bottom-4 left-4"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Globe className="w-6 h-6 text-white/60" />
+        </motion.div>
+      </motion.div>
+
+      {/* Legend */}
+      <AnimatePresence>
+        {showLegend && (
+          <motion.div
+            className="glass-card p-4 rounded-2xl"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-semibold text-white">Legend</h4>
+              <Info className="w-4 h-4 text-white/60" />
+            </div>
+            {getLegend()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-3xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onAnimationComplete={() => {
+              setTimeout(() => setIsLoading(false), 1000);
+            }}
+          >
+            <div className="text-center">
+              <div className="loading-spin w-8 h-8 border-2 border-white/20 border-t-white rounded-full mx-auto mb-2" />
+              <p className="text-white/80 text-sm">Updating map...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

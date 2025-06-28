@@ -1,18 +1,27 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lightbulb, 
   Umbrella, 
   Sun, 
+  Moon,
   Cloud, 
   Wind, 
-  Thermometer, 
-  Clock, 
+  Thermometer,
+  Calendar,
+  Clock,
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   CheckCircle,
   Info,
   Sparkles,
+  Zap,
+  Heart,
+  Coffee,
+  Car,
+  Plane,
+  TreePine,
   Droplets
 } from 'lucide-react';
 
@@ -22,255 +31,357 @@ interface WeatherInsightsProps {
 }
 
 const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) => {
+  const [activeInsight, setActiveInsight] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const generateInsights = () => {
-    const insights = [];
+    if (!weather) return [];
+
     const temp = weather.temperature.current;
+    const condition = weather.condition.main.toLowerCase();
     const humidity = weather.humidity;
     const windSpeed = weather.wind.speed;
-    const condition = weather.condition.main.toLowerCase();
+    const hour = new Date().getHours();
+
+    const insights = [];
 
     // Temperature insights
-    if (temp >= 30) {
+    if (temp > 30) {
       insights.push({
-        type: 'warning',
-        icon: Thermometer,
-        title: 'High Temperature Alert',
-        description: 'Stay hydrated and avoid prolonged sun exposure. Consider indoor activities.',
-        color: 'from-red-400 to-orange-400'
+        type: 'temperature',
+        icon: <Thermometer className="w-6 h-6" />,
+        title: 'Hot Weather Alert',
+        description: 'High temperatures detected. Stay hydrated and avoid prolonged sun exposure.',
+        color: 'text-red-400',
+        bgColor: 'bg-red-400/10',
+        recommendations: [
+          'Drink plenty of water',
+          'Wear light, breathable clothing',
+          'Avoid outdoor activities during peak hours',
+          'Use sunscreen with high SPF'
+        ]
       });
-    } else if (temp <= 0) {
+    } else if (temp < 10) {
       insights.push({
-        type: 'warning',
-        icon: Thermometer,
-        title: 'Freezing Conditions',
-        description: 'Bundle up! Frost and ice may be present. Drive carefully.',
-        color: 'from-blue-400 to-cyan-400'
-      });
-    }
-
-    // Humidity insights
-    if (humidity >= 80) {
-      insights.push({
-        type: 'info',
-        icon: Droplets,
-        title: 'High Humidity',
-        description: 'Air feels muggy. Consider using air conditioning or dehumidifier.',
-        color: 'from-blue-400 to-purple-400'
-      });
-    } else if (humidity <= 30) {
-      insights.push({
-        type: 'info',
-        icon: Droplets,
-        title: 'Low Humidity',
-        description: 'Air is dry. Stay hydrated and consider using a humidifier.',
-        color: 'from-yellow-400 to-orange-400'
-      });
-    }
-
-    // Wind insights
-    if (windSpeed >= 20) {
-      insights.push({
-        type: 'warning',
-        icon: Wind,
-        title: 'Strong Winds',
-        description: 'Secure loose objects. Wind may affect outdoor activities.',
-        color: 'from-gray-400 to-blue-400'
+        type: 'temperature',
+        icon: <Thermometer className="w-6 h-6" />,
+        title: 'Cold Weather Alert',
+        description: 'Low temperatures detected. Bundle up and stay warm.',
+        color: 'text-blue-400',
+        bgColor: 'bg-blue-400/10',
+        recommendations: [
+          'Wear warm, layered clothing',
+          'Keep indoor spaces heated',
+          'Check for frost warnings',
+          'Prepare for potential snow'
+        ]
       });
     }
 
     // Weather condition insights
     if (condition.includes('rain')) {
       insights.push({
-        type: 'recommendation',
-        icon: Umbrella,
+        type: 'precipitation',
+        icon: <Umbrella className="w-6 h-6" />,
         title: 'Rain Expected',
-        description: 'Bring an umbrella or rain jacket. Roads may be slippery.',
-        color: 'from-blue-400 to-cyan-400'
+        description: 'Rainy conditions detected. Prepare for wet weather.',
+        color: 'text-blue-400',
+        bgColor: 'bg-blue-400/10',
+        recommendations: [
+          'Carry an umbrella or raincoat',
+          'Drive carefully on wet roads',
+          'Check for flood warnings',
+          'Protect electronic devices'
+        ]
       });
-    } else if (condition.includes('clear') && temp >= 20) {
+    }
+
+    if (condition.includes('thunderstorm')) {
       insights.push({
-        type: 'positive',
-        icon: Sun,
-        title: 'Perfect Weather',
-        description: 'Great day for outdoor activities! Enjoy the sunshine.',
-        color: 'from-yellow-400 to-orange-400'
-      });
-    } else if (condition.includes('cloud')) {
-      insights.push({
-        type: 'info',
-        icon: Cloud,
-        title: 'Cloudy Conditions',
-        description: 'UV index is lower. Good for outdoor activities without intense sun.',
-        color: 'from-gray-400 to-blue-400'
+        type: 'storm',
+        icon: <Zap className="w-6 h-6" />,
+        title: 'Storm Warning',
+        description: 'Thunderstorm conditions detected. Take necessary precautions.',
+        color: 'text-yellow-400',
+        bgColor: 'bg-yellow-400/10',
+        recommendations: [
+          'Stay indoors during storms',
+          'Unplug electronic devices',
+          'Avoid open areas and tall objects',
+          'Monitor weather alerts'
+        ]
       });
     }
 
     // Time-based insights
-    const hour = new Date().getHours();
-    if (hour >= 6 && hour <= 10) {
+    if (hour >= 6 && hour < 18) {
       insights.push({
-        type: 'positive',
-        icon: Sun,
-        title: 'Morning Weather',
-        description: 'Perfect time for a morning walk or outdoor exercise.',
-        color: 'from-yellow-400 to-orange-400'
+        type: 'daytime',
+        icon: <Sun className="w-6 h-6" />,
+        title: 'Perfect Day for Activities',
+        description: 'Beautiful daytime weather. Great for outdoor activities.',
+        color: 'text-yellow-400',
+        bgColor: 'bg-yellow-400/10',
+        recommendations: [
+          'Go for a walk or hike',
+          'Plan outdoor dining',
+          'Take photos of the scenery',
+          'Enjoy outdoor sports'
+        ]
       });
-    } else if (hour >= 18 && hour <= 22) {
+    } else {
       insights.push({
-        type: 'info',
-        icon: Clock,
+        type: 'nighttime',
+        icon: <Moon className="w-6 h-6" />,
         title: 'Evening Weather',
-        description: 'Great time for a relaxing evening stroll.',
-        color: 'from-purple-400 to-pink-400'
+        description: 'Nighttime conditions. Perfect for indoor activities.',
+        color: 'text-purple-400',
+        bgColor: 'bg-purple-400/10',
+        recommendations: [
+          'Plan indoor entertainment',
+          'Enjoy a cozy evening',
+          'Stargazing if clear',
+          'Prepare for tomorrow'
+        ]
+      });
+    }
+
+    // Wind insights
+    if (windSpeed > 20) {
+      insights.push({
+        type: 'wind',
+        icon: <Wind className="w-6 h-6" />,
+        title: 'Windy Conditions',
+        description: 'High wind speeds detected. Secure loose objects.',
+        color: 'text-green-400',
+        bgColor: 'bg-green-400/10',
+        recommendations: [
+          'Secure outdoor furniture',
+          'Be careful with umbrellas',
+          'Check for wind advisories',
+          'Avoid outdoor fires'
+        ]
+      });
+    }
+
+    // Humidity insights
+    if (humidity > 80) {
+      insights.push({
+        type: 'humidity',
+        icon: <Droplets className="w-6 h-6" />,
+        title: 'High Humidity',
+        description: 'High humidity levels. Air may feel muggy.',
+        color: 'text-blue-400',
+        bgColor: 'bg-blue-400/10',
+        recommendations: [
+          'Use air conditioning',
+          'Stay hydrated',
+          'Wear breathable fabrics',
+          'Check for mold prevention'
+        ]
       });
     }
 
     return insights;
   };
 
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'warning':
-        return AlertTriangle;
-      case 'positive':
-        return CheckCircle;
-      case 'recommendation':
-        return Lightbulb;
-      default:
-        return Info;
-    }
-  };
-
   const insights = generateInsights();
 
-  if (insights.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center border border-yellow-400/20 bg-yellow-400/5 mt-4"
-      >
-        <motion.div
-          initial={{ scale: 0.8, rotate: -10 }}
-          animate={{ scale: [0.8, 1.1, 1], rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, repeatType: 'mirror' }}
-          className="mb-4"
-        >
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="32" cy="32" r="18" fill="#fde68a" />
-            <g stroke="#fbbf24" strokeWidth="3" strokeLinecap="round">
-              <line x1="32" y1="6" x2="32" y2="16" />
-              <line x1="32" y1="48" x2="32" y2="58" />
-              <line x1="6" y1="32" x2="16" y2="32" />
-              <line x1="48" y1="32" x2="58" y2="32" />
-              <line x1="14.93" y1="14.93" x2="21.21" y2="21.21" />
-              <line x1="49.07" y1="49.07" x2="42.79" y2="42.79" />
-              <line x1="14.93" y1="49.07" x2="21.21" y2="42.79" />
-              <line x1="49.07" y1="14.93" x2="42.79" y2="21.21" />
-            </g>
-            <ellipse cx="32" cy="40" rx="7" ry="3" fill="#fffde7" />
-            <circle cx="28" cy="30" r="2" fill="#fff" />
-            <circle cx="36" cy="30" r="2" fill="#fff" />
-            <path d="M28 36 Q32 39 36 36" stroke="#fff" strokeWidth="2" fill="none" />
-          </svg>
-        </motion.div>
-        <h3 className="text-2xl font-bold text-yellow-400 mb-2">No Special Recommendations</h3>
-        <p className="text-white/80 text-lg mb-2">Everything looks great. Enjoy your day! 😊</p>
-      </motion.div>
-    );
-  }
+  const getActivityRecommendation = () => {
+    const temp = weather?.temperature?.current;
+    const condition = weather?.condition?.main?.toLowerCase();
+    
+    if (condition.includes('rain') || condition.includes('storm')) {
+      return {
+        icon: <Coffee className="w-8 h-8" />,
+        activity: 'Indoor Coffee Time',
+        description: 'Perfect weather for a cozy coffee break indoors',
+        color: 'text-amber-400'
+      };
+    }
+    
+    if (temp > 25 && condition.includes('clear')) {
+      return {
+        icon: <TreePine className="w-8 h-8" />,
+        activity: 'Outdoor Adventure',
+        description: 'Great weather for hiking or outdoor activities',
+        color: 'text-green-400'
+      };
+    }
+    
+    if (temp < 15) {
+      return {
+        icon: <Heart className="w-8 h-8" />,
+        activity: 'Cozy Indoor Time',
+        description: 'Perfect for reading or watching movies',
+        color: 'text-red-400'
+      };
+    }
+    
+    return {
+      icon: <Sun className="w-8 h-8" />,
+      activity: 'General Activities',
+      description: 'Good weather for various activities',
+      color: 'text-yellow-400'
+    };
+  };
+
+  const activityRec = getActivityRecommendation();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="glass-card rounded-xl sm:rounded-2xl p-6 sm:p-8"
-    >
-      <div className="flex items-center mb-4 sm:mb-6">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mr-3 sm:mr-4">
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+    <div className="space-y-6">
+      {/* Main Insights Section */}
+      <motion.div
+        className="glass-card p-6 rounded-3xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
+              <Lightbulb className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-white">Weather Insights</h3>
+          </div>
+          <Sparkles className="w-6 h-6 text-yellow-400" />
         </div>
-        <div>
-          <h3 className="text-xl sm:text-2xl font-semibold text-white text-shadow">Weather Insights</h3>
-          <p className="text-white/60 text-xs sm:text-sm">AI-powered recommendations for your day</p>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {insights.map((insight, index) => {
-          const Icon = insight.icon;
-          const InsightIcon = getInsightIcon(insight.type);
-          
-          return (
-            <motion.div
-              key={insight.title}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 + index * 0.1 }}
-              className="bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/10 hover:bg-white/10 transition-all card-hover"
-            >
-              <div className="flex items-start space-x-3 sm:space-x-4">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${insight.color} rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center mb-2">
-                    <InsightIcon className={`w-3 h-3 sm:w-4 sm:h-4 mr-2 ${
-                      insight.type === 'warning' ? 'text-red-400' :
-                      insight.type === 'positive' ? 'text-green-400' :
-                      insight.type === 'recommendation' ? 'text-yellow-400' :
-                      'text-blue-400'
-                    }`} />
-                    <h4 className="text-base sm:text-lg font-semibold text-white text-shadow">
-                      {insight.title}
-                    </h4>
+        {insights.length > 0 ? (
+          <div className="space-y-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeInsight}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                <div className={`p-4 rounded-2xl ${insights[activeInsight].bgColor} border border-white/10`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-full bg-white/10 ${insights[activeInsight].color}`}>
+                      {insights[activeInsight].icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`text-lg font-semibold ${insights[activeInsight].color} mb-2`}>
+                        {insights[activeInsight].title}
+                      </h4>
+                      <p className="text-white/80 mb-3">
+                        {insights[activeInsight].description}
+                      </p>
+                      
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="space-y-2"
+                        >
+                          <h5 className="text-sm font-semibold text-white/90">Recommendations:</h5>
+                          <ul className="space-y-1">
+                            {insights[activeInsight].recommendations.map((rec, index) => (
+                              <motion.li
+                                key={index}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="flex items-center gap-2 text-sm text-white/70"
+                              >
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                                {rec}
+                              </motion.li>
+                            ))}
+                          </ul>
+                        </motion.div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
-                    {insight.description}
-                  </p>
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+              </motion.div>
+            </AnimatePresence>
 
-      {/* Weather Trend */}
-      {forecast?.daily && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl border border-white/10"
-        >
-          <div className="flex items-center mb-3 sm:mb-4">
-            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mr-2" />
-            <h4 className="text-base sm:text-lg font-semibold text-white">Weather Trend</h4>
+            {/* Navigation Dots */}
+            {insights.length > 1 && (
+              <div className="flex justify-center gap-2">
+                {insights.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveInsight(index)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === activeInsight ? 'bg-white scale-125' : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Expand/Collapse Button */}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-full py-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 transition-all duration-300 text-white/80 text-sm font-medium"
+            >
+              {isExpanded ? 'Show Less' : 'Show Recommendations'}
+            </button>
           </div>
-          <div className="flex items-center justify-between text-white/80 flex-col sm:flex-row space-y-2 sm:space-y-0">
-            <div className="text-center sm:text-left">
-              <p className="text-xs sm:text-sm">Today</p>
-              <p className="text-base sm:text-lg font-semibold">{Math.round(weather.temperature.current)}°</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xl sm:text-2xl">→</span>
-            </div>
-            <div className="text-center sm:text-left">
-              <p className="text-xs sm:text-sm">Tomorrow</p>
-              <p className="text-base sm:text-lg font-semibold">{Math.round(forecast.daily[1]?.temperature.max || 0)}°</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xl sm:text-2xl">→</span>
-            </div>
-            <div className="text-center sm:text-left">
-              <p className="text-xs sm:text-sm">Next Week</p>
-              <p className="text-base sm:text-lg font-semibold">{Math.round(forecast.daily[6]?.temperature.max || 0)}°</p>
-            </div>
+        ) : (
+          <div className="text-center py-8">
+            <Info className="w-12 h-12 text-blue-400 mx-auto mb-3" />
+            <p className="text-white/70">No specific insights for current weather conditions.</p>
           </div>
-        </motion.div>
-      )}
-    </motion.div>
+        )}
+      </motion.div>
+
+      {/* Activity Recommendation */}
+      <motion.div
+        className="glass-card p-6 rounded-3xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-full bg-white/10 ${activityRec.color}`}>
+            {activityRec.icon}
+          </div>
+          <div className="flex-1">
+            <h4 className="text-lg font-semibold text-white mb-1">
+              {activityRec.activity}
+            </h4>
+            <p className="text-white/70 text-sm">
+              {activityRec.description}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Weather Trends */}
+      <motion.div
+        className="glass-card p-6 rounded-3xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Weather Trends</h3>
+          <TrendingUp className="w-5 h-5 text-green-400" />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center p-4 rounded-2xl bg-white/10">
+            <div className="text-2xl font-bold text-white mb-1">
+              {weather?.temperature?.current}°
+            </div>
+            <div className="text-sm text-white/60">Current</div>
+          </div>
+          
+          <div className="text-center p-4 rounded-2xl bg-white/10">
+            <div className="text-2xl font-bold text-white mb-1">
+              {weather?.temperature?.feels_like}°
+            </div>
+            <div className="text-sm text-white/60">Feels Like</div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
