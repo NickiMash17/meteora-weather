@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useCallback, useMemo } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -25,9 +27,11 @@ import {
   RefreshCw,
   Info,
   Volume2,
-  VolumeX
+  VolumeX,
+  MapPin
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useSwipeable } from 'react-swipeable';
 import useWeather from './hooks/useWeather';
 import WeatherDashboard from './components/WeatherDashboard';
 import WeatherForecast from './components/WeatherForecast';
@@ -43,20 +47,83 @@ import ParticleSystem from './components/ParticleSystem';
 import ImageSlider from './components/ImageSlider';
 import AuroraParallaxStars from './components/AuroraParallaxStars';
 import useWeatherSound from './hooks/useWeatherSound';
+import { useWeatherOptimized } from './hooks/useWeatherOptimized';
+import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
+import ErrorBoundary from './components/ErrorBoundary';
+import LoadingSkeleton from './components/LoadingSkeleton';
 
 type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
+
+// Lazy load components for code splitting
+const WeatherHero = lazy(() => import('./components/WeatherHero'));
+const WeatherInsights = lazy(() => import('./components/WeatherInsights'));
+const WeatherMap = lazy(() => import('./components/WeatherMap'));
+const WelcomeScreen = lazy(() => import('./components/WelcomeScreen'));
+const ParticleSystem = lazy(() => import('./components/ParticleSystem'));
+const ErrorBoundary = lazy(() => import('./components/ErrorBoundary'));
+const LoadingSkeleton = lazy(() => import('./components/LoadingSkeleton'));
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+  },
+});
+
+// PWA Service Worker Registration
+const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered:', registration);
+      
+      // Handle updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New content is available
+              if (confirm('New version available! Reload to update?')) {
+                window.location.reload();
+              }
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
+    }
+  }
+};
+
+// Theme detection
+const getSystemTheme = () => {
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+  return 'light';
+};
 
 function App() {
   const [location, setLocation] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>(getSystemTheme());
   const [showWelcome, setShowWelcome] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [lastSearch, setLastSearch] = useState('');
   const [errorRetryCount, setErrorRetryCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   // Enhanced mobile responsiveness state
   const [isMobile, setIsMobile] = useState(false);
@@ -66,6 +133,60 @@ function App() {
   const { weather, forecast, error } = useWeather(location);
   const weatherCondition = weather?.condition?.main || 'default';
   const { isPlaying: isSoundOn, toggle: toggleSound } = useWeatherSound(weatherCondition);
+
+  // Performance monitoring
+  const { trackInteraction, trackError, trackAPICall, getMetrics } = usePerformanceMonitor();
+
+  // Swipe handlers for mobile
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (activeTab === 'dashboard') setActiveTab('insights');
+      else if (activeTab === 'insights') setActiveTab('map');
+      trackInteraction('component_render', { direction: 'left', from: activeTab });
+    },
+    onSwipedRight: () => {
+      if (activeTab === 'map') setActiveTab('insights');
+      else if (activeTab === 'insights') setActiveTab('dashboard');
+      trackInteraction('component_render', { direction: 'right', from: activeTab });
+    },
+    trackMouse: true,
+  });
+
+  // Initialize app
+  useEffect(() => {
+    // Register service worker
+    registerServiceWorker();
+
+    // Track app initialization
+    trackInteraction('component_render', { timestamp: Date.now() });
+
+    // Check for saved location
+    const savedLocation = localStorage.getItem('weather-location');
+    if (savedLocation) {
+      setLocation(savedLocation);
+      setShowWelcome(false);
+    }
+
+    // Listen for online/offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Listen for theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handleThemeChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      mediaQuery.removeEventListener('change', handleThemeChange);
+    };
+  }, [trackInteraction]);
 
   // Enhanced device detection and viewport management
   useEffect(() => {
@@ -185,6 +306,38 @@ function App() {
     setTimeout(() => setIsLoading(false), 1000);
   }, [lastSearch, weather]);
 
+  // Handle location permission
+  const handleLocationPermission = useCallback(async () => {
+    trackInteraction('location_change');
+    
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          enableHighAccuracy: true
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Reverse geocoding to get location name
+      const response = await fetch(
+        `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${import.meta.env.VITE_WEATHER_API_KEY}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const locationName = data[0]?.name || `${latitude}, ${longitude}`;
+        setLocation(locationName);
+        setShowWelcome(false);
+        localStorage.setItem('weather-location', locationName);
+      }
+    } catch (error) {
+      trackError(error as Error);
+      alert('Unable to get your location. Please search for a city instead.');
+    }
+  }, [trackInteraction, trackError]);
+
   // Retry functionality for errors
   const handleRetry = useCallback(() => {
     if (lastSearch && errorRetryCount < 3) {
@@ -277,369 +430,229 @@ function App() {
     { id: 'gallery', label: 'Gallery', icon: Sparkles, mobileLabel: 'Gallery' }
   ], []);
 
+  // Weather data with React Query
+  const { weather: weatherQuery, forecast: forecastQuery, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
+
+  // Initialize app
+  useEffect(() => {
+    // Track app initialization
+    trackInteraction('component_render', { timestamp: Date.now() });
+  }, [trackInteraction]);
+
+  // Error handling
+  useEffect(() => {
+    if (isError && queryError) {
+      trackError(queryError as Error);
+    }
+  }, [isError, queryError, trackError]);
+
+  // Performance monitoring
+  useEffect(() => {
+    const metrics = getMetrics();
+    if (metrics.pageLoadTime > 3000) {
+      console.warn('Slow page load detected:', metrics.pageLoadTime);
+    }
+  }, [getMetrics]);
+
   if (showWelcome) {
-    return <WelcomeScreen onSearch={handleSearch} />;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+          <Suspense fallback={<LoadingSkeleton type="hero" />}>
+            <WelcomeScreen
+              onSearch={handleSearch}
+              onLocationPermission={handleLocationPermission}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              isSearching={isLoading}
+            />
+          </Suspense>
+        </div>
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    );
   }
 
   return (
-    <div className={`app ${theme} theme-transition`} style={{ minHeight: 'calc(var(--vh, 1vh) * 100)' }}>
-      {/* Enhanced Mobile-Responsive Background */}
-      <div className={`fixed inset-0 ${weatherGradient} transition-all duration-1000 ease-in-out`}>
-        {/* Desktop/Tablet Enhanced Background Effects */}
-        {!isMobile && (
-          <>
-            <div className="pro-aurora" />
-            <div className="pro-bokeh">
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="pro-bokeh-circle"
-                  style={{
-                    width: `${Math.random() * 60 + 20}px`,
-                    height: `${Math.random() * 60 + 20}px`,
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 12}s`,
-                    animationDuration: `${Math.random() * 8 + 8}s`
-                  }}
-                />
-              ))}
-            </div>
-            <div className="pro-particles">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className="pro-particle"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 14}s`,
-                    animationDuration: `${Math.random() * 6 + 10}s`
-                  }}
-                />
-              ))}
-            </div>
-          </>
-        )}
-        
-        {/* Mobile-Optimized Background Effects */}
-        {isMobile && (
-          <>
-            <div className="aurora-enhanced opacity-30" />
-            <div className="floating-particles">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="particle"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 20}s`,
-                    animationDuration: `${Math.random() * 10 + 15}s`
-                  }}
-                />
-              ))}
-            </div>
-          </>
-        )}
-        
-        {/* Aurora and Stars - Performance optimized for mobile */}
-        <AuroraParallaxStars />
-      </div>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <div className={`min-h-screen transition-colors duration-300 ${
+          theme === 'dark' 
+            ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900' 
+            : 'bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50'
+        }`}>
+          
+          {/* Particle System Background */}
+          <Suspense fallback={null}>
+            <ParticleSystem weatherCondition={weather?.condition?.main} />
+          </Suspense>
 
-      {/* Enhanced Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Enhanced Professional Header */}
-        <header className="app-header glass-card rounded-b-3xl p-4 sm:p-6 mx-4 sm:mx-6 mt-4 sm:mt-6">
-          <div className="header-content">
-            <motion.h1 
-              className="app-title text-2xl sm:text-3xl lg:text-4xl"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <span className="title-gradient">Meteora</span>
-              <span className="weather-emoji ml-2">🌤️</span>
-            </motion.h1>
-
-            <div className="header-controls flex items-center gap-2 sm:gap-3">
-              {/* Mobile Menu Button */}
-              {isMobile && (
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="btn-primary p-3 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  aria-label="Toggle menu"
-                >
-                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
-              )}
-
-              {/* Desktop Controls */}
-              {!isMobile && (
-                <>
-                  <button
-                    onClick={toggleSound}
-                    className="btn-primary p-3 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    aria-label="Toggle sound"
-                  >
-                    {isSoundOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-                  </button>
-                  <button
-                    onClick={handleThemeToggle}
-                    className="btn-primary p-3 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    aria-label="Toggle theme"
-                  >
-                    {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="btn-primary p-3 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    aria-label="Share weather"
-                  >
-                    <Share2 className="w-5 h-5" />
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Enhanced Mobile Menu */}
-          <AnimatePresence>
-            {isMobileMenuOpen && isMobile && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 space-y-3"
+          {/* Header */}
+          <header className="relative z-10 p-4">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl font-bold text-white"
               >
-                <button
-                  onClick={toggleSound}
-                  className="btn-primary w-full justify-center py-3 min-h-[44px]"
-                >
-                  {isSoundOn ? <Volume2 className="w-4 h-4 mr-2" /> : <VolumeX className="w-4 h-4 mr-2" />}
-                  {isSoundOn ? 'Disable Sound' : 'Enable Sound'}
-                </button>
-                <button
-                  onClick={handleThemeToggle}
-                  className="btn-primary w-full justify-center py-3 min-h-[44px]"
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="btn-primary w-full justify-center py-3 min-h-[44px]"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share Weather
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </header>
+                Meteora
+              </motion.h1>
 
-        {/* Enhanced Search Bar */}
-        <div className="px-4 sm:px-6 py-4">
-          <LocationSearch 
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onSearch={handleSearch}
-            isLoading={isLoading}
-          />
-        </div>
+              {/* Online/Offline Indicator */}
+              <div className="flex items-center space-x-4">
+                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+                  isOnline 
+                    ? 'bg-green-500/20 text-green-300' 
+                    : 'bg-red-500/20 text-red-300'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full ${
+                    isOnline ? 'bg-green-400' : 'bg-red-400'
+                  }`} />
+                  <span>{isOnline ? 'Online' : 'Offline'}</span>
+                </div>
 
-        {/* Enhanced Main Container */}
-        <main className="meteora-container flex-1 px-4 sm:px-6 pb-4">
-          {/* Enhanced Mobile-Optimized Tab Navigation */}
-          <div className="weather-tabs custom-scrollbar mb-6 overflow-x-auto">
-            <div className="flex gap-2 min-w-max">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as TabType)}
-                    className={`tab-button flex items-center px-4 py-3 min-h-[44px] whitespace-nowrap ${
-                      activeTab === tab.id ? 'active' : ''
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    <span className="sm:hidden">{tab.mobileLabel}</span>
-                  </button>
-                );
-              })}
+                {/* Theme Toggle */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => {
+                    setTheme(theme === 'dark' ? 'light' : 'dark');
+                    trackInteraction('component_render', { newTheme: theme === 'dark' ? 'light' : 'dark' });
+                  }}
+                  className="p-2 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all duration-300"
+                >
+                  {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </motion.button>
+              </div>
             </div>
-          </div>
+          </header>
 
-          {/* Enhanced Tab Content */}
-          <div className="tab-content flex-1">
-            <AnimatePresence mode="wait">
-              {activeTab === 'dashboard' && weather && (
-                <motion.div
-                  key="dashboard"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  <WeatherHero weather={weather} theme={theme} />
-                  <WeatherDashboard weather={weather} forecast={forecast} />
-                </motion.div>
-              )}
-
-              {activeTab === 'forecast' && forecast && (
-                <motion.div
-                  key="forecast"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <WeatherForecast forecast={forecast} />
-                </motion.div>
-              )}
-
-              {activeTab === 'analytics' && weather && (
-                <motion.div
-                  key="analytics"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <WeatherAnalytics weather={weather} forecast={forecast} />
-                </motion.div>
-              )}
-
-              {activeTab === 'map' && (
-                <motion.div
-                  key="map"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <WeatherMap weather={weather} forecast={forecast} />
-                </motion.div>
-              )}
-
-              {activeTab === 'alerts' && (
-                <motion.div
-                  key="alerts"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="glass-card p-6 sm:p-8 text-center">
-                    <AlertTriangle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Weather Alerts</h3>
-                    <p className="text-white/70">No active alerts for your area.</p>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'insights' && weather && (
-                <motion.div
-                  key="insights"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <WeatherInsights weather={weather} forecast={forecast} />
-                </motion.div>
-              )}
-
-              {activeTab === 'gallery' && (
-                <motion.div
-                  key="gallery"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="glass-card p-6 sm:p-8 text-center">
-                    <Sparkles className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Weather Gallery</h3>
-                    <p className="text-white/70">Beautiful weather images coming soon...</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Enhanced Error State */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="glass-card p-6 sm:p-8 text-center"
-              >
-                <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Oops! Something went wrong</h3>
-                <p className="text-white/70 mb-4">{error}</p>
-                <button
-                  onClick={handleRetry}
-                  className="btn-primary py-3 px-6 min-h-[44px]"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again
-                </button>
-              </motion.div>
-            )}
-
-            {/* Enhanced Loading State */}
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="glass-card p-6 sm:p-8 text-center"
-              >
-                <div className="loading-spin w-16 h-16 border-4 border-white/20 border-t-white rounded-full mx-auto mb-4" />
-                <p className="text-white/70">Loading weather data...</p>
-              </motion.div>
-            )}
-
-            {/* Enhanced No Location State */}
-            {!location && !isLoading && !error && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
+          {/* Main Content */}
+          <main className="relative z-10 p-4" {...swipeHandlers}>
+            <div className="max-w-4xl mx-auto">
+              
+              {/* Search Bar */}
+              <motion.form 
+                initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-card p-6 sm:p-8 text-center"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSearch(searchQuery);
+                }}
+                className="mb-6"
               >
-                <Search className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Search for a Location</h3>
-                <p className="text-white/70 mb-4">Enter a city name above to get started</p>
-              </motion.div>
-            )}
-          </div>
-        </main>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search for a city..."
+                    className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-medium transition-colors duration-300 disabled:opacity-50"
+                  >
+                    {isLoading ? 'Searching...' : 'Search'}
+                  </button>
+                </div>
+              </motion.form>
 
-        {/* Enhanced Professional Footer */}
-        <footer className="app-footer px-4 sm:px-6 py-6">
-          <div className="footer-links flex justify-center gap-4 sm:gap-6">
-            <a href="#" className="footer-link text-sm sm:text-base">About</a>
-            <a href="#" className="footer-link text-sm sm:text-base">Privacy</a>
-            <a href="#" className="footer-link text-sm sm:text-base">Terms</a>
-          </div>
-        </footer>
-      </div>
+              {/* Location Display */}
+              {location && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center mb-6"
+                >
+                  <MapPin className="w-5 h-5 text-white/80 mr-2" />
+                  <span className="text-white/80 text-lg">{location}</span>
+                </motion.div>
+              )}
 
-      {/* Enhanced Toast Notifications */}
-      <Toaster
-        position={isMobile ? "top-center" : "top-right"}
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: theme === 'dark' ? '#1f2937' : '#ffffff',
-            color: theme === 'dark' ? '#ffffff' : '#1f2937',
-            border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
-            fontSize: isMobile ? '14px' : '16px',
-            padding: isMobile ? '12px 16px' : '16px 20px',
-          },
-        }}
-      />
-    </div>
+              {/* View Navigation */}
+              <div className="flex justify-center mb-6">
+                <div className="flex bg-white/10 backdrop-blur-md rounded-2xl p-1">
+                  {tabs.map(({ id, label, icon: Icon }) => (
+                    <motion.button
+                      key={id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setActiveTab(id as TabType);
+                        trackInteraction('component_render', { view: id });
+                      }}
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                        activeTab === id
+                          ? 'bg-blue-500 text-white shadow-lg'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Content Views */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Suspense fallback={<LoadingSkeleton type="hero" />}>
+                    {activeTab === 'dashboard' && weather && (
+                      <WeatherHero weather={weather} forecast={forecast} />
+                    )}
+                    
+                    {activeTab === 'forecast' && forecast && (
+                      <WeatherForecast forecast={forecast} />
+                    )}
+                    
+                    {activeTab === 'analytics' && weather && (
+                      <WeatherAnalytics weather={weather} forecast={forecast} />
+                    )}
+                    
+                    {activeTab === 'map' && weather && (
+                      <WeatherMap weather={weather} />
+                    )}
+                  </Suspense>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Error Display */}
+              {isError && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 p-4 bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-2xl text-center"
+                >
+                  <p className="text-red-300 mb-2">Failed to load weather data</p>
+                  <button
+                    onClick={() => {
+                      refetch();
+                      trackInteraction('component_render');
+                    }}
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors duration-300"
+                  >
+                    Try Again
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          </main>
+        </div>
+      </ErrorBoundary>
+      
+      {/* React Query DevTools (Development Only) */}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   );
 }
 
