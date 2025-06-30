@@ -107,7 +107,8 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
     return cached.data;
   }
   
-  const url = `${API_CONFIG.baseUrl}/weather?q=${encodeURIComponent(location)}&appid=${API_CONFIG.apiKey}&units=metric`;
+  // Use allorigins.win CORS proxy for local development
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${API_CONFIG.baseUrl}/weather?q=${encodeURIComponent(location)}&appid=${API_CONFIG.apiKey}&units=metric`)}`;
   
   try {
     const data = await fetchWithTimeout(url);
@@ -179,7 +180,8 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
 const fetchForecastData = async (location: string): Promise<ForecastData> => {
   validateEnv();
   
-  const url = `${API_CONFIG.baseUrl}/forecast?q=${encodeURIComponent(location)}&appid=${API_CONFIG.apiKey}&units=metric`;
+  // Use allorigins.win CORS proxy for local development
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${API_CONFIG.baseUrl}/forecast?q=${encodeURIComponent(location)}&appid=${API_CONFIG.apiKey}&units=metric`)}`;
   
   try {
     const data = await fetchWithTimeout(url);

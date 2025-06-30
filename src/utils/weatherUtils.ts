@@ -5,8 +5,9 @@ const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
 export const fetchWeather = async (location: string): Promise<CurrentWeatherData> => {
   try {
+    // Use allorigins.win CORS proxy for local development
     const response = await fetch(
-      `${BASE_URL}/weather?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`${BASE_URL}/weather?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`)}`
     );
     
     if (!response.ok) {
@@ -50,8 +51,9 @@ export const fetchWeather = async (location: string): Promise<CurrentWeatherData
 
 export const fetchForecast = async (location: string): Promise<ForecastData> => {
   try {
+    // Use allorigins.win CORS proxy for local development
     const response = await fetch(
-      `${BASE_URL}/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`${BASE_URL}/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`)}`
     );
     
     if (!response.ok) {
