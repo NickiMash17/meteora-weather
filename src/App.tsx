@@ -154,7 +154,7 @@ function App() {
     { id: 'insights', label: 'Insights', icon: Sparkles },
     { id: 'gallery', label: 'Gallery', icon: Image }
   ];
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState('Paris');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [theme, setTheme] = useState<'light' | 'dark'>(getSystemTheme());
@@ -192,6 +192,10 @@ function App() {
     if (savedLocation) {
       setLocation(savedLocation);
       setShowWelcome(false);
+    } else {
+      // If no saved location, set default and show main app
+      setLocation('Paris');
+      setShowWelcome(false); // Show main app with default location
     }
 
     // Listen for online/offline status
@@ -471,9 +475,8 @@ function App() {
 
   // Debug logging for weather and error state
   useEffect(() => {
-    console.log('Weather:', weather);
-    console.log('Error:', queryError);
-  }, [weather, queryError]);
+    // Removed debugging logs for cleaner console
+  }, [weather, queryError, location, isLoadingQuery]);
 
   // On mount, load accent color from localStorage
   useEffect(() => {
