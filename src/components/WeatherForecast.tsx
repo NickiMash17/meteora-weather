@@ -123,10 +123,7 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="text-center sm:text-left">
                     <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">
-                      {getDayName(day.timestamp)}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                      {formatDate(day.timestamp)}
+                      {day.date && day.date !== 'Invalid Date' ? day.date : 'N/A'}
                     </p>
                   </div>
                   
@@ -134,10 +131,10 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                     {getWeatherIcon(day.condition.main)}
                     <div>
                       <p className="text-gray-900 dark:text-white capitalize text-sm sm:text-base font-medium">
-                        {day.condition.description}
+                        {day.condition.description || 'N/A'}
                       </p>
                       <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                        {Math.round(day.precipitation)}% rain
+                        {typeof day.precipitation === 'number' && !isNaN(day.precipitation) ? day.precipitation : '--'}% rain
                       </p>
                     </div>
                   </div>
@@ -148,13 +145,13 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                     <div className="flex items-center gap-2">
                       <Thermometer className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                       <span className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">
-                        {Math.round(day.temperature.max)}°
+                        {typeof day.temperature.max === 'number' && !isNaN(day.temperature.max) ? day.temperature.max : '--'}°
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Thermometer className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                       <span className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-                        {Math.round(day.temperature.min)}°
+                        {typeof day.temperature.min === 'number' && !isNaN(day.temperature.min) ? day.temperature.min : '--'}°
                       </span>
                     </div>
                   </div>
@@ -163,13 +160,13 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                     <div className="flex items-center gap-1">
                       <Droplets className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
                       <span className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                        {day.humidity}%
+                        {typeof day.humidity === 'number' && !isNaN(day.humidity) ? day.humidity : '--'}%
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
                       <span className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                        {Math.round(day.wind.speed)} km/h
+                        {typeof day.wind.speed === 'number' && !isNaN(day.wind.speed) ? day.wind.speed : '--'} km/h
                       </span>
                     </div>
                   </div>

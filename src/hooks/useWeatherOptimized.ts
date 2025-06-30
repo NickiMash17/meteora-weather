@@ -41,6 +41,7 @@ interface ForecastData {
     wind: {
       speed: number;
     };
+    precipitation: number | null;
   }>;
   hourly: Array<{
     time: string;
@@ -48,6 +49,7 @@ interface ForecastData {
     condition: {
       main: string;
     };
+    precipitation: number | null;
   }>;
 }
 
@@ -196,12 +198,11 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
 // Fetch forecast data
 const fetchForecastData = async (location: string): Promise<ForecastData> => {
   validateEnv();
-  
   // Use local backend proxy for forecast
   const url = `http://localhost:3001/api/forecast?q=${encodeURIComponent(location)}`;
-  
   try {
     const data = await fetchWithTimeout(url);
+    console.log('Forecast API raw data:', data); // Debug
     if (!data || !data.list) {
       try {
         const response = await fetch(url);
@@ -213,38 +214,37 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
       console.error('Forecast API returned unexpected data:', data);
       throw new Error('Forecast API returned unexpected data');
     }
-    
     // Process daily forecast
     const dailyData = data.list.filter((item: any, index: number) => index % 8 === 0);
+    console.log('Daily data for mapping:', dailyData); // Debug
     const daily = dailyData.slice(0, 7).map((item: any) => ({
-      date: new Date(item.dt * 1000).toLocaleDateString(),
+      date: item.dt ? new Date(item.dt * 1000).toLocaleDateString() : 'N/A',
       temperature: {
-        min: Math.round(item.main.temp_min),
-        max: Math.round(item.main.temp_max),
+        min: typeof item.main?.temp_min === 'number' ? Math.round(item.main.temp_min) : null,
+        max: typeof item.main?.temp_max === 'number' ? Math.round(item.main.temp_max) : null,
       },
       condition: {
-        main: item.weather[0].main,
-        description: item.weather[0].description,
+        main: item.weather?.[0]?.main || 'N/A',
+        description: item.weather?.[0]?.description || 'N/A',
       },
-      humidity: item.main.humidity,
+      humidity: typeof item.main?.humidity === 'number' ? item.main.humidity : null,
       wind: {
-        speed: Math.round(item.wind.speed * 3.6),
+        speed: typeof item.wind?.speed === 'number' ? Math.round(item.wind.speed * 3.6) : null,
       },
+      precipitation: typeof item.pop === 'number' ? Math.round(item.pop * 100) : null,
     }));
-    
     // Process hourly forecast
     const hourly = data.list.slice(0, 24).map((item: any) => ({
-      time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      temperature: Math.round(item.main.temp),
+      time: item.dt ? new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+      temperature: typeof item.main?.temp === 'number' ? Math.round(item.main.temp) : null,
       condition: {
-        main: item.weather[0].main,
+        main: item.weather?.[0]?.main || 'N/A',
       },
+      precipitation: typeof item.pop === 'number' ? Math.round(item.pop * 100) : null,
     }));
-    
     return { daily, hourly };
   } catch (error) {
     console.error('Forecast API error:', error);
-    
     // Always return fallback data for any error
     console.warn('Forecast API failed, using fallback data for demo');
     return {
@@ -255,6 +255,7 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           condition: { main: 'Clear', description: 'clear sky' },
           humidity: 60,
           wind: { speed: 10 },
+          precipitation: 0,
         },
         {
           date: new Date(Date.now() + 48 * 60 * 60 * 1000).toLocaleDateString(),
@@ -262,6 +263,7 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           condition: { main: 'Clouds', description: 'scattered clouds' },
           humidity: 70,
           wind: { speed: 15 },
+          precipitation: 0,
         },
         {
           date: new Date(Date.now() + 72 * 60 * 60 * 1000).toLocaleDateString(),
@@ -269,14 +271,15 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           condition: { main: 'Rain', description: 'light rain' },
           humidity: 80,
           wind: { speed: 20 },
+          precipitation: 0,
         },
       ],
       hourly: [
-        { time: '12:00', temperature: 22, condition: { main: 'Clear' } },
-        { time: '13:00', temperature: 23, condition: { main: 'Clear' } },
-        { time: '14:00', temperature: 24, condition: { main: 'Clear' } },
-        { time: '15:00', temperature: 23, condition: { main: 'Clouds' } },
-        { time: '16:00', temperature: 21, condition: { main: 'Clouds' } },
+        { time: '12:00', temperature: 22, condition: { main: 'Clear' }, precipitation: 0 },
+        { time: '13:00', temperature: 23, condition: { main: 'Clear' }, precipitation: 0 },
+        { time: '14:00', temperature: 24, condition: { main: 'Clear' }, precipitation: 0 },
+        { time: '15:00', temperature: 23, condition: { main: 'Clouds' }, precipitation: 0 },
+        { time: '16:00', temperature: 21, condition: { main: 'Clouds' }, precipitation: 0 },
       ],
     };
   }
