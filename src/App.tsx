@@ -144,6 +144,15 @@ function resetAccentColor() {
 }
 
 function App() {
+  const tabList = [
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'forecast', label: 'Forecast', icon: Calendar },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'map', label: 'Map', icon: Globe },
+    { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
+    { id: 'insights', label: 'Insights', icon: Sparkles },
+    { id: 'gallery', label: 'Gallery', icon: Image }
+  ];
   const [location, setLocation] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -160,6 +169,8 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  // Fix: showTooltip state for each tab, not inside map
+  const [showTooltips, setShowTooltips] = useState(() => Array(tabList.length).fill(false));
 
   // Weather data with React Query
   const { weather, forecast, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
@@ -493,16 +504,6 @@ function App() {
     return alerts;
   }
 
-  const tabList = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'forecast', label: 'Forecast', icon: Calendar },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'map', label: 'Map', icon: Globe },
-    { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
-    { id: 'insights', label: 'Insights', icon: Sparkles },
-    { id: 'gallery', label: 'Gallery', icon: Image }
-  ];
-
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   if (showWelcome) {
@@ -564,7 +565,8 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app ${theme} min-h-screen min-h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+      <div className={`app ${theme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+        <div className="glass-overlay" aria-hidden="true" />
         <Toaster 
           position="top-right"
           toastOptions={{
@@ -687,14 +689,14 @@ function App() {
               </div>
             </motion.header>
 
-            {/* Enhanced Navigation Tabs */}
+            {/* Enhanced Navigation Tabs - Premium Glassy Pill Nav */}
             <motion.nav
-              className="weather-tabs flex flex-wrap gap-2 sm:gap-3 mt-6 mb-8"
+              className="weather-tabs-nav fixed left-1/2 bottom-6 z-30 -translate-x-1/2 px-2 py-2 sm:px-4 sm:py-3 bg-white/20 dark:bg-gray-900/40 backdrop-blur-2xl rounded-full shadow-2xl border border-white/30 dark:border-gray-700/40 flex gap-2 sm:gap-3 items-center justify-center max-w-full w-[98vw] sm:w-auto glassy-nav-glow"
               role="tablist"
               aria-label="Main navigation tabs"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
             >
               {tabList.map((tab, idx) => {
                 const isActive = activeTab === tab.id;
@@ -757,8 +759,7 @@ function App() {
                     );
                   }
                 }
-                // Tooltip logic
-                const [showTooltip, setShowTooltip] = React.useState(false);
+                // Tooltip logic (moved out of map)
                 const tooltipContent = Math.random() < 0.5
                   ? tabDescriptions[tab.id as keyof typeof tabDescriptions]
                   : weatherFacts[Math.floor(Math.random() * weatherFacts.length)];
@@ -766,7 +767,7 @@ function App() {
                   <motion.button
                     key={tab.id}
                     ref={el => tabRefs.current[idx] = el}
-                    className={`tab-button flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm sm:text-base relative focus-visible:outline-4 focus-visible:outline-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:z-20`}
+                    className={`tab-button flex flex-col items-center gap-1 px-3 sm:px-5 py-2 sm:py-3 font-semibold text-sm sm:text-base relative focus-visible:outline-4 focus-visible:outline-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:z-20 transition-all duration-300 rounded-full group ${isActive ? 'text-white dark:text-blue-200' : 'text-blue-900 dark:text-blue-200/80'}`}
                     id={`tab-${tab.id}`}
                     role="tab"
                     tabIndex={0}
@@ -776,12 +777,12 @@ function App() {
                       setActiveTab(tab.id as TabType);
                       trackInteraction('component_render', { tab: tab.id });
                     }}
-                    whileHover={{ scale: 1.06 }}
-                    whileTap={{ scale: 0.98 }}
-                    onMouseEnter={() => setShowTooltip(true)}
-                    onMouseLeave={() => setShowTooltip(false)}
-                    onFocus={() => setShowTooltip(true)}
-                    onBlur={() => setShowTooltip(false)}
+                    whileHover={{ scale: 1.09 }}
+                    whileTap={{ scale: 0.97 }}
+                    onMouseEnter={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? true : v))}
+                    onMouseLeave={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? false : v))}
+                    onFocus={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? true : v))}
+                    onBlur={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? false : v))}
                     onKeyDown={e => {
                       if (e.key === 'ArrowRight') {
                         e.preventDefault();
@@ -797,9 +798,9 @@ function App() {
                       }
                     }}
                   >
-                    <span className="relative">
+                    <span className="relative flex flex-col items-center">
                       <motion.span
-                        className="inline-flex"
+                        className={`inline-flex shadow-lg ${isActive ? 'glow-icon' : ''}`}
                         animate={isActive ? { scale: [1, 1.18, 0.95, 1.1, 1] } : { scale: 1 }}
                         transition={isActive ? { duration: 0.7, times: [0, 0.2, 0.5, 0.8, 1], repeat: Infinity, repeatType: 'loop' } : {}}
                       >
@@ -807,23 +808,34 @@ function App() {
                           animationData={tabLottieMap[tab.id as keyof typeof tabLottieMap]}
                           loop={true}
                           autoplay={isActive}
-                          style={{ width: 32, height: 32, marginRight: 4 }}
+                          style={{ width: 32, height: 32, marginRight: 0 }}
                           rendererSettings={{ preserveAspectRatio: 'xMidYMid slice' }}
                         />
                       </motion.span>
                       {alertBadge}
+                      {/* Glowing animated underline for active tab */}
+                      {isActive && (
+                        <motion.span
+                          layoutId="nav-underline"
+                          className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-2 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-teal-400 blur-sm opacity-80 shadow-xl animate-pulse"
+                          initial={{ scaleX: 0.7, opacity: 0 }}
+                          animate={{ scaleX: 1, opacity: 1 }}
+                          exit={{ scaleX: 0.7, opacity: 0 }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      )}
                     </span>
-                    <span className="inline">{tab.label}</span>
+                    <span className="inline mt-1 drop-shadow-sm">{tab.label}</span>
                     {microStat}
                     {/* Tooltip */}
                     <AnimatePresence>
-                      {showTooltip && (
+                      {showTooltips[idx] && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
                           transition={{ duration: 0.25 }}
-                          className="absolute left-1/2 -translate-x-1/2 -top-10 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg z-50 whitespace-nowrap pointer-events-none"
+                          className="absolute left-1/2 -translate-x-1/2 -top-12 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg z-50 whitespace-nowrap pointer-events-none"
                           role="tooltip"
                         >
                           {tooltipContent}
@@ -930,7 +942,7 @@ function App() {
         {import.meta.env.DEV && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}
-    </div>
+      </div>
     </QueryClientProvider>
   );
 }

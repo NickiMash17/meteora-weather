@@ -35,11 +35,15 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
       opacity: number;
       color: string;
       type: string;
+      canvas: HTMLCanvasElement | null;
+      ctx: CanvasRenderingContext2D | null;
 
-      constructor(x: number, y: number, type: string) {
+      constructor(x: number, y: number, type: string, canvas: HTMLCanvasElement | null, ctx: CanvasRenderingContext2D | null) {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.canvas = canvas;
+        this.ctx = ctx;
         
         switch (type) {
           case 'rain':
@@ -80,14 +84,15 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
       }
 
       update() {
+        if (!this.canvas) return;
         this.x += this.vx;
         this.y += this.vy;
 
         // Wrap around edges
-        if (this.x < 0) this.x = canvas.width;
-        if (this.x > canvas.width) this.x = 0;
-        if (this.y < 0) this.y = canvas.height;
-        if (this.y > canvas.height) this.y = 0;
+        if (this.x < 0) this.x = this.canvas.width;
+        if (this.x > this.canvas.width) this.x = 0;
+        if (this.y < 0) this.y = this.canvas.height;
+        if (this.y > this.canvas.height) this.y = 0;
 
         // Fade out for rain and snow
         if (this.type === 'rain' || this.type === 'snow') {
@@ -95,50 +100,51 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
           if (this.opacity <= 0) {
             this.opacity = Math.random() * 0.6 + 0.4;
             this.y = -10;
-            this.x = Math.random() * canvas.width;
+            this.x = Math.random() * this.canvas.width;
           }
         }
       }
 
       draw() {
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = this.color;
+        if (!this.ctx) return;
+        this.ctx.save();
+        this.ctx.globalAlpha = this.opacity;
+        this.ctx.fillStyle = this.color;
 
         switch (this.type) {
           case 'rain':
-            ctx.fillRect(this.x, this.y, 1, this.size * 3);
+            this.ctx.fillRect(this.x, this.y, 1, this.size * 3);
             break;
           case 'snow':
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            this.ctx.fill();
             break;
           case 'dust':
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            this.ctx.fill();
             break;
           case 'sparkle':
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            this.ctx.fill();
             // Add sparkle effect
-            ctx.strokeStyle = this.color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(this.x - this.size * 2, this.y);
-            ctx.lineTo(this.x + this.size * 2, this.y);
-            ctx.moveTo(this.x, this.y - this.size * 2);
-            ctx.lineTo(this.x, this.y + this.size * 2);
-            ctx.stroke();
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.x - this.size * 2, this.y);
+            this.ctx.lineTo(this.x + this.size * 2, this.y);
+            this.ctx.moveTo(this.x, this.y - this.size * 2);
+            this.ctx.lineTo(this.x, this.y + this.size * 2);
+            this.ctx.stroke();
             break;
           default:
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            this.ctx.fill();
         }
-        ctx.restore();
+        this.ctx.restore();
       }
     }
 
@@ -154,7 +160,9 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
         particles.push(new Particle(
           Math.random() * canvas.width,
           Math.random() * canvas.height,
-          'rain'
+          'rain',
+          canvas,
+          ctx
         ));
       }
     } else if (condition.includes('snow')) {
@@ -162,7 +170,9 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
         particles.push(new Particle(
           Math.random() * canvas.width,
           Math.random() * canvas.height,
-          'snow'
+          'snow',
+          canvas,
+          ctx
         ));
       }
     } else if (condition.includes('clear') && isDaytime) {
@@ -170,7 +180,9 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
         particles.push(new Particle(
           Math.random() * canvas.width,
           Math.random() * canvas.height,
-          'sparkle'
+          'sparkle',
+          canvas,
+          ctx
         ));
       }
     }
@@ -180,7 +192,9 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ weather, theme }) => {
       particles.push(new Particle(
         Math.random() * canvas.width,
         Math.random() * canvas.height,
-        'dust'
+        'dust',
+        canvas,
+        ctx
       ));
     }
 
