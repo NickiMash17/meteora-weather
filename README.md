@@ -122,6 +122,21 @@ Playwright        # E2E testing
    # Application will be available at http://localhost:5173
    ```
 
+5. **Backend API Server** (Required for weather data)
+   ```bash
+   # In a separate terminal
+   npm run server
+   # Weather API proxy will be available at http://localhost:3001
+   ```
+
+**Alternative: Start Both Servers Together**
+   ```bash
+   npm run dev:full
+   # This starts both frontend and backend servers concurrently
+   ```
+
+**Note**: Both the frontend (port 5173) and backend (port 3001) servers need to be running for the weather app to function properly.
+
 ### Build & Deploy
 ```bash
 # Production build

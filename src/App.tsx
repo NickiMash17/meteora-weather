@@ -858,11 +858,41 @@ function App() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="weather-content grid gap-6 lg:gap-8"
+                  className="weather-content grid gap-8 lg:gap-12 xl:gap-16 grid-cols-1 lg:grid-cols-3 px-2 sm:px-4 md:px-8 xl:px-16 py-6"
                 >
                   {/* Dashboard Tab */}
                   {activeTab === 'dashboard' && (
                     <>
+                      {/* Greeting */}
+                      <div className="lg:col-span-3 mb-4">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-200 mb-2">
+                          {(() => {
+                            const hour = new Date().getHours();
+                            const name = 'Nicolette'; // Personalize here or fetch from user profile
+                            if (hour < 12) return `Good morning, ${name}!`;
+                            if (hour < 18) return `Good afternoon, ${name}!`;
+                            return `Good evening, ${name}!`;
+                          })()}
+                        </h2>
+                        <p className="text-base sm:text-lg text-blue-700 dark:text-blue-300 font-medium mb-1">Here's your personalized weather dashboard.</p>
+                        {/* Rotating Weather Fact/Tip */}
+                        <span className="inline-block bg-white/40 dark:bg-gray-900/40 rounded-lg px-4 py-2 text-blue-800 dark:text-blue-200 text-sm font-semibold shadow-sm animate-fade-in mt-1">
+                          {(() => {
+                            const facts = [
+                              'Tip: Tap any card for more details!',
+                              'Did you know? Snowflakes always have six sides.',
+                              'Raindrops can fall at speeds of about 22 mph.',
+                              'The highest temp ever recorded was 56.7°C in Death Valley.',
+                              'Fog is actually a cloud that touches the ground.',
+                              'Hurricanes can release the energy of 10,000 nuclear bombs.',
+                              'Clouds look white because they reflect sunlight.',
+                              'The wettest place on Earth is Mawsynram, India.'
+                            ];
+                            const idx = Math.floor((Date.now() / 5000) % facts.length);
+                            return facts[idx];
+                          })()}
+                        </span>
+                      </div>
                       {/* Weather Hero */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -870,11 +900,10 @@ function App() {
                         transition={{ duration: 0.6 }}
                         className="lg:col-span-2"
                       >
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton />}> 
                           <WeatherHero weather={weather} theme={theme} />
                         </Suspense>
                       </motion.div>
-
                       {/* Weather Forecast */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -882,7 +911,7 @@ function App() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="lg:col-span-1"
                       >
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton />}> 
                           <WeatherForecast forecast={forecast} />
                         </Suspense>
                       </motion.div>
