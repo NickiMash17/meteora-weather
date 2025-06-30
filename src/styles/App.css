@@ -4,7 +4,7 @@
   --primary-light: #3b82f6;
   --secondary-light: #1e40af;
   --accent-light: #06b6d4;
-  --background-light: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --background-light: linear-gradient(135deg, #e0e7ff 0%, #bae6fd 40%, #7dd3fc 80%, #6366f1 100%);
   --card-bg-light: rgba(255, 255, 255, 0.95);
   --text-primary-light: #1e293b;
   --text-secondary-light: #475569;
@@ -14,7 +14,7 @@
   --primary-dark: #8b5cf6;
   --secondary-dark: #7c3aed;
   --accent-dark: #06b6d4;
-  --background-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  --background-dark: linear-gradient(135deg, #0f172a 0%, #312e81 60%, #334155 100%);
   --card-bg-dark: rgba(30, 41, 59, 0.9);
   --text-primary-dark: #f8fafc;
   --text-secondary-dark: #cbd5e1;
@@ -71,7 +71,7 @@ body {
 }
 
 .app.light {
-  background: linear-gradient(135deg, #e0e7ff 0%, #bae6fd 40%, #7dd3fc 80%, #6366f1 100%);
+  background: var(--background-light);
   color: #1e293b;
   position: relative;
   background-size: 400% 400%;
@@ -83,69 +83,51 @@ body {
   display: none !important; /* Remove all overlays */
 }
 
-/* Beautiful Weather-Themed Background */
-.app.light::before {
+/* Weather/Night Gradients - visually distinct */
+.night-gradient {
+  background: linear-gradient(135deg, #181c2f 0%, #232946 60%, #3a3f5a 100%) !important;
+}
+.night-sunny-gradient {
+  background: linear-gradient(135deg, #232946 0%, #3a3f5a 60%, #4f5d75 100%) !important;
+}
+.night-cloudy-gradient {
+  background: linear-gradient(135deg, #232946 0%, #4f5d75 60%, #6c7a89 100%) !important;
+}
+.night-rainy-gradient {
+  background: linear-gradient(135deg, #232946 0%, #3a3f5a 60%, #2c3e50 100%) !important;
+}
+.sunny-gradient {
+  background: linear-gradient(135deg, #fef9c3 0%, #fcd34d 60%, #fbbf24 100%) !important;
+}
+.cloudy-gradient {
+  background: linear-gradient(135deg, #e0e7ef 0%, #cbd5e1 60%, #b6c2d1 100%) !important;
+}
+.rainy-gradient {
+  background: linear-gradient(135deg, #bae6fd 0%, #38bdf8 60%, #0ea5e9 100%) !important;
+}
+.stormy-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #312e81 60%, #0f172a 100%) !important;
+}
+.snowy-gradient {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e0e7ef 60%, #cbd5e1 100%) !important;
+}
+
+/* Only one gradient should be active at a time (handled by App.tsx class logic) */
+
+/* Glass overlays and cards - theme aware, semi-transparent */
+.glass-overlay {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 80% 30%, rgba(186, 230, 253, 0.3) 0%, transparent 40%),
-    radial-gradient(circle at 40% 70%, rgba(125, 211, 252, 0.2) 0%, transparent 30%),
-    radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.15) 0%, transparent 35%),
-    url('data:image/svg+xml;utf8,<svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="30" rx="60" ry="20" fill="%23bae6fd" fill-opacity="0.18"/><ellipse cx="30" cy="50" rx="20" ry="8" fill="%237dd3fc" fill-opacity="0.12"/><ellipse cx="90" cy="40" rx="25" ry="10" fill="%2338bdf8" fill-opacity="0.10"/></svg>');
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  z-index: 2;
   pointer-events: none;
-  z-index: 0;
-  animation: gentleFloat 25s ease-in-out infinite;
-  opacity: 0.9;
+}
+.app.dark .glass-overlay {
+  background: rgba(30,41,59,0.18);
 }
 
-.app.light::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-  animation: subtleFloat 40s linear infinite;
-  opacity: 0.7;
-}
-
-@keyframes gentleFloat {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  25% { transform: translateY(-8px) translateX(5px); }
-  50% { transform: translateY(-5px) translateX(-3px); }
-  75% { transform: translateY(-10px) translateX(2px); }
-}
-
-@keyframes subtleFloat {
-  0% { transform: translateY(0px); }
-  100% { transform: translateY(-100px); }
-}
-
-.light .weather-details, 
-.light .forecast-container {
-  color: var(--text-primary-light);
-  background: var(--card-bg-light);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: var(--shadow-light);
-}
-
-.app.dark {
-  background: linear-gradient(135deg, #0f172a 0%, #312e81 60%, #334155 100%);
-  color: #f8fafc;
-  background-size: 400% 400%;
-  animation: gradient-shift 18s ease-in-out infinite;
-}
-
-/* Premium Glassmorphic Card Styles */
 .weather-card,
 .forecast-card,
 .detail-card,
@@ -168,20 +150,34 @@ body {
   position: relative;
   overflow: hidden;
 }
+.app.dark .weather-card,
+.app.dark .forecast-card,
+.app.dark .detail-card,
+.app.dark .stat-card,
+.app.dark .weather-alerts,
+.app.dark .weather-analytics,
+.app.dark .weather-insights,
+.app.dark .insight-card,
+.app.dark .chart-container,
+.app.dark .forecast-container,
+.app.dark .current-weather {
+  background: rgba(30, 41, 59, 0.82);
+  color: #f8fafc;
+  border: 2px solid rgba(124, 58, 237, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(124, 58, 237, 0.18), 0 2px 8px 0 rgba(56,189,248,0.10);
+}
 
-.weather-card:hover,
-.forecast-card:hover,
-.detail-card:hover,
-.stat-card:hover,
-.weather-alerts:hover,
-.weather-analytics:hover,
-.weather-insights:hover,
-.insight-card:hover,
-.chart-container:hover,
-.forecast-container:hover,
-.current-weather:hover {
-  transform: scale(1.025) rotateZ(-0.5deg);
-  box-shadow: 0 20px 56px 0 rgba(56,189,248,0.18), 0 6px 18px 0 rgba(124,58,237,0.10);
+/* Nav glass style */
+.glassy-nav-glow {
+  background: rgba(255,255,255,0.22);
+  box-shadow: 0 8px 32px 0 rgba(58, 97, 255, 0.18), 0 1.5px 12px 0 rgba(164, 89, 255, 0.12);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+.app.dark .glassy-nav-glow {
+  background: rgba(24, 24, 40, 0.55);
+  box-shadow: 0 8px 32px 0 rgba(58, 97, 255, 0.22), 0 1.5px 12px 0 rgba(164, 89, 255, 0.18);
+  border: 1.5px solid rgba(60,60,80,0.22);
 }
 
 /* Animated accent border for active/selected card */
