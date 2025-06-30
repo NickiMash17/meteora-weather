@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, 
@@ -236,7 +236,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
     }
   };
 
-  return (
+    return (
     <div className="space-y-6">
       {/* Map Controls */}
       <motion.div
@@ -368,7 +368,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
       {/* Legend */}
       <AnimatePresence>
         {showLegend && (
-          <motion.div
+    <motion.div
             className="glass-card p-4 rounded-2xl"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -396,11 +396,11 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
               setTimeout(() => setIsLoading(false), 1000);
             }}
           >
-            <div className="text-center">
+              <div className="text-center">
               <div className="loading-spin w-8 h-8 border-2 border-white/20 border-t-white rounded-full mx-auto mb-2" />
               <p className="text-white/80 text-sm">Updating map...</p>
-            </div>
-          </motion.div>
+      </div>
+    </motion.div>
         )}
       </AnimatePresence>
     </div>

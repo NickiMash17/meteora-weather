@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
   Sun, 
@@ -11,9 +11,6 @@ import {
   Thermometer,
   Droplets,
   Eye,
-  Zap,
-  Sparkles,
-  Star,
   Compass
 } from 'lucide-react';
 
@@ -53,20 +50,20 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
     const isDaytime = hour >= 6 && hour < 18;
 
     if (!isDaytime) {
-      if (condition.includes('clear')) return <Moon className="w-32 h-32 text-yellow-200" />;
-      if (condition.includes('cloud')) return <Cloud className="w-32 h-32 text-gray-300" />;
-      if (condition.includes('rain')) return <CloudRain className="w-32 h-32 text-blue-300" />;
-      if (condition.includes('thunderstorm')) return <CloudLightning className="w-32 h-32 text-purple-300" />;
-      if (condition.includes('snow')) return <Snowflake className="w-32 h-32 text-blue-200" />;
-      return <Moon className="w-32 h-32 text-yellow-200" />;
+      if (condition.includes('clear')) return <Moon className="w-24 h-24 sm:w-32 sm:h-32 text-yellow-200 drop-shadow-lg" />;
+      if (condition.includes('cloud')) return <Cloud className="w-24 h-24 sm:w-32 sm:h-32 text-gray-300 drop-shadow-lg" />;
+      if (condition.includes('rain')) return <CloudRain className="w-24 h-24 sm:w-32 sm:h-32 text-blue-300 drop-shadow-lg" />;
+      if (condition.includes('thunderstorm')) return <CloudLightning className="w-24 h-24 sm:w-32 sm:h-32 text-purple-300 drop-shadow-lg" />;
+      if (condition.includes('snow')) return <Snowflake className="w-24 h-24 sm:w-32 sm:h-32 text-blue-200 drop-shadow-lg" />;
+      return <Moon className="w-24 h-24 sm:w-32 sm:h-32 text-yellow-200 drop-shadow-lg" />;
     }
 
-    if (condition.includes('clear')) return <Sun className="w-32 h-32 text-yellow-400" />;
-    if (condition.includes('cloud')) return <Cloud className="w-32 h-32 text-gray-400" />;
-    if (condition.includes('rain')) return <CloudRain className="w-32 h-32 text-blue-400" />;
-    if (condition.includes('thunderstorm')) return <CloudLightning className="w-32 h-32 text-purple-400" />;
-    if (condition.includes('snow')) return <Snowflake className="w-32 h-32 text-blue-300" />;
-    return <Sun className="w-32 h-32 text-yellow-400" />;
+    if (condition.includes('clear')) return <Sun className="w-24 h-24 sm:w-32 sm:h-32 text-yellow-400 drop-shadow-lg" />;
+    if (condition.includes('cloud')) return <Cloud className="w-24 h-24 sm:w-32 sm:h-32 text-gray-400 drop-shadow-lg" />;
+    if (condition.includes('rain')) return <CloudRain className="w-24 h-24 sm:w-32 sm:h-32 text-blue-400 drop-shadow-lg" />;
+    if (condition.includes('thunderstorm')) return <CloudLightning className="w-24 h-24 sm:w-32 sm:h-32 text-purple-400 drop-shadow-lg" />;
+    if (condition.includes('snow')) return <Snowflake className="w-24 h-24 sm:w-32 sm:h-32 text-blue-300 drop-shadow-lg" />;
+    return <Sun className="w-24 h-24 sm:w-32 sm:h-32 text-yellow-400 drop-shadow-lg" />;
   };
 
   const getWeatherParticles = () => {
@@ -145,7 +142,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
 
   return (
     <motion.div
-      className="relative overflow-hidden rounded-3xl glass-card p-8"
+      className="relative overflow-hidden rounded-3xl glass-card p-6 sm:p-8 w-full max-w-4xl mx-auto"
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
@@ -158,7 +155,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
     >
       {/* 3D Weather Icon */}
       <motion.div
-        className="relative z-10 flex justify-center items-center mb-6"
+        className="relative z-10 flex justify-center items-center mb-6 sm:mb-8"
         style={{
           rotateX: springRotateX,
           rotateY: springRotateY,
@@ -188,122 +185,95 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
 
       {/* Temperature Display */}
       <motion.div
-        className="text-center mb-6"
+        className="text-center mb-6 sm:mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
         <motion.div
-          className="text-6xl font-bold text-white mb-2"
+          className="text-4xl sm:text-6xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-4"
           animate={{ scale: isHovered ? 1.1 : 1 }}
           transition={{ duration: 0.3 }}
         >
-          {weather?.temperature?.current}°
+          {weather?.temperature?.current || '--'}°
         </motion.div>
-        <div className="text-xl text-white/80 font-medium">
-          {weather?.condition?.description}
-        </div>
+        
+        <motion.div
+          className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-medium capitalize"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          {weather?.condition?.description || 'Weather condition'}
+        </motion.div>
+        
+        <motion.div
+          className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          Feels like {weather?.temperature?.feelsLike || '--'}°
+        </motion.div>
       </motion.div>
 
-      {/* Weather Stats Grid */}
+      {/* Weather Details Grid */}
       <motion.div
-        className="grid grid-cols-2 gap-4"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.8 }}
       >
-        <motion.div
-          className="flex items-center justify-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm"
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-          transition={{ duration: 0.2 }}
-        >
-          <Thermometer className="w-6 h-6 text-red-400 mr-3" />
-          <div>
-            <div className="text-sm text-white/60">Feels Like</div>
-            <div className="text-lg font-semibold text-white">
-              {weather?.temperature?.feels_like}°
-            </div>
-          </div>
-        </motion.div>
+        {/* Humidity */}
+        <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
+          <Droplets className="w-6 h-6 text-blue-400 mb-2" />
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Humidity</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">
+            {weather?.humidity || '--'}%
+          </span>
+        </div>
 
-        <motion.div
-          className="flex items-center justify-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm"
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-          transition={{ duration: 0.2 }}
-        >
-          <Droplets className="w-6 h-6 text-blue-400 mr-3" />
-          <div>
-            <div className="text-sm text-white/60">Humidity</div>
-            <div className="text-lg font-semibold text-white">
-              {weather?.humidity}%
-            </div>
-          </div>
-        </motion.div>
+        {/* Wind */}
+        <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
+          <Wind className="w-6 h-6 text-green-400 mb-2" />
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Wind</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">
+            {weather?.wind?.speed || '--'} km/h
+          </span>
+        </div>
 
-        <motion.div
-          className="flex items-center justify-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm"
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-          transition={{ duration: 0.2 }}
-        >
-          <Wind className="w-6 h-6 text-green-400 mr-3" />
-          <div>
-            <div className="text-sm text-white/60">Wind</div>
-            <div className="text-lg font-semibold text-white">
-              {weather?.wind?.speed} km/h
-            </div>
-          </div>
-        </motion.div>
+        {/* Visibility */}
+        <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
+          <Eye className="w-6 h-6 text-purple-400 mb-2" />
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Visibility</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">
+            {weather?.visibility || '--'} km
+          </span>
+        </div>
 
-        <motion.div
-          className="flex items-center justify-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm"
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-          transition={{ duration: 0.2 }}
-        >
-          <Eye className="w-6 h-6 text-purple-400 mr-3" />
-          <div>
-            <div className="text-sm text-white/60">Visibility</div>
-            <div className="text-lg font-semibold text-white">
-              {weather?.visibility} km
-            </div>
-          </div>
-        </motion.div>
+        {/* Pressure */}
+        <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
+          <Thermometer className="w-6 h-6 text-red-400 mb-2" />
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Pressure</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">
+            {weather?.pressure || '--'} hPa
+          </span>
+        </div>
       </motion.div>
 
-      {/* Location and Time */}
+      {/* Location Info */}
       <motion.div
-        className="text-center mt-6"
+        className="text-center mt-6 sm:mt-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 1.0 }}
       >
-        <div className="text-2xl font-bold text-white mb-2">
-          {weather?.location}
+        <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300">
+          <Compass className="w-4 h-4" />
+          <span className="text-sm sm:text-base font-medium">
+            {weather?.location || 'Location not available'}
+          </span>
         </div>
-        <div className="text-white/70">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </div>
-      </motion.div>
-
-      {/* Floating Elements */}
-      <motion.div
-        className="absolute top-4 right-4"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      >
-        <Sparkles className="w-8 h-8 text-yellow-400 opacity-60" />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-4 left-4"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Star className="w-6 h-6 text-blue-400 opacity-60" />
       </motion.div>
     </motion.div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -29,9 +29,9 @@ interface Alert {
 }
 
 const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts, setAlerts] = React.useState<Alert[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!weather) return;
 
     const newAlerts: Alert[] = [];

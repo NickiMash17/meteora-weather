@@ -43,7 +43,7 @@ export default function useWeatherSound(condition: string) {
         audioRef.current = null;
       }
     };
-    // eslint-disable-next-line
+     
   }, [condition, isPlaying]);
 
   // Toggle sound on/off
