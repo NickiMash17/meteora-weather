@@ -16,6 +16,8 @@ import {
   Zap,
   Star
 } from 'lucide-react';
+import Lottie from 'lottie-react';
+import sunCloudAnim from '../lottie/sun-cloud.json'; // You can swap this for any premium Lottie
 
 interface WelcomeScreenProps {
   onSearch: (query: string) => void;
@@ -26,6 +28,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [currentWeather, setCurrentWeather] = useState(0);
   const [showFeatures, setShowFeatures] = useState(false);
+  const [factIdx, setFactIdx] = useState(0);
 
   const weatherIcons = [
     { icon: Sun, color: 'text-yellow-400', delay: 0 },
@@ -63,6 +66,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
     }
   ];
 
+  const weatherFacts = [
+    'The highest temperature ever recorded on Earth was 56.7°C (134°F) in Death Valley, USA.',
+    'Raindrops can fall at speeds of about 22 miles per hour.',
+    'Snowflakes always have six sides.',
+    'A bolt of lightning is five times hotter than the surface of the sun.',
+    'The coldest temperature ever recorded was -89.2°C (-128.6°F) in Antarctica.',
+    'Clouds look white because they reflect sunlight.',
+    'The fastest wind speed ever recorded was 253 mph during Cyclone Olivia.',
+    'Fog is actually a cloud that touches the ground.',
+    'Hurricanes can release the energy of 10,000 nuclear bombs.',
+    'The wettest place on Earth is Mawsynram, India.'
+  ];
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentWeather((prev) => (prev + 1) % weatherIcons.length);
@@ -79,6 +95,13 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFactIdx(idx => (idx + 1) % weatherFacts.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -88,12 +111,35 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
+    <div className="welcome-bg-gradient min-h-screen min-h-dvh flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Animated Lottie */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 z-10 w-64 h-64 opacity-90 pointer-events-none select-none">
+        <Lottie animationData={sunCloudAnim} loop autoplay style={{ width: '100%', height: '100%' }} />
       </div>
+      {/* App Name */}
+      <h1 className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 bg-clip-text text-transparent drop-shadow-lg animate-gradient-glow mb-4 z-20">
+        Meteora
+      </h1>
+      {/* Tagline */}
+      <p className="text-xl sm:text-2xl font-medium text-white/90 dark:text-gray-200 mb-6 z-20 text-center">
+        Your next-gen, animated weather dashboard
+      </p>
+      {/* Rotating Weather Fact */}
+      <div className="bg-white/30 dark:bg-gray-900/40 rounded-xl px-6 py-4 shadow-lg backdrop-blur-md mb-8 z-20 max-w-lg text-center animate-fade-in">
+        <span className="text-base sm:text-lg font-semibold text-blue-700 dark:text-blue-200">
+          {weatherFacts[factIdx]}
+        </span>
+      </div>
+      {/* Get Started Button */}
+      <button
+        className="mt-2 px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white font-bold text-lg shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300 animate-bounce"
+        onClick={() => onSearch('')}
+        aria-label="Get Started"
+      >
+        Get Started
+      </button>
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 -z-10 welcome-bg-gradient" />
 
       {/* Floating Weather Icons */}
       <div className="absolute inset-0 overflow-hidden">
