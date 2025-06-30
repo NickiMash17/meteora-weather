@@ -60,9 +60,9 @@ const WeatherOverlay: React.FC<WeatherOverlayProps> = ({ weather, theme }) => {
           <ellipse cx="240" cy="65" rx="70" ry="30" fill="#b6c2d1" />
         </motion.svg>
       )}
-      {/* Rain */}
+      {/* Rain Overlay */}
       {(main.includes('rain') || main.includes('drizzle')) && (
-        <svg width="100%" height="100%" className="absolute inset-0">
+        <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none">
           {[...Array(18)].map((_, i) => (
             <motion.ellipse
               key={i}
@@ -70,8 +70,8 @@ const WeatherOverlay: React.FC<WeatherOverlayProps> = ({ weather, theme }) => {
               cy={40 + (i * 30) % 120}
               rx="2.5" ry="10"
               fill="#38bdf8"
-              initial={{ y: -20, opacity: 0.7 }}
-              animate={{ y: 220, opacity: [0.7, 0.8, 0] }}
+              initial={{ y: -20, opacity: 0.5 }}
+              animate={{ y: 220, opacity: [0.5, 0.7, 0] }}
               transition={{
                 repeat: Infinity,
                 duration: 1.6 + (i % 5) * 0.3,
@@ -98,9 +98,9 @@ const WeatherOverlay: React.FC<WeatherOverlayProps> = ({ weather, theme }) => {
           />
         </motion.svg>
       )}
-      {/* Snow */}
+      {/* Snow Overlay */}
       {main.includes('snow') && (
-        <svg width="100%" height="100%" className="absolute inset-0">
+        <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none">
           {[...Array(16)].map((_, i) => (
             <motion.circle
               key={i}
@@ -108,8 +108,8 @@ const WeatherOverlay: React.FC<WeatherOverlayProps> = ({ weather, theme }) => {
               cy={30 + (i * 40) % 120}
               r={2.5 + (i % 3)}
               fill="#f1f5f9"
-              initial={{ y: -20, opacity: 0.7 }}
-              animate={{ y: 220, opacity: [0.7, 0.8, 0] }}
+              initial={{ y: -20, opacity: 0.5 }}
+              animate={{ y: 220, opacity: [0.5, 0.7, 0] }}
               transition={{
                 repeat: Infinity,
                 duration: 3.2 + (i % 4) * 0.5,
@@ -123,28 +123,35 @@ const WeatherOverlay: React.FC<WeatherOverlayProps> = ({ weather, theme }) => {
       {/* Night (stars and moon) */}
       {theme === 'dark' && (main.includes('clear') || main.includes('cloud') || main.includes('mist')) && (
         <svg width="100%" height="100%" className="absolute inset-0">
-          {/* Moon */}
-          <motion.circle
-            cx="120" cy="80" r="32"
+          {/* Crescent Moon */}
+          <motion.ellipse
+            cx="120" cy="80" rx="22" ry="18"
             fill="#fef9c3"
-            initial={{ opacity: 0.7 }}
-            animate={{ opacity: [0.7, 0.9, 0.7] }}
-            transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
+            initial={{ opacity: 0.7, rotate: 0 }}
+            animate={{ opacity: [0.7, 0.9, 0.7], rotate: [0, 8, 0] }}
+            transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
           />
-          {/* Stars */}
-          {[...Array(18)].map((_, i) => (
+          <motion.ellipse
+            cx="128" cy="80" rx="14" ry="12"
+            fill="#232946"
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: [0.7, 0.8, 0.7] }}
+            transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+          />
+          {/* Twinkling Stars */}
+          {[...Array(24)].map((_, i) => (
             <motion.circle
               key={i}
               cx={Math.random() * 320 + 20}
               cy={Math.random() * 120 + 20}
               r={0.8 + Math.random() * 1.6}
               fill="#fff"
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
+              initial={{ opacity: 0.4 }}
+              animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{
                 repeat: Infinity,
-                duration: 2.5 + Math.random() * 2,
-                delay: i * 0.2,
+                duration: 2 + Math.random() * 2,
+                delay: i * 0.13,
                 ease: 'easeInOut',
               }}
             />

@@ -107,11 +107,22 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
     return cached.data;
   }
   
-  // Use allorigins.win CORS proxy for local development
-  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${API_CONFIG.baseUrl}/weather?q=${encodeURIComponent(location)}&appid=${API_CONFIG.apiKey}&units=metric`)}`;
+  // Use local backend proxy for weather
+  const url = `http://localhost:3001/api/weather?q=${encodeURIComponent(location)}`;
   
   try {
     const data = await fetchWithTimeout(url);
+    if (!data || !data.main || !data.weather) {
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        console.error('Weather API full response:', text);
+      } catch (e) {
+        console.error('Failed to fetch full weather API response:', e);
+      }
+      console.error('Weather API returned unexpected data:', data);
+      throw new Error('Weather API returned unexpected data');
+    }
     
     const weatherData: WeatherData = {
       location: data.name,
@@ -180,11 +191,22 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
 const fetchForecastData = async (location: string): Promise<ForecastData> => {
   validateEnv();
   
-  // Use allorigins.win CORS proxy for local development
-  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${API_CONFIG.baseUrl}/forecast?q=${encodeURIComponent(location)}&appid=${API_CONFIG.apiKey}&units=metric`)}`;
+  // Use local backend proxy for forecast
+  const url = `http://localhost:3001/api/forecast?q=${encodeURIComponent(location)}`;
   
   try {
     const data = await fetchWithTimeout(url);
+    if (!data || !data.list) {
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        console.error('Forecast API full response:', text);
+      } catch (e) {
+        console.error('Failed to fetch full forecast API response:', e);
+      }
+      console.error('Forecast API returned unexpected data:', data);
+      throw new Error('Forecast API returned unexpected data');
+    }
     
     // Process daily forecast
     const dailyData = data.list.filter((item: any, index: number) => index % 8 === 0);

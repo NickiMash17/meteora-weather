@@ -1,13 +1,15 @@
 import { CurrentWeatherData, ForecastData, HourlyForecast, DailyForecast } from '../types/weather';
 
-const API_KEY = '09933e1ac1b05a19ed7a68944ed352f6'; // Replace with your actual API key
+const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+if (!API_KEY) {
+  throw new Error('Missing required environment variable: VITE_WEATHER_API_KEY');
+}
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
 export const fetchWeather = async (location: string): Promise<CurrentWeatherData> => {
   try {
-    // Use allorigins.win CORS proxy for local development
     const response = await fetch(
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`${BASE_URL}/weather?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`)}`
+      `${BASE_URL}/weather?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`
     );
     
     if (!response.ok) {
@@ -51,9 +53,8 @@ export const fetchWeather = async (location: string): Promise<CurrentWeatherData
 
 export const fetchForecast = async (location: string): Promise<ForecastData> => {
   try {
-    // Use allorigins.win CORS proxy for local development
     const response = await fetch(
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`${BASE_URL}/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`)}`
+      `${BASE_URL}/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${API_KEY}`
     );
     
     if (!response.ok) {

@@ -7,9 +7,14 @@ const STATIC_FILES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
+  '/vite.svg',
+  '/icon-72x72.png',
+  '/icon-96x96.png',
+  '/icon-128x128.png',
+  '/icon-144x144.png',
+  '/icon-152x152.png',
   '/icon-192x192.png',
+  '/icon-384x384.png',
   '/icon-512x512.png'
 ];
 
@@ -262,32 +267,20 @@ self.addEventListener('message', (event) => {
   }
   
   if (event.data && event.data.type === 'CACHE_WEATHER') {
-    event.waitUntil(cacheWeatherData(event.data.location));
+    // Cache weather data for specific location
+    // NOTE: Service workers cannot access environment variables at runtime.
+    // Only cache weather data for requests made by the app itself (handled in fetch event above).
+    // The following function is intentionally left blank because service workers cannot access env vars.
+    // async function cacheWeatherData(location) {
+    //   // This function is intentionally left blank because service workers cannot access env vars.
+    // }
   }
 });
 
 // Cache weather data for specific location
-async function cacheWeatherData(location) {
-  try {
-    const cache = await caches.open(WEATHER_CACHE);
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${process.env.VITE_WEATHER_API_KEY}&units=metric`;
-    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${process.env.VITE_WEATHER_API_KEY}&units=metric`;
-    
-    const [weatherResponse, forecastResponse] = await Promise.all([
-      fetch(weatherUrl),
-      fetch(forecastUrl)
-    ]);
-    
-    if (weatherResponse.ok) {
-      cache.put(new Request(weatherUrl), weatherResponse.clone());
-    }
-    
-    if (forecastResponse.ok) {
-      cache.put(new Request(forecastUrl), forecastResponse.clone());
-    }
-    
-    console.log('Service Worker: Weather data cached for', location);
-  } catch (error) {
-    console.error('Service Worker: Failed to cache weather data', error);
-  }
-} 
+// NOTE: Service workers cannot access environment variables at runtime.
+// Only cache weather data for requests made by the app itself (handled in fetch event above).
+// The following function is intentionally left blank because service workers cannot access env vars.
+// async function cacheWeatherData(location) {
+//   // This function is intentionally left blank because service workers cannot access env vars.
+// } 
