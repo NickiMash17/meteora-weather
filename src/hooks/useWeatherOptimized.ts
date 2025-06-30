@@ -60,9 +60,8 @@ const API_CONFIG = {
 
 // Validate environment variables
 const validateEnv = () => {
-  if (!API_CONFIG.apiKey) {
-    throw new Error('Missing required environment variable: VITE_WEATHER_API_KEY');
-  }
+  // Since we're using a local proxy server, we don't need the API key in frontend
+  // The API key is handled by the backend server
 };
 
 // Fetch with timeout and retry logic
@@ -99,19 +98,24 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Fetch weather data with caching
 const fetchWeatherData = async (location: string): Promise<WeatherData> => {
+  console.log('fetchWeatherData called with location:', location);
   validateEnv();
   
   // Check cache first
   const cached = weatherCache.get(location);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log('Returning cached weather data for:', location);
     return cached.data;
   }
   
   // Use local backend proxy for weather
   const url = `http://localhost:3001/api/weather?q=${encodeURIComponent(location)}`;
+  console.log('Fetching weather from URL:', url);
   
   try {
     const data = await fetchWithTimeout(url);
+    console.log('Weather API response received:', data);
+    
     if (!data || !data.main || !data.weather) {
       try {
         const response = await fetch(url);
@@ -149,6 +153,8 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
         lon: data.coord.lon,
       },
     };
+    
+    console.log('Processed weather data:', weatherData);
     
     // Cache the data
     weatherCache.set(location, { data: weatherData, timestamp: Date.now() });
