@@ -23,18 +23,18 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
   const getWeatherIcon = (condition: string) => {
     switch (condition.toLowerCase()) {
       case 'clear':
-        return <Sun className="w-8 h-8 text-yellow-400" />;
+        return <Sun className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 drop-shadow-sm" />;
       case 'clouds':
-        return <Cloud className="w-8 h-8 text-gray-400" />;
+        return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
       case 'rain':
       case 'drizzle':
-        return <CloudRain className="w-8 h-8 text-blue-400" />;
+        return <CloudRain className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 drop-shadow-sm" />;
       case 'thunderstorm':
-        return <CloudLightning className="w-8 h-8 text-purple-400" />;
+        return <CloudLightning className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400 drop-shadow-sm" />;
       case 'snow':
-        return <Snowflake className="w-8 h-8 text-blue-200" />;
+        return <Snowflake className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 drop-shadow-sm" />;
       default:
-        return <Cloud className="w-8 h-8 text-gray-400" />;
+        return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
     }
   };
 
@@ -61,46 +61,46 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
 
   if (!forecast) {
     return (
-      <div className="glass-card rounded-2xl p-8 text-center">
-        <p className="text-white/60">No forecast data available</p>
+      <div className="glass-card rounded-2xl p-6 sm:p-8 text-center w-full">
+        <p className="text-gray-600 dark:text-gray-300 text-lg">No forecast data available</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Tab Navigation */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex space-x-2"
+        className="flex flex-col sm:flex-row gap-2 sm:gap-4"
       >
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setActiveTab('daily')}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-full backdrop-blur-sm transition-all duration-300 ${
+          className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-full backdrop-blur-sm transition-all duration-300 font-medium ${
             activeTab === 'daily'
-              ? 'bg-white/30 text-white shadow-lg'
-              : 'bg-white/10 text-white/80 hover:bg-white/20'
+              ? 'bg-blue-500/80 text-white shadow-lg border border-blue-400/30'
+              : 'bg-white/10 dark:bg-gray-800/20 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700/30 border border-white/20 dark:border-gray-700/30'
           }`}
         >
-          <Calendar className="w-5 h-5" />
-          <span>7-Day Forecast</span>
+          <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-sm sm:text-base">7-Day Forecast</span>
         </motion.button>
         
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setActiveTab('hourly')}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-full backdrop-blur-sm transition-all duration-300 ${
+          className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-full backdrop-blur-sm transition-all duration-300 font-medium ${
             activeTab === 'hourly'
-              ? 'bg-white/30 text-white shadow-lg'
-              : 'bg-white/10 text-white/80 hover:bg-white/20'
+              ? 'bg-blue-500/80 text-white shadow-lg border border-blue-400/30'
+              : 'bg-white/10 dark:bg-gray-800/20 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700/30 border border-white/20 dark:border-gray-700/30'
           }`}
         >
-          <Clock className="w-5 h-5" />
-          <span>Hourly Forecast</span>
+          <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-sm sm:text-base">Hourly Forecast</span>
         </motion.button>
       </motion.div>
 
@@ -117,58 +117,58 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass-card rounded-2xl p-6"
+              className="glass-card rounded-2xl p-4 sm:p-6 hover:scale-[1.02] transition-transform duration-300"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="text-center">
-                    <p className="text-white font-semibold">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="text-center sm:text-left">
+                    <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">
                       {getDayName(day.timestamp)}
                     </p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                       {formatDate(day.timestamp)}
                     </p>
                   </div>
                   
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-3">
                     {getWeatherIcon(day.condition.main)}
                     <div>
-                      <p className="text-white capitalize">
+                      <p className="text-gray-900 dark:text-white capitalize text-sm sm:text-base font-medium">
                         {day.condition.description}
                       </p>
-                      <p className="text-white/60 text-sm">
+                      <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                         {Math.round(day.precipitation)}% rain
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Thermometer className="w-5 h-5 text-red-400" />
-                      <span className="text-white font-semibold">
+                <div className="text-center sm:text-right">
+                  <div className="flex items-center justify-center sm:justify-end gap-4 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Thermometer className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
+                      <span className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">
                         {Math.round(day.temperature.max)}°
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Thermometer className="w-5 h-5 text-blue-400" />
-                      <span className="text-white/80">
+                    <div className="flex items-center gap-2">
+                      <Thermometer className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+                      <span className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
                         {Math.round(day.temperature.min)}°
                       </span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-4 mt-2">
-                    <div className="flex items-center space-x-1">
-                      <Droplets className="w-4 h-4 text-blue-400" />
-                      <span className="text-white/60 text-sm">
+                  <div className="flex items-center justify-center sm:justify-end gap-4">
+                    <div className="flex items-center gap-1">
+                      <Droplets className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                      <span className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                         {day.humidity}%
                       </span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Wind className="w-4 h-4 text-green-400" />
-                      <span className="text-white/60 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
+                      <span className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                         {Math.round(day.wind.speed)} km/h
                       </span>
                     </div>
@@ -185,71 +185,47 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-2xl p-3 sm:p-6"
+          className="glass-card rounded-2xl p-4 sm:p-6"
         >
-          <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">24-Hour Forecast</h3>
-          <div className="flex space-x-2 sm:space-x-4 overflow-x-auto pb-2 custom-scrollbar snap-x snap-mandatory">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">24-Hour Forecast</h3>
+          <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
             {forecast.hourly.slice(0, 24).map((hour: any, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
-                className="text-center p-2 sm:p-4 bg-white/5 rounded-xl flex-shrink-0 snap-center min-w-[60px] sm:min-w-[80px]"
+                className="text-center p-3 sm:p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl flex-shrink-0 snap-center min-w-[70px] sm:min-w-[90px] border border-white/20 dark:border-gray-700/30 hover:scale-105 transition-transform duration-200"
               >
-                <p className="text-white/60 text-xs mb-1">
+                <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mb-2 font-medium">
                   {formatTime(hour.timestamp)}
                 </p>
-                <div className="flex justify-center mb-1">
+                
+                <div className="flex justify-center mb-2">
                   {getWeatherIcon(hour.condition.main)}
                 </div>
-                <p className="text-white font-semibold mb-1 text-sm">
-                  {Math.round(hour.temperature)}°C
+                
+                <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base mb-1">
+                  {Math.round(hour.temperature)}°
                 </p>
-                <p className="text-white/60 text-xs capitalize">
+                
+                <p className="text-gray-600 dark:text-gray-300 text-xs capitalize">
                   {hour.condition.description}
                 </p>
-                <div className="flex items-center justify-center space-x-1 mt-1">
-                  <Droplets className="w-3 h-3 text-blue-400" />
-                  <span className="text-white/60 text-xs">
-                    {hour.humidity}%
-                  </span>
-                </div>
+                
+                {hour.precipitation > 0 && (
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <Droplets className="w-3 h-3 text-blue-400" />
+                    <span className="text-gray-600 dark:text-gray-300 text-xs">
+                      {Math.round(hour.precipitation)}%
+                    </span>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
         </motion.div>
       )}
-
-      {/* Forecast Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="glass-card rounded-2xl p-6"
-      >
-        <h3 className="text-xl font-semibold text-white mb-4">Forecast Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <p className="text-white/60 text-sm mb-2">Average High</p>
-            <p className="text-2xl font-bold text-white">
-              {Math.round(forecast.daily?.reduce((acc: number, day: any) => acc + day.temperature.max, 0) / forecast.daily?.length || 0)}°C
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-white/60 text-sm mb-2">Average Low</p>
-            <p className="text-2xl font-bold text-white">
-              {Math.round(forecast.daily?.reduce((acc: number, day: any) => acc + day.temperature.min, 0) / forecast.daily?.length || 0)}°C
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-white/60 text-sm mb-2">Rainy Days</p>
-            <p className="text-2xl font-bold text-white">
-              {forecast.daily?.filter((day: any) => day.precipitation > 30).length || 0}
-            </p>
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 };

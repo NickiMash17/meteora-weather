@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -50,7 +50,7 @@ const Sparkline: React.FC<{ data: number[]; color?: string }> = ({ data, color =
 };
 
 const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }) => {
-  const [selectedMetric, setSelectedMetric] = useState<'temperature' | 'humidity' | 'wind'>('temperature');
+  const [selectedMetric, setSelectedMetric] = React.useState<'temperature' | 'humidity' | 'wind'>('temperature');
 
   const getMetricData = (): MetricData[] => {
     if (!forecast?.hourly) return [];
