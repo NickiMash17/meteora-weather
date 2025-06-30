@@ -78,7 +78,7 @@
 
 1. **Clone the repo:**
    ```bash
-   git clone https://github.com/yourusername/meteora-weather.git
+   git clone https://github.com/NickiMash17/meteora-weather.git
    cd meteora-weather
    ```
 
@@ -130,8 +130,8 @@ Inspired by the best of Apple Weather, Carrot Weather, and Dribbble's top UI tre
 
 ## 📣 Contact
 
-**Made with ❤️ by [Your Name]**  
-[Your LinkedIn](#) • [Your Portfolio](#)
+**Made with ❤️ by [Nicolette Mashaba**  
+[https://www.linkedin.com/in/nicolette-mashaba-b094a5221/](#) • [https://nickimash.vercel.app/](#)
 
 ---
 
