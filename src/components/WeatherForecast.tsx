@@ -195,26 +195,22 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                 className="text-center p-3 sm:p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl flex-shrink-0 snap-center min-w-[70px] sm:min-w-[90px] border border-white/20 dark:border-gray-700/30 hover:scale-105 transition-transform duration-200"
               >
                 <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mb-2 font-medium">
-                  {formatTime(hour.timestamp)}
+                  {hour.time && hour.time !== 'Invalid Date' ? hour.time : 'N/A'}
                 </p>
-                
                 <div className="flex justify-center mb-2">
                   {getWeatherIcon(hour.condition.main)}
                 </div>
-                
                 <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base mb-1">
-                  {Math.round(hour.temperature)}°
+                  {typeof hour.temperature === 'number' && !isNaN(hour.temperature) ? hour.temperature : '--'}°
                 </p>
-                
                 <p className="text-gray-600 dark:text-gray-300 text-xs capitalize">
-                  {hour.condition.description}
+                  {hour.condition?.main || 'N/A'}
                 </p>
-                
-                {hour.precipitation > 0 && (
+                {typeof hour.precipitation === 'number' && hour.precipitation > 0 && (
                   <div className="flex items-center justify-center gap-1 mt-1">
                     <Droplets className="w-3 h-3 text-blue-400" />
                     <span className="text-gray-600 dark:text-gray-300 text-xs">
-                      {Math.round(hour.precipitation)}%
+                      {hour.precipitation}%
                     </span>
                   </div>
                 )}
