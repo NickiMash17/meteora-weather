@@ -35,6 +35,7 @@ import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 // Components
 import SearchBar from './components/SearchBar';
 import WeatherForecast from './components/WeatherForecast';
+import WeatherOverlay from './components/WeatherOverlay';
 
 // Lazy load components for code splitting
 const WeatherHero = lazy(() => import('./components/WeatherHero'));
@@ -567,6 +568,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <div className={`app ${theme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
         <div className="glass-overlay" aria-hidden="true" />
+        <WeatherOverlay weather={weather} theme={theme} />
         <Toaster 
           position="top-right"
           toastOptions={{
@@ -942,7 +944,7 @@ function App() {
         {import.meta.env.DEV && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}
-      </div>
+    </div>
     </QueryClientProvider>
   );
 }
