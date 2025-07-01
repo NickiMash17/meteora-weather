@@ -16,7 +16,8 @@ import {
   Image,
   ArrowUp,
   ArrowDown,
-  Minus
+  Minus,
+  Settings
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import Lottie from 'lottie-react';
@@ -36,11 +37,22 @@ import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import SearchBar from './components/SearchBar';
 import WeatherForecast from './components/WeatherForecast';
 import WeatherOverlay from './components/WeatherOverlay';
+import SettingsModal from './components/SettingsModal';
 
 // Lazy load components for code splitting
 const WeatherHero = lazy(() => import('./components/WeatherHero'));
-const WelcomeScreen = lazy(() => import('./components/WelcomeScreen'));
+import type { FC } from 'react';
+import type { WelcomeScreenProps } from './components/WelcomeScreen';
+const WelcomeScreen = lazy(() => import('./components/WelcomeScreen')) as React.LazyExoticComponent<FC<WelcomeScreenProps>>;
 const LoadingSkeleton = lazy(() => import('./components/LoadingSkeleton'));
+
+// New components
+import WeatherDashboard from './components/WeatherDashboard';
+import WeatherAnalytics from './components/WeatherAnalytics';
+import WeatherMap from './components/WeatherMap';
+import WeatherAlerts from './components/WeatherAlerts';
+import WeatherInsights from './components/WeatherInsights';
+import ImageSlider from './components/ImageSlider';
 
 type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
 
@@ -51,7 +63,7 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },
@@ -157,7 +169,12 @@ function App() {
   const [location, setLocation] = useState('Paris');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [theme, setTheme] = useState<'light' | 'dark'>(getSystemTheme());
+  const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>(() => {
+    const saved = localStorage.getItem('meteora-theme');
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+    return 'system';
+  });
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(getSystemTheme());
   const [showWelcome, setShowWelcome] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -172,6 +189,8 @@ function App() {
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   // Fix: showTooltip state for each tab, not inside map
   const [showTooltips, setShowTooltips] = useState(() => Array(tabList.length).fill(false));
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accentColor, setAccentColorState] = useState(() => localStorage.getItem('meteora-accent') || '#3b82f6');
 
   // Weather data with React Query
   const { weather, forecast, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
@@ -179,45 +198,46 @@ function App() {
   // Performance monitoring
   const { trackInteraction, trackError, trackAPICall, getMetrics } = usePerformanceMonitor();
 
+  // Add state for favorites
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem('meteora-favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Add/remove favorite handlers
+  const addFavorite = (loc: string) => {
+    if (!favorites.includes(loc)) {
+      const updated = [loc, ...favorites].slice(0, 5);
+      setFavorites(updated);
+      localStorage.setItem('meteora-favorites', JSON.stringify(updated));
+    }
+  };
+  const removeFavorite = (loc: string) => {
+    const updated = favorites.filter(f => f !== loc);
+    setFavorites(updated);
+    localStorage.setItem('meteora-favorites', JSON.stringify(updated));
+  };
+
   // Initialize app
   useEffect(() => {
-    // Register service worker
-    registerServiceWorker();
-
-    // Track app initialization
-    trackInteraction('component_render', { timestamp: Date.now() });
-
-    // Check for saved location
-    const savedLocation = localStorage.getItem('weather-location');
-    if (savedLocation) {
-      setLocation(savedLocation);
+    // Always show preloader on first load
+    const timer = setTimeout(() => {
       setShowWelcome(false);
-    } else {
-      // If no saved location, set default and show main app
-      setLocation('Paris');
-      setShowWelcome(false); // Show main app with default location
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // After Welcome screen, load saved location if any
+  useEffect(() => {
+    if (!showWelcome) {
+      const savedLocation = localStorage.getItem('weather-location');
+      if (savedLocation) {
+        setLocation(savedLocation);
+      } else {
+        setLocation('Paris');
+      }
     }
-
-    // Listen for online/offline status
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Listen for theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? 'dark' : 'light');
-    };
-    mediaQuery.addEventListener('change', handleThemeChange);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      mediaQuery.removeEventListener('change', handleThemeChange);
-    };
-  }, [trackInteraction]);
+  }, [showWelcome]);
 
   // Enhanced device detection and viewport management
   useEffect(() => {
@@ -260,17 +280,41 @@ function App() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('meteora-theme') as 'light' | 'dark';
     if (savedTheme) {
-      setTheme(savedTheme);
+      setThemeState(savedTheme);
       setManualThemeOverride(true);
     }
   }, []);
 
-  // Apply theme to document body
+  // Theme effect: apply theme to document
   useEffect(() => {
+    let appliedTheme = theme;
+    if (theme === 'system') {
+      appliedTheme = getSystemTheme();
+    }
+    setResolvedTheme(appliedTheme as 'light' | 'dark');
     document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
+    document.documentElement.classList.add(appliedTheme);
     localStorage.setItem('meteora-theme', theme);
   }, [theme]);
+
+  // Listen for system theme changes if 'system' is selected
+  useEffect(() => {
+    if (theme !== 'system') return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => {
+      setResolvedTheme(e.matches ? 'dark' : 'light');
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, [theme]);
+
+  // Accent color effect
+  useEffect(() => {
+    document.documentElement.style.setProperty('--primary-light', accentColor);
+    localStorage.setItem('meteora-accent', accentColor);
+  }, [accentColor]);
 
   // Auto-detect theme based on weather and time (only if not manually overridden)
   useEffect(() => {
@@ -280,25 +324,46 @@ function App() {
       const isStormy = ['Thunderstorm', 'Rain', 'Drizzle'].includes(weather.condition.main);
       
       if (!isDaytime || isStormy) {
-        setTheme('dark');
+        setThemeState('dark');
       } else {
-        setTheme('light');
+        setThemeState('light');
       }
     }
   }, [weather, manualThemeOverride]);
 
   // Welcome screen timer
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setShowWelcome(false);
-  //   }, 3000);
-  //   return () => clearTimeout(timer);
-  // }, []);
+  useEffect(() => {
+    // Register service worker
+    registerServiceWorker();
+
+    // Track app initialization
+    trackInteraction('component_render', { timestamp: Date.now() });
+
+    // Listen for online/offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Listen for theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setThemeState(e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handleThemeChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      mediaQuery.removeEventListener('change', handleThemeChange);
+    };
+  }, [trackInteraction]);
 
   // Enhanced theme toggle with better UX
   const handleThemeToggle = useCallback(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
+    setThemeState(newTheme);
     setManualThemeOverride(true);
     toast.success(`Switched to ${newTheme} mode`, {
       icon: newTheme === 'dark' ? '🌙' : '☀️',
@@ -514,10 +579,8 @@ function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-          <Suspense fallback={<LoadingSkeleton type="hero" />}>
-            <WelcomeScreen
-              onSearch={handleSearch}
-            />
+          <Suspense fallback={<LoadingSkeleton />}>
+            <WelcomeScreen onSearch={handleSearch} />
           </Suspense>
         </div>
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
@@ -569,17 +632,17 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app ${theme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+      <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
         <div className="glass-overlay" aria-hidden="true" />
-        <WeatherOverlay weather={weather} theme={theme} />
+        <WeatherOverlay weather={weather} theme={resolvedTheme} />
         <Toaster 
           position="top-right"
           toastOptions={{
             duration: 4000,
             style: {
-              background: theme === 'dark' ? '#1f2937' : '#ffffff',
-              color: theme === 'dark' ? '#f9fafb' : '#1f2937',
-              border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+              background: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
+              color: resolvedTheme === 'dark' ? '#f9fafb' : '#1e2937',
+              border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
               borderRadius: '12px',
               boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
             },
@@ -590,9 +653,7 @@ function App() {
         <AnimatePresence>
           {showWelcome && (
             <Suspense fallback={<LoadingSkeleton />}>
-              <WelcomeScreen 
-                onSearch={handleSearch}
-              />
+              <WelcomeScreen onSearch={handleSearch} />
             </Suspense>
           )}
         </AnimatePresence>
@@ -635,26 +696,23 @@ function App() {
 
                 {/* Header Right */}
                 <div className="flex items-center gap-3 sm:gap-4">
-                  {/* Theme Toggle */}
+                  {/* Theme Toggle (keep for quick access) */}
                   <motion.button
                     className="theme-toggle bg-white/20 dark:bg-gray-700/20 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-full p-2 hover:scale-105 transition-all duration-300"
                     onClick={() => {
-                      setTheme(theme === 'light' ? 'dark' : 'light');
-                      setManualThemeOverride(true);
-                      trackInteraction('component_render', { theme: theme === 'light' ? 'dark' : 'light' });
+                      setThemeState(resolvedTheme === 'light' ? 'dark' : 'light');
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     aria-label="Toggle theme"
                   >
-                    {theme === 'light' ? (
+                    {resolvedTheme === 'light' ? (
                       <Moon className="w-5 h-5 text-gray-700" />
                     ) : (
                       <Sun className="w-5 h-5 text-yellow-300" />
                     )}
                   </motion.button>
-
-                  {/* Accent Color Palette */}
+                  {/* Accent Color Palette (quick access) */}
                   <div className="flex items-center gap-1 ml-2">
                     {accentColors.map((c) => (
                       <button
@@ -662,46 +720,98 @@ function App() {
                         className="w-6 h-6 rounded-full border-2 border-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-transform hover:scale-110"
                         style={{ background: c.value }}
                         aria-label={`Set accent color to ${c.name}`}
-                        onClick={() => setAccentColor(c.value)}
+                        onClick={() => setAccentColorState(c.value)}
                       />
                     ))}
                     <button
                       className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white text-gray-500 text-xs font-bold ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:scale-110 transition-transform"
                       aria-label="Reset accent color"
-                      onClick={resetAccentColor}
+                      onClick={() => setAccentColorState('#3b82f6')}
                       title="Reset accent color"
                     >
                       ×
                     </button>
                   </div>
-                  {/* End Accent Color Palette */}
-
-                  {/* Mobile Menu Button */}
-                  <motion.button
-                    className="sm:hidden bg-white/20 dark:bg-gray-700/20 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-full p-2 hover:scale-105 transition-all duration-300"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    aria-label="Toggle menu"
+                  {/* Settings Icon */}
+                  <button
+                    className="ml-3 p-2 rounded-full bg-white/20 dark:bg-gray-700/20 hover:bg-white/40 dark:hover:bg-gray-700/40 transition"
+                    onClick={() => setSettingsOpen(true)}
+                    aria-label="Open settings"
                   >
-                    {isMobileMenuOpen ? (
-                      <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                    ) : (
-                      <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                    )}
-                  </motion.button>
+                    <Settings className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                  </button>
                 </div>
               </div>
             </motion.header>
 
+            {/* Quick Actions Bar (mobile: above tab bar, desktop: in header area) */}
+            {isMobile ? (
+              <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-40 w-[95vw] max-w-lg flex gap-2 items-center justify-center bg-white/30 dark:bg-gray-900/40 backdrop-blur-xl rounded-full shadow-lg px-3 py-2 border border-white/20 dark:border-gray-700/30 glassy-nav-glow">
+                {favorites.map(fav => (
+                  <button
+                    key={fav}
+                    className={`px-4 py-2 rounded-full font-semibold text-sm bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group`}
+                    onClick={() => setLocation(fav)}
+                    aria-label={`Switch to ${fav}`}
+                  >
+                    {fav}
+                    <span
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                      onClick={e => { e.stopPropagation(); removeFavorite(fav); }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Remove ${fav} from favorites`}
+                    >×</span>
+                  </button>
+                ))}
+                <button
+                  className="px-3 py-2 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 font-semibold text-sm shadow-sm hover:bg-green-200 dark:hover:bg-green-800/60 transition"
+                  onClick={() => addFavorite(location)}
+                  aria-label="Add current location to favorites"
+                  disabled={favorites.includes(location)}
+                >
+                  + Add
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2 items-center ml-4 mt-4 mb-2">
+                {favorites.map(fav => (
+                  <button
+                    key={fav}
+                    className={`px-3 py-1.5 rounded-full font-semibold text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group`}
+                    onClick={() => setLocation(fav)}
+                    aria-label={`Switch to ${fav}`}
+                  >
+                    {fav}
+                    <span
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                      onClick={e => { e.stopPropagation(); removeFavorite(fav); }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Remove ${fav} from favorites`}
+                    >×</span>
+                  </button>
+                ))}
+                <button
+                  className="px-2 py-1.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 font-semibold text-xs shadow-sm hover:bg-green-200 dark:hover:bg-green-800/60 transition"
+                  onClick={() => addFavorite(location)}
+                  aria-label="Add current location to favorites"
+                  disabled={favorites.includes(location)}
+                >
+                  + Add
+                </button>
+              </div>
+            )}
+
             {/* Enhanced Navigation Tabs - Premium Glassy Pill Nav */}
             <motion.nav
-              className="weather-tabs-nav fixed left-1/2 bottom-6 z-30 -translate-x-1/2 px-2 py-2 sm:px-4 sm:py-3 bg-white/20 dark:bg-gray-900/40 backdrop-blur-2xl rounded-full shadow-2xl border border-white/30 dark:border-gray-700/40 flex gap-2 sm:gap-3 items-center justify-center max-w-full w-[98vw] sm:w-auto glassy-nav-glow"
+              className={`weather-tabs-nav ${isMobile ? 'fixed left-1/2 -translate-x-1/2 bottom-6 z-30 px-2 py-2 bg-white/20 dark:bg-gray-900/40 backdrop-blur-2xl rounded-full shadow-2xl border border-white/30 dark:border-gray-700/40 flex gap-2 items-center justify-center max-w-full w-[98vw] glassy-nav-glow' : 'mt-8 mb-4 flex gap-3 items-center justify-center'} ${isMobile ? '' : 'relative'}`}
               role="tablist"
               aria-label="Main navigation tabs"
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: isMobile ? 40 : 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
+              style={isMobile ? { pointerEvents: 'auto' } : {}}
             >
               {tabList.map((tab, idx) => {
                 const isActive = activeTab === tab.id;
@@ -863,22 +973,19 @@ function App() {
                   transition={{ duration: 0.3 }}
                   className="weather-content grid gap-8 lg:gap-12 xl:gap-16 grid-cols-1 lg:grid-cols-3 px-2 sm:px-4 md:px-8 xl:px-16 py-6"
                 >
-                  {/* Dashboard Tab */}
                   {activeTab === 'dashboard' && (
                     <>
-                      {/* Greeting */}
-                      <div className="lg:col-span-3 mb-4">
+                      <motion.div className="lg:col-span-3 mb-4">
                         <h2 className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-200 mb-2">
                           {(() => {
                             const hour = new Date().getHours();
-                            const name = 'Nicolette'; // Personalize here or fetch from user profile
+                            const name = 'Nicolette';
                             if (hour < 12) return `Good morning, ${name}!`;
                             if (hour < 18) return `Good afternoon, ${name}!`;
                             return `Good evening, ${name}!`;
                           })()}
                         </h2>
                         <p className="text-base sm:text-lg text-blue-700 dark:text-blue-300 font-medium mb-1">Here's your personalized weather dashboard.</p>
-                        {/* Rotating Weather Fact/Tip */}
                         <span className="inline-block bg-white/40 dark:bg-gray-900/40 rounded-lg px-4 py-2 text-blue-800 dark:text-blue-200 text-sm font-semibold shadow-sm animate-fade-in mt-1">
                           {(() => {
                             const facts = [
@@ -895,34 +1002,86 @@ function App() {
                             return facts[idx];
                           })()}
                         </span>
-                      </div>
-                      {/* Weather Hero */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="lg:col-span-2"
-                      >
-                        <Suspense fallback={<LoadingSkeleton />}> 
-                          <WeatherHero weather={weather} theme={theme} />
+                      </motion.div>
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-2">
+                        <Suspense fallback={<LoadingSkeleton />}>
+                          <WeatherHero weather={weather} theme={resolvedTheme} />
                         </Suspense>
                       </motion.div>
-                      {/* Weather Forecast */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="lg:col-span-1"
-                      >
-                        <Suspense fallback={<LoadingSkeleton />}> 
-                          <WeatherForecast forecast={forecast} />
-                        </Suspense>
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="lg:col-span-1">
+                        <div className="col-span-full flex justify-center">
+                          <div className="w-full max-w-5xl">
+                            <Suspense fallback={<LoadingSkeleton />}>
+                              <WeatherForecast forecast={forecast} />
+                            </Suspense>
+                          </div>
+                        </div>
                       </motion.div>
                     </>
                   )}
-
-                  {/* Other tabs content... */}
-                  {/* (Keep existing tab content but enhance with Tailwind classes) */}
+                  {activeTab === 'forecast' && (
+                    <div className="col-span-full flex justify-center">
+                      <div className="w-full max-w-5xl">
+                        <Suspense fallback={<LoadingSkeleton />}>
+                          <WeatherForecast forecast={forecast} />
+                        </Suspense>
+                      </div>
+                    </div>
+                  )}
+                  {activeTab === 'analytics' && (
+                    <div className="col-span-full flex justify-center">
+                      <div className="w-full max-w-5xl">
+                        <Suspense fallback={<LoadingSkeleton />}>
+                          <WeatherAnalytics weather={weather} forecast={forecast} />
+                        </Suspense>
+                      </div>
+                    </div>
+                  )}
+                  {activeTab === 'map' && (
+                    <div className="col-span-full flex justify-center">
+                      <div className="w-full max-w-6xl">
+                        <Suspense fallback={<LoadingSkeleton />}>
+                          <WeatherMap weather={weather} forecast={forecast} />
+                        </Suspense>
+                      </div>
+                    </div>
+                  )}
+                  {activeTab === 'alerts' && (
+                    <div className="col-span-full flex justify-center">
+                      <div className="w-full max-w-5xl">
+                        <Suspense fallback={<LoadingSkeleton />}>
+                          <WeatherAlerts weather={weather} forecast={forecast} />
+                        </Suspense>
+                      </div>
+                    </div>
+                  )}
+                  {activeTab === 'insights' && (
+                    <>
+                      {(!weather || !forecast) ? (
+                        <div className="col-span-full flex justify-center items-center min-h-[400px]">
+                          <LoadingSkeleton type="insights" />
+                        </div>
+                      ) : (
+                        <div className="col-span-full flex justify-center">
+                          <div className="w-full max-w-5xl">
+                            {/* Debug logging for weather/forecast */}
+                            {console.log('[Insights] weather:', weather)}
+                            {console.log('[Insights] forecast:', forecast)}
+                            <WeatherInsights weather={weather} forecast={forecast} />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {activeTab === 'gallery' && (
+                    <div className="col-span-full flex justify-center">
+                      <div className="w-full max-w-6xl">
+                        <Suspense fallback={<LoadingSkeleton />}>
+                          <ImageSlider />
+                        </Suspense>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </main>
@@ -972,11 +1131,22 @@ function App() {
           )}
         </AnimatePresence>
 
+        {/* Settings Modal */}
+        <SettingsModal
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          theme={theme}
+          setTheme={setThemeState}
+          accentColor={accentColor}
+          setAccentColor={setAccentColorState}
+          accentColors={accentColors}
+        />
+
         {/* React Query DevTools */}
         {import.meta.env.DEV && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}
-    </div>
+      </div>
     </QueryClientProvider>
   );
 }

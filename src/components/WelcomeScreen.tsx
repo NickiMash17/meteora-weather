@@ -19,11 +19,11 @@ import {
 import Lottie from 'lottie-react';
 import sunCloudAnim from '../lottie/sun-cloud.json'; // You can swap this for any premium Lottie
 
-interface WelcomeScreenProps {
+export interface WelcomeScreenProps {
   onSearch: (query: string) => void;
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }: WelcomeScreenProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [currentWeather, setCurrentWeather] = useState(0);

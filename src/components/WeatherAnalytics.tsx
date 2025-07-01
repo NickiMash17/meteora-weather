@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -27,10 +27,10 @@ interface MetricData {
 }
 
 // Simple sparkline SVG generator
-const Sparkline: React.FC<{ data: number[]; color?: string }> = ({ data, color = '#60a5fa' }) => {
+const Sparkline: React.FC<{ data: number[]; color?: string }> = ({ data, color = '#60a5fa' }: { data: number[]; color?: string }) => {
   const max = Math.max(...data);
   const min = Math.min(...data);
-  const points = data.map((d, i) => {
+  const points = data.map((d: number, i: number) => {
     const x = (i / (data.length - 1)) * 100;
     const y = 100 - ((d - min) / (max - min || 1)) * 100;
     return `${x},${y}`;
@@ -49,17 +49,16 @@ const Sparkline: React.FC<{ data: number[]; color?: string }> = ({ data, color =
   );
 };
 
-const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }) => {
+const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }: WeatherAnalyticsProps) => {
   const [selectedMetric, setSelectedMetric] = React.useState<'temperature' | 'humidity' | 'wind'>('temperature');
 
   const getMetricData = (): MetricData[] => {
     if (!forecast?.hourly) return [];
-    
     return forecast.hourly.slice(0, 24).map((hour: any, index: number) => ({
-      time: new Date(hour.timestamp * 1000).getHours(),
-      temperature: Math.round(hour.temperature),
-      humidity: hour.humidity,
-      windSpeed: Math.round(hour.wind.speed)
+      time: hour.time ? (typeof hour.time === 'string' ? hour.time : new Date(hour.time * 1000).getHours()) : index,
+      temperature: typeof hour.temperature === 'number' ? Math.round(hour.temperature) : 0,
+      humidity: typeof hour.humidity === 'number' ? hour.humidity : 0,
+      windSpeed: typeof hour.wind?.speed === 'number' ? Math.round(hour.wind.speed) : 0,
     }));
   };
 

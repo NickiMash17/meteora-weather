@@ -330,9 +330,9 @@ body {
 }
 
 .meteora-container {
-  max-width: var(--max-width);
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -353,6 +353,20 @@ body {
 @media (min-width: 1024px) {
   .meteora-container {
     padding: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .meteora-container {
+    padding: 3rem 4rem;
+    gap: 3rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .meteora-container {
+    padding: 4rem 6rem;
+    gap: 4rem;
   }
 }
 
@@ -409,10 +423,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 2.5rem 4rem;
   margin: 0.5rem;
   border-radius: var(--border-radius);
   transition: var(--transition);
+  font-size: 1.5rem;
+  box-shadow: 0 12px 48px 0 rgba(56,189,248,0.13);
 }
 
 /* Responsive header */
@@ -715,12 +731,26 @@ body {
   }
 }
 
+@media (min-width: 1280px) {
+  .weather-content {
+    gap: 4rem;
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1536px) {
+  .weather-content {
+    gap: 6rem;
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
 /* Enhanced Footer */
 .app-footer {
   margin-top: 2rem;
   text-align: center;
-  padding: 1.5rem 0;
-  font-size: 0.9rem;
+  padding: 2.5rem 4rem;
+  font-size: 1.2rem;
   opacity: 0.7;
   display: flex;
   flex-direction: column;
@@ -1314,4 +1344,23 @@ body {
   outline: 3px solid #38bdf8;
   outline-offset: 2px;
   z-index: 2;
+}
+
+/* Subtle animated background for desktop only */
+@media (min-width: 1280px) {
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 70% 30%, #a5b4fc 0%, transparent 70%),
+                radial-gradient(circle at 20% 80%, #f0abfc 0%, transparent 70%);
+    opacity: 0.18;
+    z-index: 0;
+    pointer-events: none;
+    animation: desktop-bg-float 16s ease-in-out infinite alternate;
+  }
+}
+@keyframes desktop-bg-float {
+  0% { background-position: 70% 30%, 20% 80%; }
+  100% { background-position: 60% 40%, 30% 70%; }
 }

@@ -106,6 +106,44 @@
       @apply bg-white border-gray-300;
     }
   }
+
+  .meteora-container {
+    @apply max-w-[1600px] mx-auto p-8;
+  }
+  @screen xl {
+    .meteora-container {
+      @apply p-12 gap-12;
+    }
+  }
+  @screen 2xl {
+    .meteora-container {
+      @apply p-16 gap-16;
+    }
+  }
+  .glass-card {
+    @apply p-8 text-lg rounded-3xl shadow-2xl;
+  }
+  @screen xl {
+    .glass-card {
+      @apply p-12 text-xl;
+    }
+  }
+  .app-header {
+    @apply p-10 text-2xl shadow-2xl;
+  }
+  @screen xl {
+    .app-header {
+      @apply p-16 text-3xl;
+    }
+  }
+  .app-footer {
+    @apply p-10 text-lg;
+  }
+  @screen xl {
+    .app-footer {
+      @apply p-16 text-xl;
+    }
+  }
 }
 
 @layer components {
