@@ -110,8 +110,8 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
     return cached.data;
   }
   
-  // Use local backend proxy for weather
-  const url = `http://localhost:3001/api/weather?q=${encodeURIComponent(location)}`;
+  // Use deployed API endpoints for weather
+  const url = `/api/weather?q=${encodeURIComponent(location)}`;
   console.log('Fetching weather from URL:', url);
   
   try {
@@ -198,8 +198,8 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
 // Fetch forecast data
 const fetchForecastData = async (location: string): Promise<ForecastData> => {
   validateEnv();
-  // Use local backend proxy for forecast
-  const url = `http://localhost:3001/api/forecast?q=${encodeURIComponent(location)}`;
+  // Use deployed API endpoints for forecast
+  const url = `/api/forecast?q=${encodeURIComponent(location)}`;
   try {
     const data = await fetchWithTimeout(url);
     console.log('Forecast API raw data:', data); // Debug
@@ -274,13 +274,14 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           precipitation: 0,
         },
       ],
-      hourly: [
-        { time: '12:00', temperature: 22, condition: { main: 'Clear' }, precipitation: 0 },
-        { time: '13:00', temperature: 23, condition: { main: 'Clear' }, precipitation: 0 },
-        { time: '14:00', temperature: 24, condition: { main: 'Clear' }, precipitation: 0 },
-        { time: '15:00', temperature: 23, condition: { main: 'Clouds' }, precipitation: 0 },
-        { time: '16:00', temperature: 21, condition: { main: 'Clouds' }, precipitation: 0 },
-      ],
+      hourly: Array.from({ length: 24 }, (_, i) => ({
+        time: new Date(Date.now() + i * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temperature: 20 + Math.floor(Math.random() * 10),
+        condition: { main: 'Clear' },
+        precipitation: 0,
+        humidity: 65,
+        wind: { speed: 12 },
+      })),
     };
   }
 };
@@ -294,7 +295,7 @@ export const useWeatherOptimized = (location: string) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
@@ -306,7 +307,7 @@ export const useWeatherOptimized = (location: string) => {
     staleTime: 15 * 60 * 1000, // 15 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes (formerly cacheTime)
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
