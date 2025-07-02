@@ -24,6 +24,7 @@ interface WeatherData {
     lat: number;
     lon: number;
   };
+  timezone: number;
 }
 
 interface ForecastData {
@@ -154,6 +155,7 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
         lat: data.coord.lat,
         lon: data.coord.lon,
       },
+      timezone: data.timezone,
     };
     
     console.log('Processed weather data:', weatherData);
@@ -191,6 +193,7 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
         lat: 51.5074,
         lon: -0.1278,
       },
+      timezone: 0,
     };
   }
 };
@@ -203,46 +206,28 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
   try {
     const data = await fetchWithTimeout(url);
     console.log('Forecast API raw data:', data); // Debug
-    if (!data || !data.list) {
-      try {
-        const response = await fetch(url);
-        const text = await response.text();
-        console.error('Forecast API full response:', text);
-      } catch (e) {
-        console.error('Failed to fetch full forecast API response:', e);
-      }
-      console.error('Forecast API returned unexpected data:', data);
+    if (!data || !data.daily) {
       throw new Error('Forecast API returned unexpected data');
     }
-    // Process daily forecast
-    const dailyData = data.list.filter((item: any, index: number) => index % 8 === 0);
-    console.log('Daily data for mapping:', dailyData); // Debug
-    const daily = dailyData.slice(0, 7).map((item: any) => ({
+    // Process daily forecast for up to 7 days from One Call API
+    const daily = data.daily.slice(0, 7).map((item: any) => ({
       date: item.dt ? new Date(item.dt * 1000).toLocaleDateString() : 'N/A',
       temperature: {
-        min: typeof item.main?.temp_min === 'number' ? Math.round(item.main.temp_min) : null,
-        max: typeof item.main?.temp_max === 'number' ? Math.round(item.main.temp_max) : null,
+        min: typeof item.temp?.min === 'number' ? Math.round(item.temp.min) : 0,
+        max: typeof item.temp?.max === 'number' ? Math.round(item.temp.max) : 0,
       },
       condition: {
         main: item.weather?.[0]?.main || 'N/A',
         description: item.weather?.[0]?.description || 'N/A',
       },
-      humidity: typeof item.main?.humidity === 'number' ? item.main.humidity : null,
+      humidity: typeof item.humidity === 'number' ? item.humidity : 0,
       wind: {
-        speed: typeof item.wind?.speed === 'number' ? Math.round(item.wind.speed * 3.6) : null,
+        speed: typeof item.wind_speed === 'number' ? Math.round(item.wind_speed) : 0,
       },
-      precipitation: typeof item.pop === 'number' ? Math.round(item.pop * 100) : null,
+      precipitation: typeof item.pop === 'number' ? Math.round(item.pop * 100) : 0,
     }));
-    // Process hourly forecast
-    const hourly = data.list.slice(0, 24).map((item: any) => ({
-      time: item.dt ? new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-      temperature: typeof item.main?.temp === 'number' ? Math.round(item.main.temp) : null,
-      condition: {
-        main: item.weather?.[0]?.main || 'N/A',
-      },
-      precipitation: typeof item.pop === 'number' ? Math.round(item.pop * 100) : null,
-    }));
-    return { daily, hourly };
+    // No hourly forecast from One Call free tier, so leave as empty array or fallback
+    return { daily, hourly: [] };
   } catch (error) {
     console.error('Forecast API error:', error);
     // Always return fallback data for any error
@@ -272,6 +257,22 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           humidity: 80,
           wind: { speed: 20 },
           precipitation: 0,
+        },
+        {
+          date: new Date(Date.now() + 96 * 60 * 60 * 1000).toLocaleDateString(),
+          temperature: { min: 13, max: 19 },
+          condition: { main: 'Thunderstorm', description: 'thunderstorm' },
+          humidity: 75,
+          wind: { speed: 18 },
+          precipitation: 20,
+        },
+        {
+          date: new Date(Date.now() + 120 * 60 * 60 * 1000).toLocaleDateString(),
+          temperature: { min: 12, max: 18 },
+          condition: { main: 'Snow', description: 'light snow' },
+          humidity: 85,
+          wind: { speed: 10 },
+          precipitation: 40,
         },
       ],
       hourly: Array.from({ length: 24 }, (_, i) => ({

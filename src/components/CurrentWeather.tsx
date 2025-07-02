@@ -3,12 +3,16 @@ import WeatherIcon from './WeatherIcon';
 import WeatherDetails from './WeatherDetails';
 import { CurrentWeatherData } from '../types/weather';
 import '../styles/CurrentWeather.css';
+import { getCityDate } from '../utils/timezone';
+import { useTranslation } from 'react-i18next';
 
 interface CurrentWeatherProps {
   weather: CurrentWeatherData;
+  timeFormat: string;
 }
 
-const CurrentWeather: React.FC<CurrentWeatherProps> = ({ weather }) => {
+const CurrentWeather: React.FC<CurrentWeatherProps> = ({ weather, timeFormat }) => {
+  const { t } = useTranslation();
   const [timeString, setTimeString] = useState('');
   const [animate, setAnimate] = useState(false);
   const [bgImage, setBgImage] = useState('');
@@ -16,7 +20,8 @@ const CurrentWeather: React.FC<CurrentWeatherProps> = ({ weather }) => {
   useEffect(() => {
     // Update time
     const updateTime = () => {
-      const now = new Date();
+      if (!weather || typeof weather.timezone !== 'number') return;
+      const now = getCityDate(weather);
       const options: Intl.DateTimeFormatOptions = { 
         weekday: 'long',
         month: 'short',
@@ -112,7 +117,7 @@ const CurrentWeather: React.FC<CurrentWeatherProps> = ({ weather }) => {
               <span className="temperature-unit">C</span>
             </h1>
             <p className="feels-like">
-              Feels like {formatTemperature(weather.temperature.feelsLike)}°
+              {t('Feels like')} {formatTemperature(weather.temperature.feelsLike)}°
             </p>
           </div>
         </div>
@@ -144,7 +149,7 @@ const CurrentWeather: React.FC<CurrentWeatherProps> = ({ weather }) => {
         <svg className="update-icon" viewBox="0 0 24 24">
           <path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/>
         </svg>
-        Updated: {new Date(weather.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        {t('Updated')}: {getCityDate(weather, Math.floor(weather.lastUpdated / 1000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: timeFormat === '12' })}
       </div>
     </div>
   );

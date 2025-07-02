@@ -111,36 +111,59 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }: WelcomeScreen
   };
 
   return (
-    <div className="welcome-bg-gradient min-h-screen min-h-dvh flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Animated Lottie */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 z-10 w-64 h-64 opacity-90 pointer-events-none select-none">
-        <Lottie animationData={sunCloudAnim} loop autoplay style={{ width: '100%', height: '100%' }} />
+    <div className="welcome-bg-gradient min-h-screen min-h-dvh flex flex-col items-center justify-center relative overflow-hidden px-2 sm:px-6 py-4 sm:py-8 w-full">
+      {/* Animated Lottie and Title */}
+      <div className="flex flex-col items-center gap-6 z-20 mt-8 mb-8 w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto">
+        <div className="w-40 h-40 sm:w-56 sm:h-56 relative flex items-center justify-center">
+          <Lottie animationData={sunCloudAnim} loop autoplay style={{ width: '100%', height: '100%' }} />
+        </div>
+        <h1 className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 bg-clip-text text-transparent drop-shadow-lg animate-gradient-glow text-center">
+          Meteora
+        </h1>
+        <p className="text-xl sm:text-2xl font-medium text-white/90 dark:text-gray-200 text-center">
+          Your next-gen, animated weather dashboard
+        </p>
       </div>
-      {/* App Name */}
-      <h1 className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 bg-clip-text text-transparent drop-shadow-lg animate-gradient-glow mb-4 z-20">
-        Meteora
-      </h1>
-      {/* Tagline */}
-      <p className="text-xl sm:text-2xl font-medium text-white/90 dark:text-gray-200 mb-6 z-20 text-center">
-        Your next-gen, animated weather dashboard
-      </p>
       {/* Rotating Weather Fact */}
-      <div className="bg-white/30 dark:bg-gray-900/40 rounded-xl px-6 py-4 shadow-lg backdrop-blur-md mb-8 z-20 max-w-lg text-center animate-fade-in">
+      <div className="bg-white/30 dark:bg-gray-900/40 rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-lg backdrop-blur-md mb-8 z-20 max-w-xs sm:max-w-lg text-center animate-fade-in mx-auto">
         <span className="text-base sm:text-lg font-semibold text-blue-700 dark:text-blue-200">
           {weatherFacts[factIdx]}
         </span>
       </div>
-      {/* Get Started Button */}
-      <button
-        className="mt-2 px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white font-bold text-lg shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300 animate-bounce"
-        onClick={() => onSearch('')}
-        aria-label="Get Started"
-      >
-        Get Started
-      </button>
+      {/* Get Started Button and Search Input Grouped */}
+      <div className="flex flex-col items-center gap-4 w-full max-w-md z-20">
+        <button
+          className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white font-bold text-lg shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300 animate-bounce"
+          onClick={() => onSearch('')}
+          aria-label="Get Started"
+        >
+          Get Started
+        </button>
+        <form onSubmit={handleSearch} className="w-full mt-2">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter city name..."
+              className="w-full px-6 py-4 text-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-white/40 focus:bg-white/15 transition-all duration-300"
+            />
+            <button
+              type="submit"
+              disabled={isSearching}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50"
+            >
+              {isSearching ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
       {/* Animated gradient background */}
       <div className="absolute inset-0 -z-10 welcome-bg-gradient" />
-
       {/* Floating Weather Icons */}
       <div className="absolute inset-0 overflow-hidden">
         {weatherIcons.map((weather, index) => {
@@ -199,37 +222,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }: WelcomeScreen
           <p className="text-xl md:text-2xl text-white/80 font-light">
             Your Personal Weather Companion
           </p>
-        </motion.div>
-
-        {/* Search Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mb-12"
-        >
-          <form onSubmit={handleSearch} className="max-w-md mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter city name..."
-                className="w-full px-6 py-4 text-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-white/40 focus:bg-white/15 transition-all duration-300"
-              />
-              <button
-                type="submit"
-                disabled={isSearching}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50"
-              >
-                {isSearching ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Search className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </form>
         </motion.div>
 
         {/* Features Grid */}

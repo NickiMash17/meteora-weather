@@ -18,6 +18,7 @@ import {
   Settings,
   Info
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherMapProps {
   weather: any;
@@ -25,6 +26,7 @@ interface WeatherMapProps {
 }
 
 const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
+  const { t } = useTranslation();
   const [mapType, setMapType] = useState<'temperature' | 'precipitation' | 'wind' | 'satellite'>('temperature');
   const [zoom, setZoom] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,10 +34,10 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
   const mapRef = useRef<HTMLDivElement>(null);
 
   const mapTypes = [
-    { id: 'temperature', label: 'Temperature', icon: Thermometer, color: 'text-red-400' },
-    { id: 'precipitation', label: 'Precipitation', icon: CloudRain, color: 'text-blue-400' },
-    { id: 'wind', label: 'Wind', icon: Wind, color: 'text-green-400' },
-    { id: 'satellite', label: 'Satellite', icon: Globe, color: 'text-purple-400' }
+    { id: 'temperature', label: t('Temperature'), icon: Thermometer, color: 'text-red-400' },
+    { id: 'precipitation', label: t('Precipitation'), icon: CloudRain, color: 'text-blue-400' },
+    { id: 'wind', label: t('Wind'), icon: Wind, color: 'text-green-400' },
+    { id: 'satellite', label: t('Satellite'), icon: Globe, color: 'text-purple-400' }
   ];
 
   const getMapBackground = () => {
@@ -180,24 +182,24 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
         return (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-white/80">Temperature</span>
+              <span className="text-white/80">{t('Temperature')}</span>
               <Thermometer className="w-4 h-4 text-red-400" />
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span className="text-xs text-white/60">Hot (&gt;25°C)</span>
+              <span className="text-xs text-white/60">{t('Hot (&gt;25°C)')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-              <span className="text-xs text-white/60">Warm (15-25°C)</span>
+              <span className="text-xs text-white/60">{t('Warm (15-25°C)')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span className="text-xs text-white/60">Cool (5-15°C)</span>
+              <span className="text-xs text-white/60">{t('Cool (5-15°C)')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-purple-500 rounded"></div>
-              <span className="text-xs text-white/60">Cold (&lt;5°C)</span>
+              <span className="text-xs text-white/60">{t('Cold (&lt;5°C)')}</span>
             </div>
           </div>
         );
@@ -205,16 +207,16 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
         return (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-white/80">Precipitation</span>
+              <span className="text-white/80">{t('Precipitation')}</span>
               <CloudRain className="w-4 h-4 text-blue-400" />
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-400 rounded"></div>
-              <span className="text-xs text-white/60">Rain</span>
+              <span className="text-xs text-white/60">{t('Rain')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-white rounded"></div>
-              <span className="text-xs text-white/60">Snow</span>
+              <span className="text-xs text-white/60">{t('Snow')}</span>
             </div>
           </div>
         );
@@ -222,12 +224,12 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
         return (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-white/80">Wind</span>
+              <span className="text-white/80">{t('Wind')}</span>
               <Wind className="w-4 h-4 text-green-400" />
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-1 bg-green-400 rounded"></div>
-              <span className="text-xs text-white/60">Wind Direction</span>
+              <span className="text-xs text-white/60">{t('Wind Direction')}</span>
             </div>
           </div>
         );
@@ -246,7 +248,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Interactive Weather Map</h3>
+          <h3 className="text-lg font-semibold text-white">{t('Interactive Weather Map')}</h3>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowLegend(!showLegend)}
@@ -376,7 +378,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-white">Legend</h4>
+              <h4 className="text-sm font-semibold text-white">{t('Legend')}</h4>
               <Info className="w-4 h-4 text-white/60" />
             </div>
             {getLegend()}
@@ -398,7 +400,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
           >
               <div className="text-center">
               <div className="loading-spin w-8 h-8 border-2 border-white/20 border-t-white rounded-full mx-auto mb-2" />
-              <p className="text-white/80 text-sm">Updating map...</p>
+              <p className="text-white/80 text-sm">{t('Updating map...')}</p>
       </div>
     </motion.div>
         )}

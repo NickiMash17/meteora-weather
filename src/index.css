@@ -108,7 +108,7 @@
   }
 
   .meteora-container {
-    @apply max-w-[1600px] mx-auto p-8;
+    @apply max-w-[1600px] mx-auto p-8 w-full;
   }
   @screen xl {
     .meteora-container {
@@ -118,6 +118,14 @@
   @screen 2xl {
     .meteora-container {
       @apply p-16 gap-16;
+    }
+  }
+  @media (max-width: 640px) {
+    .meteora-container {
+      @apply px-2 pb-2 w-full;
+    }
+    .weather-content {
+      @apply px-1 pb-2 w-full;
     }
   }
   .glass-card {

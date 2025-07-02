@@ -18,6 +18,7 @@ import {
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Thermometer, Droplets, Wind, Cloud } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherChartsProps {
   forecast: any;
@@ -25,6 +26,8 @@ interface WeatherChartsProps {
 }
 
 const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
+  const { t } = useTranslation();
+
   const hourlyData = useMemo(() => {
     if (!forecast?.hourly) return [];
     
@@ -83,7 +86,7 @@ const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
           <p className="tooltip-label">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              {entry.name}: {entry.value}
+              {t(entry.name)}: {entry.value}
             </p>
           ))}
         </div>
@@ -100,8 +103,8 @@ const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
       transition={{ duration: 0.5 }}
     >
       <div className="charts-header">
-        <h3>Weather Analytics</h3>
-        <p>Detailed weather patterns and trends</p>
+        <h3>{t('Weather Analytics')}</h3>
+        <p>{t('Detailed weather patterns and trends')}</p>
       </div>
 
       <div className="charts-grid">
@@ -114,7 +117,7 @@ const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
         >
           <div className="chart-header">
             <Thermometer className="chart-icon" />
-            <h4>24-Hour Temperature Trend</h4>
+            <h4>{t('24-Hour Temperature Trend')}</h4>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={hourlyData}>
@@ -150,7 +153,7 @@ const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
         >
           <div className="chart-header">
             <Thermometer className="chart-icon" />
-            <h4>5-Day Temperature Range</h4>
+            <h4>{t('5-Day Temperature Range')}</h4>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dailyData}>
@@ -180,7 +183,7 @@ const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
         >
           <div className="chart-header">
             <Droplets className="chart-icon" />
-            <h4>Humidity Levels</h4>
+            <h4>{t('Humidity Levels')}</h4>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={hourlyData}>
@@ -215,7 +218,7 @@ const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
         >
           <div className="chart-header">
             <Cloud className="chart-icon" />
-            <h4>Weather Conditions</h4>
+            <h4>{t('Weather Conditions')}</h4>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>

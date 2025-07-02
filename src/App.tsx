@@ -28,6 +28,8 @@ import mapAnim from './lottie/map.json';
 import alertsAnim from './lottie/alerts.json';
 import insightsAnim from './lottie/insights.json';
 import galleryAnim from './lottie/gallery.json';
+import './i18n';
+import { useTranslation } from 'react-i18next';
 
 // Custom hooks
 import { useWeatherOptimized } from './hooks/useWeatherOptimized';
@@ -108,7 +110,7 @@ const getSystemTheme = () => {
 // Tooltip descriptions and fun facts
 const tabDescriptions = {
   dashboard: 'Your personalized weather dashboard',
-  forecast: '7-day and hourly weather forecast',
+  forecast: '5-day and hourly weather forecast',
   analytics: 'Weather analytics and trends',
   map: 'Interactive weather map',
   alerts: 'Live weather alerts and warnings',
@@ -157,14 +159,15 @@ function resetAccentColor() {
 }
 
 function App() {
+  const { t } = useTranslation();
   const tabList = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'forecast', label: 'Forecast', icon: Calendar },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'map', label: 'Map', icon: Globe },
-    { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
-    { id: 'insights', label: 'Insights', icon: Sparkles },
-    { id: 'gallery', label: 'Gallery', icon: Image }
+    { id: 'dashboard', label: t('Dashboard'), icon: BarChart3, mobileLabel: 'Home' },
+    { id: 'forecast', label: t('Forecast'), icon: Calendar, mobileLabel: 'Forecast' },
+    { id: 'analytics', label: t('Analytics'), icon: BarChart3, mobileLabel: 'Stats' },
+    { id: 'map', label: t('Map'), icon: Globe, mobileLabel: 'Map' },
+    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts' },
+    { id: 'insights', label: t('Insights'), icon: Sparkles, mobileLabel: 'AI' },
+    { id: 'gallery', label: t('Gallery'), icon: Image, mobileLabel: 'Gallery' }
   ];
   const [location, setLocation] = useState('Paris');
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,6 +195,12 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accentColor, setAccentColorState] = useState(() => localStorage.getItem('meteora-accent') || '#3b82f6');
 
+  // Add state for time format
+  const [timeFormat, setTimeFormat] = useState<'12' | '24'>(() => {
+    const saved = localStorage.getItem('meteora-time-format');
+    return saved === '24' ? '24' : '12';
+  });
+
   // Weather data with React Query
   const { weather, forecast, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
 
@@ -203,6 +212,9 @@ function App() {
     const saved = localStorage.getItem('meteora-favorites');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Add state for home city
+  const [homeCity, setHomeCity] = useState(() => localStorage.getItem('meteora-home-city') || '');
 
   // Add/remove favorite handlers
   const addFavorite = (loc: string) => {
@@ -220,16 +232,36 @@ function App() {
 
   // Initialize app
   useEffect(() => {
-    // Always show preloader on first load
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    // Register service worker
+    registerServiceWorker();
 
-  // After Welcome screen, load saved location if any
+    // Track app initialization
+    trackInteraction('component_render', { timestamp: Date.now() });
+
+    // Listen for online/offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Listen for theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setThemeState(e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handleThemeChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      mediaQuery.removeEventListener('change', handleThemeChange);
+    };
+  }, [trackInteraction]);
+
+  // After Welcome screen, load saved location if any (only if not set by search)
   useEffect(() => {
-    if (!showWelcome) {
+    if (!showWelcome && !location) {
       const savedLocation = localStorage.getItem('weather-location');
       if (savedLocation) {
         setLocation(savedLocation);
@@ -237,7 +269,7 @@ function App() {
         setLocation('Paris');
       }
     }
-  }, [showWelcome]);
+  }, [showWelcome, location]);
 
   // Enhanced device detection and viewport management
   useEffect(() => {
@@ -390,7 +422,7 @@ function App() {
       setIsLoading(true);
       setLocation(trimmedQuery);
       setSearchQuery('');
-      setShowWelcome(false);
+      setShowWelcome(false); // Only hide Welcome after search
       setLastSearch(trimmedQuery);
       setErrorRetryCount(0);
       setIsMobileMenuOpen(false); // Close mobile menu after search
@@ -514,14 +546,14 @@ function App() {
 
   // Enhanced tab configuration with mobile optimization
   const tabs = useMemo(() => [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, mobileLabel: 'Home' },
-    { id: 'forecast', label: 'Forecast', icon: Calendar, mobileLabel: 'Forecast' },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, mobileLabel: 'Stats' },
-    { id: 'map', label: 'Map', icon: Globe, mobileLabel: 'Map' },
-    { id: 'alerts', label: 'Alerts', icon: AlertTriangle, mobileLabel: 'Alerts' },
-    { id: 'insights', label: 'Insights', icon: Sparkles, mobileLabel: 'AI' },
-    { id: 'gallery', label: 'Gallery', icon: Image, mobileLabel: 'Gallery' }
-  ], []);
+    { id: 'dashboard', label: t('Dashboard'), icon: BarChart3, mobileLabel: 'Home' },
+    { id: 'forecast', label: t('Forecast'), icon: Calendar, mobileLabel: 'Forecast' },
+    { id: 'analytics', label: t('Analytics'), icon: BarChart3, mobileLabel: 'Stats' },
+    { id: 'map', label: t('Map'), icon: Globe, mobileLabel: 'Map' },
+    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts' },
+    { id: 'insights', label: t('Insights'), icon: Sparkles, mobileLabel: 'AI' },
+    { id: 'gallery', label: t('Gallery'), icon: Image, mobileLabel: 'Gallery' }
+  ], [t]);
 
   // Error handling
   useEffect(() => {
@@ -575,6 +607,11 @@ function App() {
 
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
+  const setAsHomeCity = (city: string) => {
+    setHomeCity(city);
+    localStorage.setItem('meteora-home-city', city);
+  };
+
   if (showWelcome) {
     return (
       <QueryClientProvider client={queryClient}>
@@ -609,7 +646,7 @@ function App() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for a city..."
+                placeholder={t('Search for a city')}
                 className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
               />
               <button
@@ -633,6 +670,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+        {/* Global Loading Overlay */}
+        {(isLoading || isLoadingQuery) && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <Suspense fallback={<div className="text-white text-lg">Loading...</div>}>
+              <LoadingSkeleton />
+            </Suspense>
+          </div>
+        )}
         <div className="glass-overlay" aria-hidden="true" />
         <WeatherOverlay weather={weather} theme={resolvedTheme} />
         <Toaster 
@@ -660,7 +705,7 @@ function App() {
 
         {/* Main App Content */}
         {!showWelcome && (
-          <div className="meteora-container relative z-10">
+          <div className="meteora-container relative z-10 max-w-full sm:max-w-[1600px] px-2 pb-2 sm:px-4 sm:pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 xl:px-16 xl:pb-16 mx-auto">
             {/* Enhanced Header */}
             <motion.header 
               className="app-header bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl shadow-lg"
@@ -680,7 +725,7 @@ function App() {
                   </motion.h1>
                   
                   {/* Enhanced Search Bar */}
-                  <div className="flex-1 sm:flex-none sm:w-96">
+                  <div className={isMobile ? 'sticky top-2 z-50 bg-white/80 dark:bg-gray-900/80 rounded-2xl shadow-md px-2 py-1' : ''}>
                     <SearchBar
                       value={searchQuery}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
@@ -690,6 +735,7 @@ function App() {
                         localStorage.setItem('weather-location', query);
                         trackInteraction('search', { query });
                       }}
+                      aria-label={t('Search for a city')}
                     />
                   </div>
                 </div>
@@ -704,7 +750,9 @@ function App() {
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    aria-label="Toggle theme"
+                    aria-label={t('Toggle theme')}
+                    role="button"
+                    title={resolvedTheme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
                   >
                     {resolvedTheme === 'light' ? (
                       <Moon className="w-5 h-5 text-gray-700" />
@@ -720,14 +768,17 @@ function App() {
                         className="w-6 h-6 rounded-full border-2 border-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-transform hover:scale-110"
                         style={{ background: c.value }}
                         aria-label={`Set accent color to ${c.name}`}
+                        role="button"
                         onClick={() => setAccentColorState(c.value)}
-                      />
+                        title={`Set accent color to ${c.name}`}
+                      ></button>
                     ))}
                     <button
                       className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white text-gray-500 text-xs font-bold ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:scale-110 transition-transform"
-                      aria-label="Reset accent color"
+                      aria-label={t('Reset accent color')}
+                      role="button"
                       onClick={() => setAccentColorState('#3b82f6')}
-                      title="Reset accent color"
+                      title={t('Reset accent color')}
                     >
                       ×
                     </button>
@@ -736,7 +787,10 @@ function App() {
                   <button
                     className="ml-3 p-2 rounded-full bg-white/20 dark:bg-gray-700/20 hover:bg-white/40 dark:hover:bg-gray-700/40 transition"
                     onClick={() => setSettingsOpen(true)}
-                    aria-label="Open settings"
+                    aria-label={t('Open settings')}
+                    role="button"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    title={t('Open settings')}
                   >
                     <Settings className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                   </button>
@@ -747,12 +801,27 @@ function App() {
             {/* Quick Actions Bar (mobile: above tab bar, desktop: in header area) */}
             {isMobile ? (
               <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-40 w-[95vw] max-w-lg flex gap-2 items-center justify-center bg-white/30 dark:bg-gray-900/40 backdrop-blur-xl rounded-full shadow-lg px-3 py-2 border border-white/20 dark:border-gray-700/30 glassy-nav-glow">
+                {homeCity && (
+                  <button
+                    className="px-4 py-2 rounded-full font-semibold text-sm bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition relative group border-2 border-yellow-400"
+                    onClick={() => setLocation(homeCity)}
+                    aria-label={`Go to home city: ${homeCity}`}
+                    role="button"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    title={t('Go to your home city')}
+                  >
+                    <span className="mr-1">🏠</span>{homeCity}
+                  </button>
+                )}
                 {favorites.map(fav => (
                   <button
                     key={fav}
-                    className={`px-4 py-2 rounded-full font-semibold text-sm bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group`}
+                    className={`px-4 py-2 rounded-full font-semibold text-sm bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group${fav === homeCity ? ' border-2 border-yellow-400' : ''}`}
                     onClick={() => setLocation(fav)}
                     aria-label={`Switch to ${fav}`}
+                    role="button"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    title={`Switch to ${fav}`}
                   >
                     {fav}
                     <span
@@ -761,26 +830,56 @@ function App() {
                       role="button"
                       tabIndex={0}
                       aria-label={`Remove ${fav} from favorites`}
+                      title={`Remove ${fav} from favorites`}
                     >×</span>
                   </button>
                 ))}
                 <button
                   className="px-3 py-2 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 font-semibold text-sm shadow-sm hover:bg-green-200 dark:hover:bg-green-800/60 transition"
                   onClick={() => addFavorite(location)}
-                  aria-label="Add current location to favorites"
+                  aria-label={t('Add current location to favorites')}
                   disabled={favorites.includes(location)}
+                  role="button"
+                  style={{ minWidth: 44, minHeight: 44 }}
+                  title={t('Add current location to favorites')}
                 >
                   + Add
+                </button>
+                <button
+                  className="px-3 py-2 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 font-semibold text-sm shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition border-2 border-yellow-400"
+                  onClick={() => setAsHomeCity(location)}
+                  aria-label={t('Set current location as home city')}
+                  disabled={homeCity === location}
+                  role="button"
+                  style={{ minWidth: 44, minHeight: 44 }}
+                  title={t('Set current location as home city')}
+                >
+                  <span className="mr-1">🏠</span>{t('Set as Home')}
                 </button>
               </div>
             ) : (
               <div className="flex gap-2 items-center ml-4 mt-4 mb-2">
+                {homeCity && (
+                  <button
+                    className="px-3 py-1.5 rounded-full font-semibold text-xs bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition relative group border-2 border-yellow-400"
+                    onClick={() => setLocation(homeCity)}
+                    aria-label={`Go to home city: ${homeCity}`}
+                    role="button"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    title={t('Go to your home city')}
+                  >
+                    <span className="mr-1">🏠</span>{homeCity}
+                  </button>
+                )}
                 {favorites.map(fav => (
                   <button
                     key={fav}
-                    className={`px-3 py-1.5 rounded-full font-semibold text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group`}
+                    className={`px-3 py-1.5 rounded-full font-semibold text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group${fav === homeCity ? ' border-2 border-yellow-400' : ''}`}
                     onClick={() => setLocation(fav)}
                     aria-label={`Switch to ${fav}`}
+                    role="button"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    title={`Switch to ${fav}`}
                   >
                     {fav}
                     <span
@@ -789,29 +888,44 @@ function App() {
                       role="button"
                       tabIndex={0}
                       aria-label={`Remove ${fav} from favorites`}
+                      title={`Remove ${fav} from favorites`}
                     >×</span>
                   </button>
                 ))}
                 <button
                   className="px-2 py-1.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 font-semibold text-xs shadow-sm hover:bg-green-200 dark:hover:bg-green-800/60 transition"
                   onClick={() => addFavorite(location)}
-                  aria-label="Add current location to favorites"
+                  aria-label={t('Add current location to favorites')}
                   disabled={favorites.includes(location)}
+                  role="button"
+                  style={{ minWidth: 44, minHeight: 44 }}
+                  title={t('Add current location to favorites')}
                 >
                   + Add
+                </button>
+                <button
+                  className="px-2 py-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 font-semibold text-xs shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition border-2 border-yellow-400"
+                  onClick={() => setAsHomeCity(location)}
+                  aria-label={t('Set current location as home city')}
+                  disabled={homeCity === location}
+                  role="button"
+                  style={{ minWidth: 44, minHeight: 44 }}
+                  title={t('Set current location as home city')}
+                >
+                  <span className="mr-1">🏠</span>{t('Set as Home')}
                 </button>
               </div>
             )}
 
             {/* Enhanced Navigation Tabs - Premium Glassy Pill Nav */}
             <motion.nav
-              className={`weather-tabs-nav ${isMobile ? 'fixed left-1/2 -translate-x-1/2 bottom-6 z-30 px-2 py-2 bg-white/20 dark:bg-gray-900/40 backdrop-blur-2xl rounded-full shadow-2xl border border-white/30 dark:border-gray-700/40 flex gap-2 items-center justify-center max-w-full w-[98vw] glassy-nav-glow' : 'mt-8 mb-4 flex gap-3 items-center justify-center'} ${isMobile ? '' : 'relative'}`}
+              className={`weather-tabs-nav ${isMobile ? 'fixed left-1/2 -translate-x-1/2 bottom-0 z-50 w-full max-w-lg px-1 py-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl rounded-t-2xl shadow-2xl border-t border-white/30 dark:border-gray-700/40 flex gap-1 items-center justify-center glassy-nav-glow overflow-x-auto scrollbar-hide' : 'mt-8 mb-4 flex gap-3 items-center justify-center'} ${isMobile ? '' : 'relative'}`}
+              style={isMobile ? { pointerEvents: 'auto' } : {}}
               role="tablist"
-              aria-label="Main navigation tabs"
+              aria-label={t('Main navigation tabs')}
               initial={{ opacity: 0, y: isMobile ? 40 : 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              style={isMobile ? { pointerEvents: 'auto' } : {}}
             >
               {tabList.map((tab, idx) => {
                 const isActive = activeTab === tab.id;
@@ -882,7 +996,7 @@ function App() {
                   <motion.button
                     key={tab.id}
                     ref={el => tabRefs.current[idx] = el}
-                    className={`tab-button flex flex-col items-center gap-1 px-3 sm:px-5 py-2 sm:py-3 font-semibold text-sm sm:text-base relative focus-visible:outline-4 focus-visible:outline-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:z-20 transition-all duration-300 rounded-full group ${isActive ? 'text-white dark:text-blue-200' : 'text-blue-900 dark:text-blue-200/80'}`}
+                    className={`tab-button flex flex-col items-center gap-0.5 px-2 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-base relative focus-visible:outline-4 focus-visible:outline-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:z-20 transition-all duration-300 rounded-full group ${isActive ? 'text-white dark:text-blue-200' : 'text-blue-900 dark:text-blue-200/80'} min-w-[44px] min-h-[44px]`}
                     id={`tab-${tab.id}`}
                     role="tab"
                     tabIndex={0}
@@ -923,7 +1037,7 @@ function App() {
                           animationData={tabLottieMap[tab.id as keyof typeof tabLottieMap]}
                           loop={true}
                           autoplay={isActive}
-                          style={{ width: 32, height: 32, marginRight: 0 }}
+                          style={{ width: isMobile ? 24 : 32, height: isMobile ? 24 : 32, marginRight: 0 }}
                           rendererSettings={{ preserveAspectRatio: 'xMidYMid slice' }}
                         />
                       </motion.span>
@@ -932,7 +1046,7 @@ function App() {
                       {isActive && (
                         <motion.span
                           layoutId="nav-underline"
-                          className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-2 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-teal-400 blur-sm opacity-80 shadow-xl animate-pulse"
+                          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-7 sm:w-10 h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-teal-400 blur-sm opacity-80 shadow-xl animate-pulse"
                           initial={{ scaleX: 0.7, opacity: 0 }}
                           animate={{ scaleX: 1, opacity: 1 }}
                           exit={{ scaleX: 0.7, opacity: 0 }}
@@ -940,7 +1054,9 @@ function App() {
                         />
                       )}
                     </span>
-                    <span className="inline mt-1 drop-shadow-sm">{tab.label}</span>
+                    <span className={`inline mt-0.5 drop-shadow-sm ${isMobile ? 'hidden xs:inline text-xs' : ''}`}>
+                      {isMobile ? (tab.mobileLabel || tab.label) : tab.label}
+                    </span>
                     {microStat}
                     {/* Tooltip */}
                     <AnimatePresence>
@@ -963,7 +1079,7 @@ function App() {
             </motion.nav>
 
             {/* Main Content Area */}
-            <main className="app-main flex-1">
+            <main className="app-main flex-1 px-0 sm:px-2 md:px-4 lg:px-8 xl:px-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
@@ -971,38 +1087,10 @@ function App() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="weather-content grid gap-8 lg:gap-12 xl:gap-16 grid-cols-1 lg:grid-cols-3 px-2 sm:px-4 md:px-8 xl:px-16 py-6"
+                  className="weather-content grid gap-4 sm:gap-8 lg:gap-12 xl:gap-16 grid-cols-1 lg:grid-cols-3 px-1 sm:px-4 md:px-8 xl:px-16 py-3 sm:py-6"
                 >
                   {activeTab === 'dashboard' && (
                     <>
-                      <motion.div className="lg:col-span-3 mb-4">
-                        <h2 className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-200 mb-2">
-                          {(() => {
-                            const hour = new Date().getHours();
-                            const name = 'Nicolette';
-                            if (hour < 12) return `Good morning, ${name}!`;
-                            if (hour < 18) return `Good afternoon, ${name}!`;
-                            return `Good evening, ${name}!`;
-                          })()}
-                        </h2>
-                        <p className="text-base sm:text-lg text-blue-700 dark:text-blue-300 font-medium mb-1">Here's your personalized weather dashboard.</p>
-                        <span className="inline-block bg-white/40 dark:bg-gray-900/40 rounded-lg px-4 py-2 text-blue-800 dark:text-blue-200 text-sm font-semibold shadow-sm animate-fade-in mt-1">
-                          {(() => {
-                            const facts = [
-                              'Tip: Tap any card for more details!',
-                              'Did you know? Snowflakes always have six sides.',
-                              'Raindrops can fall at speeds of about 22 mph.',
-                              'The highest temp ever recorded was 56.7°C in Death Valley.',
-                              'Fog is actually a cloud that touches the ground.',
-                              'Hurricanes can release the energy of 10,000 nuclear bombs.',
-                              'Clouds look white because they reflect sunlight.',
-                              'The wettest place on Earth is Mawsynram, India.'
-                            ];
-                            const idx = Math.floor((Date.now() / 5000) % facts.length);
-                            return facts[idx];
-                          })()}
-                        </span>
-                      </motion.div>
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-2">
                         <Suspense fallback={<LoadingSkeleton />}>
                           <WeatherHero weather={weather} theme={resolvedTheme} />
@@ -1012,7 +1100,7 @@ function App() {
                         <div className="col-span-full flex justify-center">
                           <div className="w-full max-w-5xl">
                             <Suspense fallback={<LoadingSkeleton />}>
-                              <WeatherForecast forecast={forecast} />
+                              <WeatherForecast forecast={forecast} weather={weather} timeFormat={timeFormat} />
                             </Suspense>
                           </div>
                         </div>
@@ -1023,7 +1111,7 @@ function App() {
                     <div className="col-span-full flex justify-center">
                       <div className="w-full max-w-5xl">
                         <Suspense fallback={<LoadingSkeleton />}>
-                          <WeatherForecast forecast={forecast} />
+                          <WeatherForecast forecast={forecast} weather={weather} timeFormat={timeFormat} />
                         </Suspense>
                       </div>
                     </div>
@@ -1064,9 +1152,6 @@ function App() {
                       ) : (
                         <div className="col-span-full flex justify-center">
                           <div className="w-full max-w-5xl">
-                            {/* Debug logging for weather/forecast */}
-                            {console.log('[Insights] weather:', weather)}
-                            {console.log('[Insights] forecast:', forecast)}
                             <WeatherInsights weather={weather} forecast={forecast} />
                           </div>
                         </div>
@@ -1106,9 +1191,13 @@ function App() {
                   <button
                     className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200"
                     onClick={() => refetch()}
+                    aria-label={t('Refresh weather data')}
+                    role="button"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    title={t('Refresh weather data')}
                   >
                     <RefreshCw className="w-4 h-4 inline mr-1" />
-                    Refresh
+                    {t('Refresh')}
                   </button>
                 </div>
               </div>
@@ -1140,6 +1229,8 @@ function App() {
           accentColor={accentColor}
           setAccentColor={setAccentColorState}
           accentColors={accentColors}
+          timeFormat={timeFormat}
+          setTimeFormat={setTimeFormat}
         />
 
         {/* React Query DevTools */}

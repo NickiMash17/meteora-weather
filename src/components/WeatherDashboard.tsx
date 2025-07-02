@@ -18,13 +18,18 @@ import {
   Zap,
   Sparkles
 } from 'lucide-react';
+import { getCityDate } from '../utils/timezone';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherDashboardProps {
   weather: any;
   forecast: any;
+  timeFormat?: '12' | '24';
 }
 
-const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }) => {
+const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast, timeFormat = '12' }) => {
+  const { t } = useTranslation();
+
   const getWeatherIcon = (condition: string) => {
     switch (condition.toLowerCase()) {
       case 'clear':
@@ -44,10 +49,11 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
   };
 
   const formatTime = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleTimeString('en-US', {
+    if (!weather || typeof weather.timezone !== 'number') return '';
+    return getCityDate(weather, timestamp).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: timeFormat === '12'
     });
   };
 
@@ -62,28 +68,28 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
   const metrics = [
     {
       icon: Thermometer,
-      label: 'Feels Like',
+      label: t('Feels Like'),
       value: `${Math.round(weather.temperature.feelsLike)}°C`,
       color: 'text-red-400',
       gradient: 'from-red-400 to-orange-400'
     },
     {
       icon: Droplets,
-      label: 'Humidity',
+      label: t('Humidity'),
       value: `${weather.humidity}%`,
       color: 'text-blue-400',
       gradient: 'from-blue-400 to-cyan-400'
     },
     {
       icon: Wind,
-      label: 'Wind Speed',
+      label: t('Wind Speed'),
       value: `${weather.wind.speed} km/h`,
       color: 'text-green-400',
       gradient: 'from-green-400 to-emerald-400'
     },
     {
       icon: Eye,
-      label: 'Visibility',
+      label: t('Visibility'),
       value: `${weather.visibility / 1000} km`,
       color: 'text-purple-400',
       gradient: 'from-purple-400 to-pink-400'
@@ -91,11 +97,12 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
   ];
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 5) return 'Good night';
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (!weather || typeof weather.timezone !== 'number') return t('Hello');
+    const cityHour = getCityDate(weather).getHours();
+    if (cityHour < 5) return t('Good night');
+    if (cityHour < 12) return t('Good morning');
+    if (cityHour < 18) return t('Good afternoon');
+    return t('Good evening');
   };
 
   const getWeatherEmoji = (condition: string) => {
@@ -137,7 +144,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
             {getWeatherEmoji(weather.condition.main)}
           </motion.span>
           <span className="text-base sm:text-2xl font-semibold text-white/90 text-shadow capitalize">
-            {getGreeting()}! Here's your weather in {weather.location}
+            {getGreeting()}! {t("Here's your weather in {{location}}", { location: weather.location })}
           </span>
         </motion.div>
         {/* Background Pattern */}
@@ -161,10 +168,10 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
             <div className="flex items-center">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 mr-2" />
               <span className="text-white/80 text-sm sm:text-base">
-                {new Date().toLocaleTimeString('en-US', {
+                {getCityDate(weather).toLocaleTimeString('en-US', {
                   hour: 'numeric',
                   minute: '2-digit',
-                  hour12: true
+                  hour12: timeFormat === '12'
                 })}
               </span>
             </div>
@@ -185,14 +192,16 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
-            className="mb-4 sm:mb-6"
+            className="mb-4 sm:mb-6 w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto bg-white/80 dark:bg-gray-900/80 rounded-2xl shadow-lg p-4 sm:p-8 flex flex-col items-center"
           >
-            <h1 className={`text-6xl sm:text-8xl font-bold mb-2 text-shadow-xl ${getTemperatureColor(weather.temperature.current)}`}>
+            <h1 className={`text-5xl sm:text-8xl font-bold mb-2 text-shadow-xl ${getTemperatureColor(weather.temperature.current)}`}
+              style={{ lineHeight: 1 }}
+            >
               {Math.round(weather.temperature.current)}°
             </h1>
             <div className="flex items-center justify-center space-x-3 sm:space-x-4 text-white/80">
-              <span className="text-sm sm:text-lg">H: {Math.round(weather.temperature.max)}°</span>
-              <span className="text-sm sm:text-lg">L: {Math.round(weather.temperature.min)}°</span>
+              <span className="text-sm sm:text-lg">{t('H')}: {Math.round(weather.temperature.max)}°</span>
+              <span className="text-sm sm:text-lg">{t('L')}: {Math.round(weather.temperature.min)}°</span>
             </div>
           </motion.div>
           
@@ -203,7 +212,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
             transition={{ delay: 0.4 }}
             className="text-xl sm:text-3xl text-white/90 mb-4 capitalize font-medium text-shadow"
           >
-            {weather.condition.description}
+            {t(weather.condition.description)}
           </motion.p>
           
           {/* Weather Insights */}
@@ -215,15 +224,15 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
           >
             <div className="flex items-center">
               <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">Real-time data</span>
+              <span className="text-xs sm:text-sm">{t('Real-time data')}</span>
             </div>
             <div className="flex items-center">
               <Zap className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">AI powered</span>
+              <span className="text-xs sm:text-sm">{t('AI powered')}</span>
             </div>
             <div className="flex items-center">
               <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">Precise forecasts</span>
+              <span className="text-xs sm:text-sm">{t('Precise forecasts')}</span>
             </div>
           </motion.div>
         </div>
@@ -264,7 +273,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
         transition={{ delay: 0.9 }}
         className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-8"
       >
-        <h3 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-6 text-shadow">Sun Schedule</h3>
+        <h3 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-6 text-shadow">{t('Sun Schedule')}</h3>
         <div className="flex items-center justify-between flex-col sm:flex-row space-y-2 sm:space-y-0">
           <motion.div 
             className="flex items-center space-x-3 sm:space-x-4"
@@ -274,7 +283,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
               <Sunrise className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <div>
-              <p className="text-white/60 text-xs sm:text-sm font-medium">Sunrise</p>
+              <p className="text-white/60 text-xs sm:text-sm font-medium">{t('Sunrise')}</p>
               <p className="text-white text-lg sm:text-xl font-bold text-shadow">
                 {formatTime(weather.sunrise)}
               </p>
@@ -289,7 +298,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
               <Sunset className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <div>
-              <p className="text-white/60 text-xs sm:text-sm font-medium">Sunset</p>
+              <p className="text-white/60 text-xs sm:text-sm font-medium">{t('Sunset')}</p>
               <p className="text-white text-lg sm:text-xl font-bold text-shadow">
                 {formatTime(weather.sunset)}
               </p>
@@ -306,7 +315,7 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
           transition={{ delay: 1.0 }}
           className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-8"
         >
-          <h3 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-6 text-shadow">Next 24 Hours</h3>
+          <h3 className="text-lg sm:text-2xl font-semibold text-white mb-2 sm:mb-6 text-shadow">{t('Next 24 Hours')}</h3>
           <div className="flex space-x-2 sm:space-x-6 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
             {forecast.hourly.slice(0, 24).map((hour: any, index: number) => (
               <motion.div
@@ -315,10 +324,10 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast }
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1.1 + index * 0.05 }}
                 className="flex-shrink-0 text-center group snap-center min-w-[60px] sm:min-w-[80px]"
-                aria-label={`Hour ${new Date(hour.timestamp * 1000).getHours()}`}
+                aria-label={`Hour ${getCityDate(weather, hour.timestamp).getHours()}`}
               >
                 <p className="text-white/60 text-xs sm:text-sm mb-1 sm:mb-3 font-medium">
-                  {new Date(hour.timestamp * 1000).getHours()}:00
+                  {getCityDate(weather, hour.timestamp).getHours()}:00
                 </p>
                 <div className="w-10 h-10 sm:w-16 sm:h-16 bg-white/10 rounded-full flex items-center justify-center mb-1 sm:mb-3 group-hover:bg-white/20 transition-colors">
                   {getWeatherIcon(hour.condition.main)}
