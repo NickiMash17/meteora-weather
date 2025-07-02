@@ -30,6 +30,7 @@ export interface CurrentWeatherData {
   sunrise: number;
   sunset: number;
   uvIndex: number;
+  timezone: number;
 }
 
 export interface HourlyForecast {

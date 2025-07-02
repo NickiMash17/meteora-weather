@@ -13,6 +13,8 @@ import {
   Eye,
   Compass
 } from 'lucide-react';
+import { getCityDate } from '../utils/timezone';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherHeroProps {
   weather: any;
@@ -30,6 +32,8 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
   const springRotateX = useSpring(rotateX, { stiffness: 100, damping: 20 });
   const springRotateY = useSpring(rotateY, { stiffness: 100, damping: 20 });
 
+  const { t } = useTranslation();
+
   const handleMouseMove = (event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -46,7 +50,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
 
   const getWeatherIcon = () => {
     const condition = weather?.condition?.main?.toLowerCase() || 'clear';
-    const hour = new Date().getHours();
+    const hour = (weather && typeof weather.timezone === 'number') ? getCityDate(weather).getHours() : new Date().getHours();
     const isDaytime = hour >= 6 && hour < 18;
 
     if (!isDaytime) {
@@ -204,7 +208,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          {weather?.condition?.description || 'Weather condition'}
+          {weather?.condition?.description || t('Weather condition')}
         </motion.div>
         
         <motion.div
@@ -213,7 +217,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          Feels like {weather?.temperature?.feelsLike || '--'}°
+          {t('Feels like')} {weather?.temperature?.feelsLike || '--'}°
         </motion.div>
       </motion.div>
 
@@ -227,7 +231,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
         {/* Humidity */}
         <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
           <Droplets className="w-6 h-6 text-blue-400 mb-2" />
-          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Humidity</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{t('Humidity')}</span>
           <span className="text-lg font-bold text-gray-900 dark:text-white">
             {weather?.humidity || '--'}%
           </span>
@@ -236,7 +240,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
         {/* Wind */}
         <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
           <Wind className="w-6 h-6 text-green-400 mb-2" />
-          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Wind</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{t('Wind')}</span>
           <span className="text-lg font-bold text-gray-900 dark:text-white">
             {weather?.wind?.speed || '--'} km/h
           </span>
@@ -245,7 +249,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
         {/* Visibility */}
         <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
           <Eye className="w-6 h-6 text-purple-400 mb-2" />
-          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Visibility</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{t('Visibility')}</span>
           <span className="text-lg font-bold text-gray-900 dark:text-white">
             {weather?.visibility || '--'} km
           </span>
@@ -254,7 +258,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
         {/* Pressure */}
         <div className="flex flex-col items-center p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/30">
           <Thermometer className="w-6 h-6 text-red-400 mb-2" />
-          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Pressure</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{t('Pressure')}</span>
           <span className="text-lg font-bold text-gray-900 dark:text-white">
             {weather?.pressure || '--'} hPa
           </span>
@@ -271,7 +275,7 @@ const WeatherHero: React.FC<WeatherHeroProps> = ({ weather, theme }) => {
         <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300">
           <Compass className="w-4 h-4" />
           <span className="text-sm sm:text-base font-medium">
-            {weather?.location || 'Location not available'}
+            {weather?.location || t('Location not available')}
           </span>
         </div>
       </motion.div>

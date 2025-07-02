@@ -25,6 +25,8 @@ import {
   TreePine,
   Droplets
 } from 'lucide-react';
+import { getCityDate } from '../utils/timezone';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherInsightsProps {
   weather: any;
@@ -34,6 +36,7 @@ interface WeatherInsightsProps {
 const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) => {
   const [activeInsight, setActiveInsight] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const { t } = useTranslation();
 
   const generateInsights = () => {
     if (!weather) return [];
@@ -42,7 +45,7 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
     const condition = weather.condition.main.toLowerCase();
     const humidity = weather.humidity;
     const windSpeed = weather.wind.speed;
-    const hour = new Date().getHours();
+    const hour = (weather && typeof weather.timezone === 'number') ? getCityDate(weather).getHours() : new Date().getHours();
 
     const insights = [];
 
@@ -243,7 +246,7 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
             <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
               <Lightbulb className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-white">Weather Insights</h3>
+            <h3 className="text-xl font-bold text-white">{t('AI Weather Insights')}</h3>
           </div>
           <Sparkles className="w-6 h-6 text-yellow-400" />
         </div>
@@ -278,7 +281,7 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
                           animate={{ opacity: 1, height: 'auto' }}
                           className="space-y-2"
                         >
-                          <h5 className="text-sm font-semibold text-white/90">Recommendations:</h5>
+                          <h5 className="text-sm font-semibold text-white/90">{t('Recommendations:')}</h5>
                           <ul className="space-y-1">
                             {insights[activeInsight].recommendations.map((rec, index) => (
                               <motion.li
@@ -321,7 +324,7 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
               onClick={() => setIsExpanded(!isExpanded)}
               className="w-full py-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 transition-all duration-300 text-white/80 text-sm font-medium"
             >
-              {isExpanded ? 'Show Less' : 'Show Recommendations'}
+              {isExpanded ? t('Show Less') : t('Show Recommendations')}
             </button>
           </div>
         ) : (
@@ -330,16 +333,17 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
             <span className="inline-block">
               <Sparkles className="w-16 h-16 text-yellow-300 animate-bounce mb-2" />
             </span>
-            <h4 className="text-lg font-semibold text-white mb-1">No Insights Available</h4>
+            <h4 className="text-lg font-semibold text-white mb-1">{t('No Insights Available')}</h4>
             <p className="text-white/70 max-w-xs mx-auto mb-2">
-              We couldn't generate any special insights for the current weather conditions.<br />
-              Try searching for a different city, or check back later for more interesting weather!
+              {t('We couldn\'t generate any special insights for the current weather conditions.')}
+              <br />
+              {t('Try searching for a different city, or check back later for more interesting weather!')}
             </p>
             <button
               className="mt-2 px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold shadow transition"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              Search Another City
+              {t('Search Another City')}
             </button>
           </div>
         )}
@@ -375,7 +379,7 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
         transition={{ duration: 0.5, delay: 0.4 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Weather Trends</h3>
+          <h3 className="text-lg font-semibold text-white">{t('Weather Trends')}</h3>
           <TrendingUp className="w-5 h-5 text-green-400" />
         </div>
         
@@ -384,14 +388,14 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
             <div className="text-2xl font-bold text-white mb-1">
               {weather?.temperature?.current}°
             </div>
-            <div className="text-sm text-white/60">Current</div>
+            <div className="text-sm text-white/60">{t('Current')}</div>
           </div>
           
           <div className="text-center p-4 rounded-2xl bg-white/10">
             <div className="text-2xl font-bold text-white mb-1">
               {weather?.temperature?.feels_like}°
             </div>
-            <div className="text-sm text-white/60">Feels Like</div>
+            <div className="text-sm text-white/60">{t('Feels Like')}</div>
           </div>
         </div>
       </motion.div>

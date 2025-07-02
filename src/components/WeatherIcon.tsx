@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import '../styles/WeatherIcon.css';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherIconProps {
   conditionCode: number;
@@ -9,6 +10,7 @@ interface WeatherIconProps {
 
 const WeatherIcon: React.FC<WeatherIconProps> = ({ conditionCode, isDay, size }) => {
   const [icon, setIcon] = useState<string>('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const getWeatherIcon = () => {
@@ -56,7 +58,7 @@ const WeatherIcon: React.FC<WeatherIconProps> = ({ conditionCode, isDay, size })
     <span 
       className={`weather-icon ${size}`}
       role="img"
-      aria-label="Weather icon"
+      aria-label={t('Weather icon')}
     >
       {icon}
     </span>

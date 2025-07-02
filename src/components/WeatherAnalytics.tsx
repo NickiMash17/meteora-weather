@@ -13,6 +13,7 @@ import {
   Info,
   Eye
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherAnalyticsProps {
   weather: any;
@@ -51,6 +52,7 @@ const Sparkline: React.FC<{ data: number[]; color?: string }> = ({ data, color =
 
 const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }: WeatherAnalyticsProps) => {
   const [selectedMetric, setSelectedMetric] = React.useState<'temperature' | 'humidity' | 'wind'>('temperature');
+  const { t } = useTranslation();
 
   const getMetricData = (): MetricData[] => {
     if (!forecast?.hourly) return [];
@@ -119,8 +121,8 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
             <line x1="58" y1="58" x2="62" y2="62" stroke="#60a5fa" strokeWidth="3" strokeLinecap="round" />
           </svg>
         </motion.div>
-        <h3 className="text-xl font-bold text-blue-400 mb-2">No Analytics Data</h3>
-        <p className="text-white/80 text-base mb-2">No analytics available yet. Check back soon for trends and insights!</p>
+        <h3 className="text-xl font-bold text-blue-400 mb-2">{t('No Analytics Data')}</h3>
+        <p className="text-white/80 text-base mb-2">{t('No analytics available yet. Check back soon for trends and insights!')}</p>
       </motion.div>
     );
 
@@ -164,40 +166,40 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
 
   const metrics = [
     {
-      label: 'Temperature',
+      label: t('Temperature'),
       icon: Thermometer,
       value: `${Math.round(weather.temperature.current)}°C`,
       trend: getTrend(tempTrend),
       data: tempTrend,
       color: '#fbbf24',
-      tooltip: 'Max temperature trend for the next 7 days.'
+      tooltip: t('Max temperature trend for the next 5 days.')
     },
     {
-      label: 'Humidity',
+      label: t('Humidity'),
       icon: Droplets,
       value: `${weather.humidity}%`,
       trend: getTrend(humidityTrend),
       data: humidityTrend,
       color: '#60a5fa',
-      tooltip: 'Humidity trend for the next 7 days.'
+      tooltip: t('Humidity trend for the next 5 days.')
     },
     {
-      label: 'Wind Speed',
+      label: t('Wind Speed'),
       icon: Wind,
       value: `${weather.wind.speed} km/h`,
       trend: getTrend(windTrend),
       data: windTrend,
       color: '#34d399',
-      tooltip: 'Wind speed trend for the next 7 days.'
+      tooltip: t('Wind speed trend for the next 5 days.')
     },
     {
-      label: 'Visibility',
+      label: t('Visibility'),
       icon: Eye,
       value: `${weather.visibility / 1000} km`,
       trend: getTrend(visibilityTrend),
       data: visibilityTrend,
       color: '#a78bfa',
-      tooltip: 'Visibility trend for the next 7 days.'
+      tooltip: t('Visibility trend for the next 5 days.')
     },
   ];
 
@@ -210,9 +212,9 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
         className="flex space-x-2"
       >
         {[
-          { key: 'temperature', label: 'Temperature', icon: Thermometer },
-          { key: 'humidity', label: 'Humidity', icon: Droplets },
-          { key: 'wind', label: 'Wind Speed', icon: Wind }
+          { key: 'temperature', label: t('Temperature'), icon: Thermometer },
+          { key: 'humidity', label: t('Humidity'), icon: Droplets },
+          { key: 'wind', label: t('Wind Speed'), icon: Wind }
         ].map((metric) => {
           const Icon = metric.icon;
           return (
@@ -242,15 +244,15 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
         className="glass-card rounded-2xl p-6"
       >
         <h3 className="text-xl font-semibold text-white mb-6">
-          24-Hour {selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)} Trend
+          {t('24-Hour {{metric}} Trend', { metric: t(selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)) })}
         </h3>
         {renderChart()}
         <div className="flex justify-between mt-4 text-white/60 text-sm">
-          <span>00:00</span>
-          <span>06:00</span>
-          <span>12:00</span>
-          <span>18:00</span>
-          <span>24:00</span>
+          <span>{t('00:00')}</span>
+          <span>{t('06:00')}</span>
+          <span>{t('12:00')}</span>
+          <span>{t('18:00')}</span>
+          <span>{t('24:00')}</span>
         </div>
       </motion.div>
 
@@ -265,21 +267,21 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
           {[
             {
               key: 'temperature',
-              label: 'Temperature',
+              label: t('Temperature'),
               icon: Thermometer,
               unit: '°C',
               color: 'text-red-400'
             },
             {
               key: 'humidity',
-              label: 'Humidity',
+              label: t('Humidity'),
               icon: Droplets,
               unit: '%',
               color: 'text-blue-400'
             },
             {
               key: 'wind',
-              label: 'Wind Speed',
+              label: t('Wind Speed'),
               icon: Wind,
               unit: 'km/h',
               color: 'text-green-400'
@@ -304,18 +306,18 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
                 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Average</span>
+                    <span className="text-white/60">{t('Average')}</span>
                     <span className="text-white font-semibold">{data.avg}{metric.unit}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Maximum</span>
+                    <span className="text-white/60">{t('Maximum')}</span>
                     <div className="flex items-center space-x-1">
                       {getTrendIcon(data.max, data.avg)}
                       <span className="text-white font-semibold">{data.max}{metric.unit}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Minimum</span>
+                    <span className="text-white/60">{t('Minimum')}</span>
                     <div className="flex items-center space-x-1">
                       {getTrendIcon(data.min, data.avg)}
                       <span className="text-white font-semibold">{data.min}{metric.unit}</span>
@@ -335,10 +337,10 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
         transition={{ delay: 0.8 }}
         className="glass-card rounded-2xl p-6"
       >
-        <h3 className="text-xl font-semibold text-white mb-6">Weather Patterns</h3>
+        <h3 className="text-xl font-semibold text-white mb-6">{t('Weather Patterns')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-white font-medium mb-3">Most Common Conditions</h4>
+            <h4 className="text-white font-medium mb-3">{t('Most Common Conditions')}</h4>
             <div className="space-y-2">
               {forecast?.daily?.reduce((acc: any, day: any) => {
                 const condition = day.condition.main;
@@ -363,30 +365,30 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
           </div>
           
           <div>
-            <h4 className="text-white font-medium mb-3">Temperature Range</h4>
+            <h4 className="text-white font-medium mb-3">{t('Temperature Range')}</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-white/80">Warmest Day</span>
+                <span className="text-white/80">{t('Warmest Day')}</span>
                 <span className="text-white font-semibold">
                   {forecast?.daily?.reduce((max: any, day: any) => 
                     day.temperature.max > max.temperature.max ? day : max
-                  )?.condition?.description || 'N/A'}
+                  )?.condition?.description || t('N/A')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-white/80">Coolest Day</span>
+                <span className="text-white/80">{t('Coolest Day')}</span>
                 <span className="text-white font-semibold">
                   {forecast?.daily?.reduce((min: any, day: any) => 
                     day.temperature.min < min.temperature.min ? day : min
-                  )?.condition?.description || 'N/A'}
+                  )?.condition?.description || t('N/A')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-white/80">Rainiest Day</span>
+                <span className="text-white/80">{t('Rainiest Day')}</span>
                 <span className="text-white font-semibold">
                   {forecast?.daily?.reduce((max: any, day: any) => 
                     day.precipitation > max.precipitation ? day : max
-                  )?.condition?.description || 'N/A'}
+                  )?.condition?.description || t('N/A')}
                 </span>
               </div>
             </div>
@@ -401,7 +403,7 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
         transition={{ delay: 1 }}
         className="glass-card rounded-2xl p-6"
       >
-        <h3 className="text-xl font-semibold text-white mb-6">Trends</h3>
+        <h3 className="text-xl font-semibold text-white mb-6">{t('Trends')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {metrics.map((metric, idx) => {
             const Icon = metric.icon;

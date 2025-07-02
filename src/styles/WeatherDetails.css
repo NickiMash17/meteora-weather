@@ -1,9 +1,9 @@
 .weather-details {
   color: var(--card-bg-light);
-  width: fit-content;
-  max-width: fit-content;
-  overflow: visible;
-  padding: 1.5rem 0; /* Adjusted padding */
+  width: 100%;
+  max-width: 100%;
+  overflow: unset;
+  padding: 1.5rem 0;
 }
 
 
@@ -28,7 +28,7 @@
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
   width: 100%;
   max-width: 100%;
@@ -352,10 +352,17 @@
 }
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .weather-details {
+    padding: 1rem 0.5rem;
+  }
   .details-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  
+  .weather-content {
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+  }
   .uv-card, .sun-card {
     grid-column: span 1;
   }

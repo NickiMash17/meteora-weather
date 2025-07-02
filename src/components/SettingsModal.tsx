@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sun, Moon, Monitor } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface SettingsModalProps {
   accentColor: string;
   setAccentColor: (color: string) => void;
   accentColors: { name: string; value: string }[];
+  timeFormat: '12' | '24';
+  setTimeFormat: (format: '12' | '24') => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -20,8 +23,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   accentColor,
   setAccentColor,
   accentColors,
+  timeFormat,
+  setTimeFormat,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const { t, i18n } = useTranslation();
 
   // Focus trap
   useEffect(() => {
@@ -51,6 +57,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       document.body.style.overflow = '';
     };
   }, [isOpen]);
+
+  const handleTimeFormatChange = (format: '12' | '24') => {
+    setTimeFormat(format);
+    localStorage.setItem('meteora-time-format', format);
+  };
 
   return (
     <AnimatePresence>
@@ -126,6 +137,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                 ))}
               </div>
+            </div>
+            <div className="flex flex-col gap-2 mt-4">
+              <label className="font-medium text-gray-700 dark:text-gray-200">Time Format</label>
+              <div className="flex gap-3">
+                <button
+                  className={`px-3 py-1 rounded-lg border ${timeFormat === '12' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'} transition`}
+                  onClick={() => handleTimeFormatChange('12')}
+                  aria-label="Set 12-hour time format"
+                  type="button"
+                >
+                  12-hour
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-lg border ${timeFormat === '24' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'} transition`}
+                  onClick={() => handleTimeFormatChange('24')}
+                  aria-label="Set 24-hour time format"
+                  type="button"
+                >
+                  24-hour
+                </button>
+              </div>
+            </div>
+            <div className="settings-option">
+              <label htmlFor="language-select">{t('Language')}</label>
+              <select
+                id="language-select"
+                value={i18n.language}
+                onChange={e => i18n.changeLanguage(e.target.value)}
+                aria-label={t('Language')}
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
             </div>
           </motion.div>
         </motion.div>

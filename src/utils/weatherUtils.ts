@@ -43,7 +43,8 @@ export const fetchWeather = async (location: string): Promise<CurrentWeatherData
       visibility: data.visibility,
       sunrise: data.sys.sunrise,
       sunset: data.sys.sunset,
-      uvIndex: 5 // This would come from a different API endpoint
+      uvIndex: 5, // This would come from a different API endpoint
+      timezone: data.timezone
     };
   } catch (error) {
     console.error('Error fetching weather:', error);

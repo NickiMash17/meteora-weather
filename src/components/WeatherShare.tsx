@@ -11,6 +11,7 @@ import {
   Check
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherShareProps {
   weather: any;
@@ -20,6 +21,7 @@ interface WeatherShareProps {
 const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation();
 
   const getWeatherEmoji = (condition: string) => {
     switch (condition) {
@@ -42,11 +44,11 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
     const condition = weather.condition.description;
     const emoji = getWeatherEmoji(weather.condition.main);
     
-    return `${emoji} ${temp}°C and ${condition} in ${location} right now! Checked with Meteora Weather 🌍`;
+    return `${emoji} ${temp}°C ${t('and')} ${condition} ${t('in')} ${location} ${t('right now! Checked with Meteora Weather 🌍')}`;
   };
 
   const shareData = {
-    title: `Weather in ${location}`,
+    title: `${t('Weather in')} ${location}`,
     text: generateShareText(),
     url: window.location.href
   };
@@ -109,7 +111,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
     ctx.fillStyle = 'white';
     ctx.font = 'bold 48px Inter';
     ctx.textAlign = 'center';
-    ctx.fillText(`Weather in ${location}`, 600, 150);
+    ctx.fillText(`${t('Weather in')} ${location}`, 600, 150);
 
     if (weather) {
       const temp = Math.round(weather.temperature.current);
@@ -123,7 +125,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
       ctx.fillText(condition, 600, 340);
 
       ctx.font = '24px Inter';
-      ctx.fillText(`Checked with Meteora Weather`, 600, 400);
+      ctx.fillText(`${t('Checked with Meteora Weather')}`, 600, 400);
     }
 
     // Download the image
@@ -142,7 +144,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
         whileTap={{ scale: 0.95 }}
       >
         <Share2 size={20} />
-        Share Weather
+        {t('Share Weather')}
       </motion.button>
 
       <AnimatePresence>
@@ -155,7 +157,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
             transition={{ duration: 0.2 }}
           >
             <div className="share-header">
-              <h3>Share Weather</h3>
+              <h3>{t('Share Weather')}</h3>
               <button 
                 className="close-button"
                 onClick={() => setIsOpen(false)}
@@ -196,7 +198,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Twitter size={20} />
-                Twitter
+                {t('Twitter')}
               </motion.button>
 
               <motion.button
@@ -206,7 +208,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Facebook size={20} />
-                Facebook
+                {t('Facebook')}
               </motion.button>
 
               <motion.button
@@ -216,7 +218,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Instagram size={20} />
-                Instagram
+                {t('Instagram')}
               </motion.button>
 
               <motion.button
@@ -226,7 +228,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 {copied ? <Check size={20} /> : <Copy size={20} />}
-                {copied ? 'Copied!' : 'Copy Text'}
+                {copied ? t('Copied!') : t('Copy Text')}
               </motion.button>
 
               <motion.button
@@ -236,7 +238,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Download size={20} />
-                Download Card
+                {t('Download Card')}
               </motion.button>
 
               <motion.button
@@ -246,7 +248,7 @@ const WeatherShare: React.FC<WeatherShareProps> = ({ weather, location }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Share2 size={20} />
-                Share
+                {t('Share')}
               </motion.button>
             </div>
           </motion.div>

@@ -12,6 +12,7 @@ import {
   Eye,
   Clock
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherAlertsProps {
   weather: any;
@@ -30,6 +31,7 @@ interface Alert {
 
 const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
   const [alerts, setAlerts] = React.useState<Alert[]>([]);
+  const { t } = useTranslation();
 
   React.useEffect(() => {
     if (!weather) return;
@@ -43,8 +45,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
         id: 'freezing',
         type: 'warning',
         icon: Thermometer,
-        title: 'Freezing Conditions',
-        description: 'Bundle up! Temperatures are below freezing. Consider wearing thermal layers and be cautious of icy conditions.',
+        title: t('Freezing Conditions'),
+        description: t('Bundle up! Temperatures are below freezing. Consider wearing thermal layers and be cautious of icy conditions.'),
         severity: 3,
         timestamp: new Date()
       });
@@ -53,8 +55,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
         id: 'heat',
         type: 'warning',
         icon: Thermometer,
-        title: 'High Temperature Alert',
-        description: 'Stay hydrated and avoid prolonged sun exposure. Consider indoor activities during peak hours.',
+        title: t('High Temperature Alert'),
+        description: t('Stay hydrated and avoid prolonged sun exposure. Consider indoor activities during peak hours.'),
         severity: 3,
         timestamp: new Date()
       });
@@ -67,8 +69,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
           id: 'thunderstorm',
           type: 'danger',
           icon: CloudLightning,
-          title: 'Thunderstorm Warning',
-          description: 'Seek shelter indoors immediately. Lightning can be dangerous and storms may bring heavy rain and strong winds.',
+          title: t('Thunderstorm Warning'),
+          description: t('Seek shelter indoors immediately. Lightning can be dangerous and storms may bring heavy rain and strong winds.'),
           severity: 5,
           timestamp: new Date()
         });
@@ -78,8 +80,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
           id: 'rain',
           type: 'warning',
           icon: Droplets,
-          title: 'Rain Expected',
-          description: 'Don\'t forget your umbrella! Rain is in the forecast. Roads may be slippery.',
+          title: t('Rain Expected'),
+          description: t('Don\'t forget your umbrella! Rain is in the forecast. Roads may be slippery.'),
           severity: 2,
           timestamp: new Date()
         });
@@ -89,8 +91,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
           id: 'snow',
           type: 'warning',
           icon: Snowflake,
-          title: 'Snow Alert',
-          description: 'Snow is expected. Drive carefully and dress warmly. Roads may be hazardous.',
+          title: t('Snow Alert'),
+          description: t('Snow is expected. Drive carefully and dress warmly. Roads may be hazardous.'),
           severity: 4,
           timestamp: new Date()
         });
@@ -103,8 +105,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
         id: 'wind',
         type: 'warning',
         icon: Wind,
-        title: 'High Winds',
-        description: 'Strong winds detected. Secure loose objects and be cautious of falling branches.',
+        title: t('High Winds'),
+        description: t('Strong winds detected. Secure loose objects and be cautious of falling branches.'),
         severity: 3,
         timestamp: new Date()
       });
@@ -116,8 +118,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
         id: 'visibility',
         type: 'warning',
         icon: Eye,
-        title: 'Low Visibility',
-        description: 'Poor visibility conditions. Drive carefully and use headlights if driving.',
+        title: t('Low Visibility'),
+        description: t('Poor visibility conditions. Drive carefully and use headlights if driving.'),
         severity: 3,
         timestamp: new Date()
       });
@@ -129,8 +131,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
         id: 'humidity',
         type: 'info',
         icon: Droplets,
-        title: 'High Humidity',
-        description: 'High humidity levels. Stay hydrated and consider using air conditioning.',
+        title: t('High Humidity'),
+        description: t('High humidity levels. Stay hydrated and consider using air conditioning.'),
         severity: 1,
         timestamp: new Date()
       });
@@ -146,8 +148,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
           id: 'heat-wave',
           type: 'danger',
           icon: Thermometer,
-          title: 'Heat Wave Warning',
-          description: 'Extreme heat expected in the coming days. Take extra precautions to stay cool.',
+          title: t('Heat Wave Warning'),
+          description: t('Extreme heat expected in the coming days. Take extra precautions to stay cool.'),
           severity: 4,
           timestamp: new Date()
         });
@@ -158,8 +160,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
           id: 'cold-wave',
           type: 'danger',
           icon: Thermometer,
-          title: 'Cold Wave Warning',
-          description: 'Extreme cold expected. Ensure proper heating and avoid prolonged outdoor exposure.',
+          title: t('Cold Wave Warning'),
+          description: t('Extreme cold expected. Ensure proper heating and avoid prolonged outdoor exposure.'),
           severity: 4,
           timestamp: new Date()
         });
@@ -167,7 +169,7 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
     }
 
     setAlerts(newAlerts.sort((a, b) => b.severity - a.severity));
-  }, [weather, forecast]);
+  }, [weather, forecast, t]);
 
   const getAlertColor = (type: Alert['type']) => {
     switch (type) {
@@ -222,8 +224,8 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
             </g>
           </svg>
         </motion.div>
-        <h3 className="text-2xl font-bold text-yellow-400 mb-2">No Weather Alerts</h3>
-        <p className="text-white/80 text-lg mb-2">Skies are calm and clear. Enjoy your day! 🌤️</p>
+        <h3 className="text-2xl font-bold text-yellow-400 mb-2">{t('No Weather Alerts')}</h3>
+        <p className="text-white/80 text-lg mb-2">{t('Skies are calm and clear. Enjoy your day! 🌤️')}</p>
       </motion.div>
     );
   }
@@ -236,7 +238,7 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
     >
       <div className="flex items-center space-x-3">
         <AlertTriangle className="w-6 h-6 text-white" />
-        <h3 className="text-xl font-semibold text-white">Weather Alerts</h3>
+        <h3 className="text-xl font-semibold text-white">{t('Weather Alerts')}</h3>
         <span className="px-2 py-1 bg-white/20 rounded-full text-white text-sm">
           {alerts.length}
         </span>
@@ -299,23 +301,23 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
       >
         <div className="flex items-center space-x-3 mb-4">
           <Info className="w-6 h-6 text-blue-400" />
-          <h4 className="text-lg font-semibold text-white">Safety Tips</h4>
+          <h4 className="text-lg font-semibold text-white">{t('Safety Tips')}</h4>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white/80 text-sm">
           <div>
-            <p className="font-medium mb-2">During Extreme Weather:</p>
+            <p className="font-medium mb-2">{t('During Extreme Weather:')}</p>
             <ul className="space-y-1">
-              <li>• Stay indoors when possible</li>
-              <li>• Keep emergency supplies ready</li>
-              <li>• Monitor local weather updates</li>
+              <li>• {t('Stay indoors when possible')}</li>
+              <li>• {t('Keep emergency supplies ready')}</li>
+              <li>• {t('Monitor local weather updates')}</li>
             </ul>
           </div>
           <div>
-            <p className="font-medium mb-2">General Safety:</p>
+            <p className="font-medium mb-2">{t('General Safety:')}</p>
             <ul className="space-y-1">
-              <li>• Dress appropriately for conditions</li>
-              <li>• Stay hydrated and well-rested</li>
-              <li>• Have a plan for emergencies</li>
+              <li>• {t('Dress appropriately for conditions')}</li>
+              <li>• {t('Stay hydrated and well-rested')}</li>
+              <li>• {t('Have a plan for emergencies')}</li>
             </ul>
           </div>
         </div>
