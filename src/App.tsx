@@ -55,6 +55,7 @@ import WeatherMap from './components/WeatherMap';
 import WeatherAlerts from './components/WeatherAlerts';
 import WeatherInsights from './components/WeatherInsights';
 import ImageSlider from './components/ImageSlider';
+import WeatherBackground from './components/WeatherBackground';
 
 type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
 
@@ -222,12 +223,25 @@ function App() {
       const updated = [loc, ...favorites].slice(0, 5);
       setFavorites(updated);
       localStorage.setItem('meteora-favorites', JSON.stringify(updated));
+      toast.success(`${loc} added to favorites!`);
     }
   };
   const removeFavorite = (loc: string) => {
     const updated = favorites.filter(f => f !== loc);
     setFavorites(updated);
     localStorage.setItem('meteora-favorites', JSON.stringify(updated));
+    toast((t) => (
+      <span>
+        {`${loc} removed from favorites.`}
+        <button
+          className="ml-2 underline text-blue-500 hover:text-blue-700 focus:outline-none"
+          onClick={() => {
+            addFavorite(loc);
+            toast.dismiss(t.id);
+          }}
+        >Undo</button>
+      </span>
+    ), { duration: 5000 });
   };
 
   // Initialize app
@@ -670,6 +684,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+        {/* Animated Weather Background Overlay */}
+        <WeatherBackground weather={weather} theme={resolvedTheme} />
         {/* Global Loading Overlay */}
         {(isLoading || isLoadingQuery) && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -708,93 +724,86 @@ function App() {
           <div className="meteora-container relative z-10 max-w-full sm:max-w-[1600px] px-2 pb-2 sm:px-4 sm:pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 xl:px-16 xl:pb-16 mx-auto">
             {/* Enhanced Header */}
             <motion.header 
-              className="app-header bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl shadow-lg"
+              className="app-header flex flex-col sm:flex-row items-center justify-between gap-4 w-full bg-transparent shadow-none border-none px-2 sm:px-6 lg:px-8 py-2 sm:py-3"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
-                {/* Header Left */}
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <motion.h1 
-                    className="app-title text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    Meteora
-                  </motion.h1>
-                  
-                  {/* Enhanced Search Bar */}
-                  <div className={isMobile ? 'sticky top-2 z-50 bg-white/80 dark:bg-gray-900/80 rounded-2xl shadow-md px-2 py-1' : ''}>
-                    <SearchBar
-                      value={searchQuery}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                      onSearch={(query: string) => {
-                        setLocation(query);
-                        setLastSearch(query);
-                        localStorage.setItem('weather-location', query);
-                        trackInteraction('search', { query });
-                      }}
-                      aria-label={t('Search for a city')}
-                    />
-                  </div>
-                </div>
-
-                {/* Header Right */}
-                <div className="flex items-center gap-3 sm:gap-4">
-                  {/* Theme Toggle (keep for quick access) */}
-                  <motion.button
-                    className="theme-toggle bg-white/20 dark:bg-gray-700/20 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-full p-2 hover:scale-105 transition-all duration-300"
-                    onClick={() => {
-                      setThemeState(resolvedTheme === 'light' ? 'dark' : 'light');
+              {/* Header Left: Logo and Search Bar */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+                <motion.h1 
+                  className="app-title text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  Meteora
+                </motion.h1>
+                {/* Glassmorphism Search Bar */}
+                <div className="flex-1 min-w-[220px] max-w-xl">
+                  <SearchBar
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    onSearch={(query: string) => {
+                      setLocation(query);
+                      setLastSearch(query);
+                      localStorage.setItem('weather-location', query);
+                      trackInteraction('search', { query });
                     }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    aria-label={t('Toggle theme')}
-                    role="button"
-                    title={resolvedTheme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
-                  >
-                    {resolvedTheme === 'light' ? (
-                      <Moon className="w-5 h-5 text-gray-700" />
-                    ) : (
-                      <Sun className="w-5 h-5 text-yellow-300" />
-                    )}
-                  </motion.button>
-                  {/* Accent Color Palette (quick access) */}
-                  <div className="flex items-center gap-1 ml-2">
-                    {accentColors.map((c) => (
-                      <button
-                        key={c.value}
-                        className="w-6 h-6 rounded-full border-2 border-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-transform hover:scale-110"
-                        style={{ background: c.value }}
-                        aria-label={`Set accent color to ${c.name}`}
-                        role="button"
-                        onClick={() => setAccentColorState(c.value)}
-                        title={`Set accent color to ${c.name}`}
-                      ></button>
-                    ))}
+                    aria-label={t('Search for a city')}
+                  />
+                </div>
+              </div>
+              {/* Header Right: Controls */}
+              <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
+                <motion.button
+                  className="theme-toggle bg-white/20 dark:bg-gray-700/20 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-full p-2 hover:scale-105 transition-all duration-300"
+                  onClick={() => {
+                    setThemeState(resolvedTheme === 'light' ? 'dark' : 'light');
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  aria-label={t('Toggle theme')}
+                  role="button"
+                  title={resolvedTheme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
+                >
+                  {resolvedTheme === 'light' ? (
+                    <Moon className="w-5 h-5 text-gray-700" />
+                  ) : (
+                    <Sun className="w-5 h-5 text-yellow-300" />
+                  )}
+                </motion.button>
+                <div className="flex items-center gap-1 ml-2">
+                  {accentColors.map((c) => (
                     <button
-                      className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white text-gray-500 text-xs font-bold ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:scale-110 transition-transform"
-                      aria-label={t('Reset accent color')}
+                      key={c.value}
+                      className="w-6 h-6 rounded-full border-2 border-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-transform hover:scale-110"
+                      style={{ background: c.value }}
+                      aria-label={`Set accent color to ${c.name}`}
                       role="button"
-                      onClick={() => setAccentColorState('#3b82f6')}
-                      title={t('Reset accent color')}
-                    >
-                      ×
-                    </button>
-                  </div>
-                  {/* Settings Icon */}
+                      onClick={() => setAccentColorState(c.value)}
+                      title={`Set accent color to ${c.name}`}
+                    ></button>
+                  ))}
                   <button
-                    className="ml-3 p-2 rounded-full bg-white/20 dark:bg-gray-700/20 hover:bg-white/40 dark:hover:bg-gray-700/40 transition"
-                    onClick={() => setSettingsOpen(true)}
-                    aria-label={t('Open settings')}
+                    className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white text-gray-500 text-xs font-bold ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:scale-110 transition-transform"
+                    aria-label={t('Reset accent color')}
                     role="button"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    title={t('Open settings')}
+                    onClick={() => setAccentColorState('#3b82f6')}
+                    title={t('Reset accent color')}
                   >
-                    <Settings className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                    ×
                   </button>
                 </div>
+                <button
+                  className="ml-2 p-2 rounded-full bg-white/20 dark:bg-gray-700/20 hover:bg-white/40 dark:hover:bg-gray-700/40 transition"
+                  onClick={() => setSettingsOpen(true)}
+                  aria-label={t('Open settings')}
+                  role="button"
+                  style={{ minWidth: 44, minHeight: 44 }}
+                  title={t('Open settings')}
+                >
+                  <Settings className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                </button>
               </div>
             </motion.header>
 
