@@ -11,17 +11,28 @@ interface Message {
 
 const initialWelcome = `Hello! I'm your Meteora AI Assistant. I can help with weather questions, recommendations, and guide you through the app. How can I assist you today?`;
 
-const placeholderAIResponse = (input: string): string => {
-  // Simple placeholder logic for demo
-  const lower = input.toLowerCase();
-  if (lower.includes('weather')) return "Today's weather is sunny with a high of 22°C.";
-  if (lower.includes('forecast')) return "The 5-day forecast shows mild temperatures and clear skies.";
-  if (lower.includes('3d')) return "Switching to the 3D view. (In real app, this would change the tab!)";
-  if (lower.includes('dark mode')) return "Switching to dark mode. (In real app, this would update settings!)";
-  if (lower.includes('settings')) return "You can access settings via the gear icon in the top right.";
-  if (lower.includes('help')) return "Ask me about the weather, forecasts, or how to use the app!";
-  return "I'm here to help! Try asking about the weather, forecasts, or app features.";
-};
+// Helper to call backend OpenAI proxy
+async function fetchOpenAIChat(messages: {role: string, content: string}[]): Promise<string> {
+  try {
+    const res = await fetch('http://localhost:3001/openai-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages,
+        temperature: 0.7,
+        max_tokens: 256
+      })
+    });
+    const data = await res.json();
+    if (data.choices && data.choices[0]?.message?.content) {
+      return data.choices[0].message.content.trim();
+    }
+    return 'Sorry, I could not get a response from the AI.';
+  } catch (err) {
+    return 'Error contacting AI assistant.';
+  }
+}
 
 const AIChatAssist: React.FC<{
   onNavigate?: (tab: string) => void;
@@ -44,7 +55,7 @@ const AIChatAssist: React.FC<{
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, open]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     const userMsg: Message = {
       id: Date.now(),
@@ -52,24 +63,32 @@ const AIChatAssist: React.FC<{
       text: input,
       timestamp: new Date().toLocaleTimeString()
     };
-    setMessages((msgs) => [...msgs, userMsg]);
+    setMessages((msgs: Message[]) => [...msgs, userMsg]);
     setInput('');
     setLoading(true);
-    setTimeout(() => {
-      // Placeholder AI logic
-      const aiText = placeholderAIResponse(userMsg.text);
-      const aiMsg: Message = {
-        id: Date.now() + 1,
-        sender: 'ai',
-        text: aiText,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      setMessages((msgs) => [...msgs, aiMsg]);
-      setLoading(false);
-      // Navigation/settings triggers (simulate)
-      if (onNavigate && userMsg.text.toLowerCase().includes('3d')) onNavigate('3d');
-      if (onUpdateSettings && userMsg.text.toLowerCase().includes('dark mode')) onUpdateSettings('theme', 'dark');
-    }, 900);
+    // Prepare chat history for OpenAI
+    const chatHistory = [
+      { role: 'system', content: 'You are Meteora, a helpful AI assistant for a weather app. Answer weather questions, help with app navigation (like switching tabs), and settings. If the user asks to switch tabs, reply with a short confirmation and the tab name in square brackets, e.g., [3d].' },
+      ...[...messages, userMsg].map(m => ({ role: m.sender === 'ai' ? 'assistant' : 'user', content: m.text }))
+    ];
+    const aiText = await fetchOpenAIChat(chatHistory);
+    const aiMsg: Message = {
+      id: Date.now() + 1,
+      sender: 'ai',
+      text: aiText,
+      timestamp: new Date().toLocaleTimeString()
+    };
+    setMessages((msgs: Message[]) => [...msgs, aiMsg]);
+    setLoading(false);
+    // Navigation/settings triggers (parse [tab] or [setting] in aiText)
+    if (onNavigate) {
+      const tabMatch = aiText.match(/\[(dashboard|forecast|analytics|map|alerts|gallery|insights|ai|3d|sound|gamification)\]/i);
+      if (tabMatch) onNavigate(tabMatch[1].toLowerCase());
+    }
+    if (onUpdateSettings) {
+      if (/dark mode/i.test(aiText)) onUpdateSettings('dark');
+      if (/light mode/i.test(aiText)) onUpdateSettings('light');
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
