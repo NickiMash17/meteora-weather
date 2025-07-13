@@ -44,6 +44,7 @@ import WeatherForecast from './components/WeatherForecast';
 import WeatherOverlay from './components/WeatherOverlay';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
+import AIChatAssist from './components/AIChatAssist';
 
 // Lazy load components for code splitting
 const WeatherHero = lazy(() => import('./components/WeatherHero'));
@@ -1034,6 +1035,8 @@ function App() {
           <ReactQueryDevtools initialIsOpen={false} />
         )}
       </div>
+      {/* Floating AI Assist Chat */}
+      <AIChatAssist onNavigate={setActiveTab} onUpdateSettings={setThemeState} />
       {/* Footer always visible */}
       {/* <footer className="app-footer" /> */}
     </ErrorBoundary>
