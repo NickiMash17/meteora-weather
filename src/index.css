@@ -1588,6 +1588,196 @@
   z-index: 0;
 }
 
+/* Enhanced Mobile Navigation */
+@media (max-width: 768px) {
+  /* Mobile Navigation Container */
+  nav[role="tablist"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+    padding: 0.75rem 0.5rem !important;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Dark mode mobile navigation */
+  .dark nav[role="tablist"] {
+    background: rgba(17, 24, 39, 0.95) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Mobile Tab Buttons */
+  nav[role="tablist"] button {
+    position: relative !important;
+    padding: 0.75rem 0.5rem !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    border-radius: 1rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+  }
+  
+  /* Mobile Tab Hover Effects */
+  nav[role="tablist"] button:hover {
+    transform: translateY(-2px) !important;
+  }
+  
+  /* Mobile Tab Active State */
+  nav[role="tablist"] button[aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15)) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2) !important;
+  }
+  
+  /* Mobile Tab Icon Container */
+  nav[role="tablist"] button > div:first-of-type {
+    position: relative !important;
+    padding: 0.5rem !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  /* Mobile Tab Active Icon */
+  nav[role="tablist"] button[aria-selected="true"] > div:first-of-type {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2)) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  /* Mobile Tab Label */
+  nav[role="tablist"] button span:last-child {
+    margin-top: 0.25rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.025em !important;
+  }
+}
+
+/* Enhanced Desktop Navigation */
+@media (min-width: 769px) {
+  /* Desktop Sidebar Navigation */
+  aside nav {
+    position: relative !important;
+  }
+  
+  /* Desktop Tab Buttons */
+  aside nav button {
+    position: relative !important;
+    margin-bottom: 0.5rem !important;
+    border-radius: 1rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
+  }
+  
+  /* Desktop Tab Hover Effects */
+  aside nav button:hover {
+    transform: translateX(4px) !important;
+  }
+  
+  /* Desktop Tab Active State */
+  aside nav button[aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.15)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15) !important;
+  }
+  
+  /* Desktop Tab Icon Container */
+  aside nav button > div:first-of-type {
+    position: relative !important;
+    padding: 0.75rem !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  /* Desktop Tab Active Icon */
+  aside nav button[aria-selected="true"] > div:first-of-type {
+    background: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Desktop Tab Label */
+  aside nav button span {
+    font-weight: 600 !important;
+    letter-spacing: 0.025em !important;
+  }
+  
+  /* Desktop Tab Active Indicator */
+  aside nav button[aria-selected="true"] > div:last-child {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4) !important;
+  }
+}
+
+/* Navigation Animations */
+@keyframes tabGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes tabPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Active tab animations */
+nav button[aria-selected="true"] {
+  animation: tabGlow 2s ease-in-out infinite;
+}
+
+nav button[aria-selected="true"] > div:first-of-type {
+  animation: tabPulse 2s ease-in-out infinite;
+}
+
+/* Notification Badge Styles */
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0.125rem;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Mobile badge adjustments */
+@media (max-width: 768px) {
+  .notification-badge {
+    min-width: 1rem;
+    height: 1rem;
+    font-size: 0.625rem;
+    top: -2px;
+    right: -2px;
+  }
+}
+
 /* Enhanced Search Bar UI */
 .search-container {
   position: relative;
@@ -1708,4 +1898,510 @@
 .dark .search-icon {
   color: #a78bfa;
   filter: drop-shadow(0 0 6px #7c3aed);
+} 
+
+/* ===== COMPREHENSIVE UI/UX FIXES ===== */
+
+/* Fix container layout and spacing */
+.meteora-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 1rem !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .meteora-container {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .meteora-container {
+    padding: 2rem !important;
+  }
+}
+
+/* Fix header layout */
+.app-header {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+  padding: 1rem 0 !important;
+  margin-bottom: 1rem !important;
+  align-items: center !important;
+}
+
+@media (min-width: 640px) {
+  .app-header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+}
+
+/* Fix search bar positioning and styling */
+.dashboard-search-bar {
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Fix navigation tabs */
+.nav-tabs {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  margin: 1rem 0 2rem 0 !important;
+  padding: 0.5rem !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.tab-button {
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.75rem !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s ease !important;
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  cursor: pointer !important;
+  position: relative !important;
+  min-width: 80px !important;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.tab-button.active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Fix main content area */
+.app-main {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+  padding: 0 !important;
+}
+
+.weather-content {
+  display: grid !important;
+  gap: 1.5rem !important;
+  grid-template-columns: 1fr !important;
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+@media (min-width: 1024px) {
+  .weather-content {
+    grid-template-columns: 2fr 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+/* Fix glass card styling */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 1rem !important;
+  padding: 1.5rem !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Fix mobile navigation */
+@media (max-width: 768px) {
+  .nav-tabs {
+    margin: 0.5rem 0 1rem 0 !important;
+    gap: 0.25rem !important;
+  }
+  
+  .tab-button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.75rem !important;
+    min-width: 60px !important;
+  }
+  
+  .weather-content {
+    gap: 1rem !important;
+  }
+  
+  .glass-card {
+    padding: 1rem !important;
+  }
+}
+
+/* Fix footer */
+.app-footer {
+  margin-top: auto !important;
+  padding: 1rem !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 1rem !important;
+}
+
+/* Fix mobile bottom navigation */
+@media (max-width: 768px) {
+  .meteora-container {
+    padding-bottom: 5rem !important;
+  }
+  
+  nav[role="tablist"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+    padding: 0.5rem !important;
+  }
+  
+  nav[role="tablist"] button {
+    padding: 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Fix dark mode */
+.dark .glass-card {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .nav-tabs {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .app-footer {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix quick actions bar */
+.quick-actions {
+  display: flex !important;
+  gap: 0.5rem !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  margin: 1rem 0 !important;
+}
+
+.quick-actions button {
+  padding: 0.5rem 1rem !important;
+  border-radius: 2rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.quick-actions button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Fix loading states */
+.loading-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9999 !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+/* Fix accessibility */
+*:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5) !important;
+  outline-offset: 2px !important;
+}
+
+/* Fix performance */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Fix responsive typography */
+.app-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+@media (min-width: 640px) {
+  .app-title {
+    font-size: 2rem !important;
+  }
+}
+
+/* Fix button interactions */
+button {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Fix form elements */
+input, select, textarea {
+  min-height: 44px !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Fix scrollbar */
+::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Fix toast notifications */
+.toast {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .toast {
+  background: rgba(0, 0, 0, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix modal overlays */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+.modal-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 1rem !important;
+}
+
+.dark .modal-content {
+  background: rgba(0, 0, 0, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix weather cards */
+.weather-card {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 1rem !important;
+  padding: 1.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.weather-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Fix grid layouts */
+.grid-layout {
+  display: grid !important;
+  gap: 1.5rem !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+}
+
+@media (max-width: 640px) {
+  .grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+
+/* Fix spacing utilities */
+.space-y > * + * {
+  margin-top: 1rem !important;
+}
+
+.space-x > * + * {
+  margin-left: 1rem !important;
+}
+
+/* Fix text colors */
+.text-primary {
+  color: white !important;
+}
+
+.text-secondary {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Fix background gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-gradient-secondary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;
+}
+
+/* Fix animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Fix responsive images */
+img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Fix icon sizing */
+.icon-sm {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+.icon-md {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.icon-lg {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+.icon-xl {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
+/* Fix loading skeletons */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 75%) !important;
+  background-size: 200% 100% !important;
+  animation: loading 1.5s infinite !important;
+  border-radius: 0.5rem !important;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Fix error states */
+.error-state {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  text-align: center !important;
+}
+
+/* Fix success states */
+.success-state {
+  background: rgba(34, 197, 94, 0.1) !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  color: #86efac !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  text-align: center !important;
+}
+
+/* Fix warning states */
+.warning-state {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: #fcd34d !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  text-align: center !important;
 } 

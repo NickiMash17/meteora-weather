@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent, ChangeEvent, useRef, KeyboardEvent } from 'react';
 import '../styles/SearchBar.css';
 import { useTranslation } from 'react-i18next';
+import { Search, MapPin, Clock, Globe } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
@@ -101,18 +102,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
   };
 
   return (
-    <div className="search-container-glass">
-      <form className={`search-form-glass${isFocused ? ' focused' : ''}`} onSubmit={handleSubmit} autoComplete="off">
-        <div className="dashboard-search-bar">
-          <span className="dashboard-search-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="9" cy="9" r="7"/><line x1="15" y1="15" x2="19" y2="19"/>
-            </svg>
-          </span>
+    <div className="search-container-modern">
+      <form className="search-form-modern" onSubmit={handleSubmit} autoComplete="off">
+        <div className="search-input-wrapper">
+          <div className="search-icon-wrapper">
+            <Search className="search-icon" size={20} />
+          </div>
           <input
             ref={inputRef}
             type="text"
-            className="dashboard-search-input"
+            className="search-input-modern"
             placeholder={t('Search city or location...')}
             value={value}
             onChange={handleInput}
@@ -129,68 +128,101 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
           />
           <button 
             type="submit" 
-            className="dashboard-search-btn"
+            className="search-button-modern"
             aria-label={t('Search')}
           >
             {isLoadingSuggestions ? (
-              <span className="loader-spinner w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin inline-block"></span>
+              <div className="loading-spinner"></div>
             ) : (
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="8" cy="8" r="7"/><line x1="13" y1="13" x2="17" y2="17"/>
-              </svg>
+              <Search size={18} />
             )}
           </button>
         </div>
         
-        <div className={`search-suggestions-anim-wrapper${showSuggestions && suggestions.length > 0 ? ' open' : ''}`} style={{ position: 'relative' }}>
-          <div className={`search-suggestions-glass absolute top-full left-0 right-0 mt-2 z-50 max-h-80 overflow-y-auto transition-all duration-200${showSuggestions && suggestions.length > 0 ? ' opacity-100 translate-y-0' : ' opacity-0 -translate-y-2 pointer-events-none'}`}
-            role="listbox"
-            aria-label={t('Suggestions')}
-          >
-            <div className="suggestion-section p-2 border-b border-gray-100 dark:border-gray-700">
-              <h4 className="suggestion-title px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('Recent Searches')}</h4>
-              {suggestions.map((s, idx) => (
-                <button
-                  key={s.lat + '-' + s.lon}
-                  className={`suggestion-item-glass${idx === highlightedIndex ? ' bg-blue-100 dark:bg-blue-900 border-l-4 border-blue-500' : ''}`}
-                  onClick={() => handleSelect(s)}
-                  onMouseEnter={() => setHighlightedIndex(idx)}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleSelect(s);
-                  }}
-                  type="button"
-                  role="option"
-                  aria-selected={idx === highlightedIndex}
-                  tabIndex={0}
-                >
-                  <span className="suggestion-icon mr-3 text-lg opacity-70">🕒</span> 
-                  <span className="suggestion-text text-gray-700 dark:text-gray-300 font-medium">{s.name}{s.state ? ', ' + s.state : ''}{s.country ? ', ' + s.country : ''}</span>
-                </button>
-              ))}
+        {/* Modern Suggestions Dropdown */}
+        {showSuggestions && (suggestions.length > 0 || value.length >= 2) && (
+          <div className="suggestions-container-modern">
+            <div className="suggestions-content">
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && (
+                <div className="suggestion-section">
+                  <div className="suggestion-header">
+                    <Clock size={16} />
+                    <span>{t('Recent Searches')}</span>
+                  </div>
+                  <div className="suggestion-list">
+                    {recentSearches.slice(0, 3).map((search, index) => (
+                      <button
+                        key={`recent-${index}`}
+                        className="suggestion-item-modern"
+                        onClick={() => handleSuggestionClick(search)}
+                        type="button"
+                      >
+                        <MapPin size={16} />
+                        <span>{search}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* API Suggestions */}
+              {suggestions.length > 0 && (
+                <div className="suggestion-section">
+                  <div className="suggestion-header">
+                    <Globe size={16} />
+                    <span>{t('Locations')}</span>
+                  </div>
+                  <div className="suggestion-list">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={`suggestion-${index}`}
+                        className={`suggestion-item-modern ${index === highlightedIndex ? 'highlighted' : ''}`}
+                        onClick={() => handleSelect(suggestion)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        type="button"
+                      >
+                        <MapPin size={16} />
+                        <div className="suggestion-text">
+                          <span className="suggestion-name">{suggestion.name}</span>
+                          {(suggestion.state || suggestion.country) && (
+                            <span className="suggestion-details">
+                              {suggestion.state && `${suggestion.state}, `}{suggestion.country}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Direct Search Option */}
+              {value && value.length >= 2 && (
+                <div className="suggestion-section">
+                  <button
+                    className="suggestion-item-modern direct-search"
+                    onClick={() => handleSuggestionClick(value)}
+                    type="button"
+                  >
+                    <Search size={16} />
+                    <span>{t('Search for "{{value}}"', { value })}</span>
+                  </button>
+                </div>
+              )}
             </div>
-            {value && value.length >= 2 && (
-              <button
-                className="suggestion-item-glass direct-search"
-                onClick={() => handleSuggestionClick(value)}
-                type="button"
-              >
-                <span className="suggestion-icon mr-3 text-lg opacity-70">🔍</span>
-                <span className="suggestion-text text-blue-600 dark:text-blue-400 font-semibold">{t('Search for "{{value}}"', { value })}</span>
-              </button>
-            )}
           </div>
-        </div>
+        )}
       </form>
       
-      {recentSearches.length > 0 && (
-        <div className="quick-access flex items-center gap-3 mt-4 flex-wrap">
-          <span className="quick-access-label text-sm text-gray-500 dark:text-gray-400 font-medium">{t('Quick access:')}</span>
-          <div className="quick-access-buttons flex gap-2 flex-wrap">
+      {/* Quick Access Tags */}
+      {recentSearches.length > 0 && !isFocused && (
+        <div className="quick-access-modern">
+          <div className="quick-access-tags">
             {recentSearches.slice(0, 3).map((search, index) => (
               <button
                 key={`quick-${index}`}
-                className="quick-access-button px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 font-medium"
+                className="quick-access-tag"
                 onClick={() => onSearch(search)}
                 type="button"
               >

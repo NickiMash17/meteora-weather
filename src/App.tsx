@@ -1,5 +1,4 @@
 import React, { useState, useEffect, Suspense, lazy, useCallback, useMemo, startTransition, useRef } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -40,6 +39,7 @@ import SearchBar from './components/SearchBar';
 import WeatherForecast from './components/WeatherForecast';
 import WeatherOverlay from './components/WeatherOverlay';
 import SettingsModal from './components/SettingsModal';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load components for code splitting
 const WeatherHero = lazy(() => import('./components/WeatherHero'));
@@ -59,46 +59,34 @@ import WeatherBackground from './components/WeatherBackground';
 
 type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
-      retry: 3,
-      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-    },
-  },
-});
+// QueryClient is now provided by main.tsx
 
-// PWA Service Worker Registration
-const registerServiceWorker = async () => {
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered:', registration);
-      
-      // Handle updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content is available
-              if (confirm('New version available! Reload to update?')) {
-                window.location.reload();
-              }
-            }
-          });
-        }
-      });
-    } catch (error) {
-      console.error('Service Worker registration failed:', error);
-    }
-  }
-};
+// PWA Service Worker Registration - REMOVED (already registered in main.tsx)
+// const registerServiceWorker = async () => {
+//   if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
+//     try {
+//       const registration = await navigator.serviceWorker.register('/sw.js');
+//       console.log('Service Worker registered:', registration);
+//       
+//       // Handle updates
+//       registration.addEventListener('updatefound', () => {
+//         const newWorker = registration.installing;
+//         if (newWorker) {
+//           newWorker.addEventListener('statechange', () => {
+//             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+//               // New content is available
+//               if (confirm('New version available! Reload to update?')) {
+//                 window.location.reload();
+//               }
+//             }
+//           });
+//         }
+//       });
+//     } catch (error) {
+//       console.error('Service Worker registration failed:', error);
+//     }
+//   }
+// };
 
 // Theme detection
 const getSystemTheme = () => {
@@ -118,18 +106,6 @@ const tabDescriptions = {
   insights: 'AI-powered weather insights',
   gallery: 'Weather photo gallery'
 };
-const weatherFacts = [
-  'The highest temperature ever recorded on Earth was 56.7°C (134°F) in Death Valley, USA.',
-  'Raindrops can fall at speeds of about 22 miles per hour.',
-  'Snowflakes always have six sides.',
-  'A bolt of lightning is five times hotter than the surface of the sun.',
-  'The coldest temperature ever recorded was -89.2°C (-128.6°F) in Antarctica.',
-  'Clouds look white because they reflect sunlight.',
-  'The fastest wind speed ever recorded was 253 mph during Cyclone Olivia.',
-  'Fog is actually a cloud that touches the ground.',
-  'Hurricanes can release the energy of 10,000 nuclear bombs.',
-  'The wettest place on Earth is Mawsynram, India.'
-];
 
 const tabLottieMap = {
   dashboard: dashboardAnim,
@@ -161,15 +137,7 @@ function resetAccentColor() {
 
 function App() {
   const { t } = useTranslation();
-  const tabList = [
-    { id: 'dashboard', label: t('Dashboard'), icon: BarChart3, mobileLabel: 'Home' },
-    { id: 'forecast', label: t('Forecast'), icon: Calendar, mobileLabel: 'Forecast' },
-    { id: 'analytics', label: t('Analytics'), icon: BarChart3, mobileLabel: 'Stats' },
-    { id: 'map', label: t('Map'), icon: Globe, mobileLabel: 'Map' },
-    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts' },
-    { id: 'insights', label: t('Insights'), icon: Sparkles, mobileLabel: 'AI' },
-    { id: 'gallery', label: t('Gallery'), icon: Image, mobileLabel: 'Gallery' }
-  ];
+  
   const [location, setLocation] = useState('Paris');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -191,233 +159,229 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-  // Fix: showTooltip state for each tab, not inside map
-  const [showTooltips, setShowTooltips] = useState(() => Array(tabList.length).fill(false));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accentColor, setAccentColorState] = useState(() => localStorage.getItem('meteora-accent') || '#3b82f6');
 
   // Add state for time format
   const [timeFormat, setTimeFormat] = useState<'12' | '24'>(() => {
     const saved = localStorage.getItem('meteora-time-format');
-    return saved === '24' ? '24' : '12';
+    return (saved === '12' || saved === '24') ? saved : '12';
   });
 
-  // Add state for animated indicator
-  const [indicatorLeft, setIndicatorLeft] = useState(0);
-  const [indicatorWidth, setIndicatorWidth] = useState(80);
-  const navRef = useRef<HTMLDivElement>(null);
-
-  // Update indicator position when active tab changes
-  useEffect(() => {
-    if (navRef.current) {
-      const activeButton = navRef.current.querySelector('.tab-button.active') as HTMLElement;
-      if (activeButton) {
-        const navRect = navRef.current.getBoundingClientRect();
-        const buttonRect = activeButton.getBoundingClientRect();
-        const left = buttonRect.left - navRect.left;
-        const width = buttonRect.width;
-        
-        setIndicatorLeft(left);
-        setIndicatorWidth(width);
-      }
-    }
-  }, [activeTab]);
-
-  // Weather data with React Query
-  const { weather, forecast, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
-
-  // Performance monitoring
-  const { trackInteraction, trackError, trackAPICall, getMetrics } = usePerformanceMonitor();
-
-  // Add state for favorites
+  // Favorites and home city management
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem('meteora-favorites');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Add state for home city
-  const [homeCity, setHomeCity] = useState(() => localStorage.getItem('meteora-home-city') || '');
+  const [homeCity, setHomeCity] = useState<string>(() => {
+    return localStorage.getItem('meteora-home-city') || '';
+  });
 
-  // Add/remove favorite handlers
+  // Navigation refs for indicator
+  const navRef = useRef<HTMLDivElement>(null);
+  const [indicatorLeft, setIndicatorLeft] = useState(0);
+  const [indicatorWidth, setIndicatorWidth] = useState(0);
+
+  // Weather data
+  const { 
+    weather, 
+    forecast,
+    isLoading: isLoadingQuery, 
+    error: queryError, 
+    refetch 
+  } = useWeatherOptimized(location);
+
+  // Simplified tab list with notification badges
+  const tabList = [
+    { id: 'dashboard', label: t('Dashboard'), icon: BarChart3, mobileLabel: 'Home', badge: null },
+    { id: 'forecast', label: t('Forecast'), icon: Calendar, mobileLabel: 'Forecast', badge: null },
+    { id: 'analytics', label: t('Analytics'), icon: BarChart3, mobileLabel: 'Stats', badge: null },
+    { id: 'map', label: t('Map'), icon: Globe, mobileLabel: 'Map', badge: null },
+    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts', badge: getActiveAlerts(weather, forecast)?.length || null }
+  ];
+
+  // Performance monitoring - disabled for better performance
+  // usePerformanceMonitor();
+
+  // Track user interactions
+  const trackInteraction = useCallback((action: string, data?: any) => {
+    // Analytics tracking placeholder
+    console.log('Track interaction:', action, data);
+  }, []);
+
+  // Handle search
+  const handleSearch = useCallback((query: string) => {
+    if (query.trim()) {
+      startTransition(() => {
+        setLocation(query.trim());
+        setLastSearch(query.trim());
+        localStorage.setItem('weather-location', query.trim());
+        trackInteraction('search', { query: query.trim() });
+        setShowWelcome(false);
+      });
+    }
+  }, [trackInteraction]);
+
+  // Favorites management
   const addFavorite = (loc: string) => {
     if (!favorites.includes(loc)) {
-      const updated = [loc, ...favorites].slice(0, 5);
-      setFavorites(updated);
-      localStorage.setItem('meteora-favorites', JSON.stringify(updated));
-      toast.success(`${loc} added to favorites!`);
+      const updatedFavorites = [...favorites, loc];
+      setFavorites(updatedFavorites);
+      localStorage.setItem('meteora-favorites', JSON.stringify(updatedFavorites));
+      toast.success(`${loc} added to favorites`);
     }
   };
+
   const removeFavorite = (loc: string) => {
-    const updated = favorites.filter(f => f !== loc);
-    setFavorites(updated);
-    localStorage.setItem('meteora-favorites', JSON.stringify(updated));
-    toast((t) => (
-      <span>
-        {`${loc} removed from favorites.`}
-        <button
-          className="ml-2 underline text-blue-500 hover:text-blue-700 focus:outline-none"
-          onClick={() => {
-            addFavorite(loc);
-            toast.dismiss(t.id);
-          }}
-        >Undo</button>
-      </span>
-    ), { duration: 5000 });
+    const updatedFavorites = favorites.filter(f => f !== loc);
+    setFavorites(updatedFavorites);
+    localStorage.setItem('meteora-favorites', JSON.stringify(updatedFavorites));
+    toast.success(`${loc} removed from favorites`);
   };
 
-  // Initialize app
+  // Update indicator position
   useEffect(() => {
-    // Register service worker
-    registerServiceWorker();
+    if (navRef.current) {
+      const activeButton = navRef.current.querySelector('.tab-button.active') as HTMLElement;
+      if (activeButton) {
+        setIndicatorLeft(activeButton.offsetLeft);
+        setIndicatorWidth(activeButton.offsetWidth);
+      }
+    }
+  }, [activeTab]);
 
-    // Track app initialization
-    trackInteraction('component_render', { timestamp: Date.now() });
+  // Theme management
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('meteora-theme');
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+      setThemeState(savedTheme);
+    }
 
-    // Listen for online/offline status
+    const savedAccent = localStorage.getItem('meteora-accent');
+    if (savedAccent) {
+      setAccentColorState(savedAccent);
+      setAccentColor(savedAccent);
+    }
+
+    const savedTimeFormat = localStorage.getItem('meteora-time-format');
+    if (savedTimeFormat === '12' || savedTimeFormat === '24') {
+      setTimeFormat(savedTimeFormat);
+    }
+
+    // registerServiceWorker(); // REMOVED
+  }, []);
+
+  // Theme resolution
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      if (!manualThemeOverride) {
+        setResolvedTheme(e.matches ? 'dark' : 'light');
+      }
+    };
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Listen for theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      setThemeState(e.matches ? 'dark' : 'light');
-    };
     mediaQuery.addEventListener('change', handleThemeChange);
+    
+    if (theme === 'system') {
+      setResolvedTheme(getSystemTheme());
+    } else {
+      setResolvedTheme(theme);
+      setManualThemeOverride(true);
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       mediaQuery.removeEventListener('change', handleThemeChange);
     };
-  }, [trackInteraction]);
+  }, [theme, manualThemeOverride]);
 
-  // After Welcome screen, load saved location if any (only if not set by search)
-  useEffect(() => {
-    if (!showWelcome && !location) {
-      const savedLocation = localStorage.getItem('weather-location');
-      if (savedLocation) {
-        setLocation(savedLocation);
-      } else {
-        setLocation('Paris');
-      }
-    }
-  }, [showWelcome, location]);
-
-  // Enhanced device detection and viewport management
+  // Device detection and responsive behavior
   useEffect(() => {
     const checkDevice = () => {
       const width = window.innerWidth;
-      const height = window.innerHeight;
       setIsMobile(width < 768);
       setIsTablet(width >= 768 && width < 1024);
-      setViewportHeight(height);
     };
 
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    window.addEventListener('orientationchange', checkDevice);
-    
-    return () => {
-      window.removeEventListener('resize', checkDevice);
-      window.removeEventListener('orientationchange', checkDevice);
-    };
-  }, []);
-
-  // Set viewport height for mobile browsers
-  useEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
+      setViewportHeight(window.innerHeight);
     };
     
+    checkDevice();
     setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
+
+    window.addEventListener('resize', () => {
+      checkDevice();
+      setVH();
+    });
     
     return () => {
-      window.removeEventListener('resize', setVH);
-      window.removeEventListener('orientationchange', setVH);
+      window.removeEventListener('resize', () => {
+        checkDevice();
+        setVH();
+      });
     };
   }, []);
 
-  // Load theme from localStorage on mount
+  // Theme persistence
   useEffect(() => {
-    const savedTheme = localStorage.getItem('meteora-theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      setManualThemeOverride(true);
-    }
-  }, []);
-
-  // Theme effect: apply theme to document
-  useEffect(() => {
-    let appliedTheme = theme;
-    if (theme === 'system') {
-      appliedTheme = getSystemTheme();
-    }
-    setResolvedTheme(appliedTheme as 'light' | 'dark');
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(appliedTheme);
     localStorage.setItem('meteora-theme', theme);
-  }, [theme]);
+    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+  }, [theme, resolvedTheme]);
 
-  // Listen for system theme changes if 'system' is selected
+  // Accent color persistence
   useEffect(() => {
-    if (theme !== 'system') return;
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => {
-      setResolvedTheme(e.matches ? 'dark' : 'light');
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(e.matches ? 'dark' : 'light');
-    };
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, [theme]);
-
-  // Accent color effect
-  useEffect(() => {
-    document.documentElement.style.setProperty('--primary-light', accentColor);
     localStorage.setItem('meteora-accent', accentColor);
+    setAccentColor(accentColor);
   }, [accentColor]);
 
-  // Auto-detect theme based on weather and time (only if not manually overridden)
+  // Time format persistence
   useEffect(() => {
-    if (weather && !manualThemeOverride) {
-      const hour = new Date().getHours();
-      const isDaytime = hour >= 6 && hour < 18;
-      const isStormy = ['Thunderstorm', 'Rain', 'Drizzle'].includes(weather.condition.main);
-      
-      if (!isDaytime || isStormy) {
-        setThemeState('dark');
-      } else {
-        setThemeState('light');
-      }
+    localStorage.setItem('meteora-time-format', timeFormat);
+  }, [timeFormat]);
+
+  // Welcome screen management
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('meteora-welcome-seen');
+    if (hasSeenWelcome) {
+      setShowWelcome(false);
     }
-  }, [weather, manualThemeOverride]);
+  }, []);
 
-  // Welcome screen timer
+  // Error handling
   useEffect(() => {
-    // Register service worker
-    registerServiceWorker();
+    if (queryError && errorRetryCount < 3) {
+      const timer = setTimeout(() => {
+        setErrorRetryCount(prev => prev + 1);
+        refetch();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [queryError, errorRetryCount, refetch]);
 
-    // Track app initialization
-    trackInteraction('component_render', { timestamp: Date.now() });
-
-    // Listen for online/offline status
+  // Network status
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      if (!manualThemeOverride) {
+        setResolvedTheme(e.matches ? 'dark' : 'light');
+      }
+    };
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Listen for theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      setThemeState(e.matches ? 'dark' : 'light');
-    };
     mediaQuery.addEventListener('change', handleThemeChange);
 
     return () => {
@@ -425,768 +389,561 @@ function App() {
       window.removeEventListener('offline', handleOffline);
       mediaQuery.removeEventListener('change', handleThemeChange);
     };
-  }, [trackInteraction]);
+  }, [manualThemeOverride]);
 
-  // Enhanced theme toggle with better UX
-  const handleThemeToggle = useCallback(() => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setThemeState(newTheme);
-    setManualThemeOverride(true);
-    toast.success(`Switched to ${newTheme} mode`, {
-      icon: newTheme === 'dark' ? '🌙' : '☀️',
-      style: {
-        background: newTheme === 'dark' ? '#1f2937' : '#ffffff',
-        color: newTheme === 'dark' ? '#ffffff' : '#1f2937',
-        border: `1px solid ${newTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
-      },
-    });
-  }, [theme]);
-
-  // Enhanced search handler with better error handling
-  const handleSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      toast.error('Please enter a valid location');
-      return;
-    }
-    const trimmedQuery = query.trim();
-    if (trimmedQuery === lastSearch && weather) {
-      toast.success('Weather data is already up to date!');
-      return;
-    }
-    startTransition(() => {
-      setIsLoading(true);
-      setLocation(trimmedQuery);
-      setSearchQuery('');
-      setShowWelcome(false); // Only hide Welcome after search
-      setLastSearch(trimmedQuery);
-      setErrorRetryCount(0);
-      setIsMobileMenuOpen(false); // Close mobile menu after search
-    });
-    toast.success(`Searching for weather in ${trimmedQuery}...`);
-    setTimeout(() => setIsLoading(false), 1000);
-  }, [lastSearch, weather]);
-
-  // Handle location permission
-  const handleLocationPermission = useCallback(async () => {
-    trackInteraction('location_change');
-    
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 10000,
-          enableHighAccuracy: true
-        });
-      });
-
-      const { latitude, longitude } = position.coords;
-      
-      // Reverse geocoding to get location name
-      const response = await fetch(
-        `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${import.meta.env.VITE_WEATHER_API_KEY}`
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        const locationName = data[0]?.name || `${latitude}, ${longitude}`;
-        setLocation(locationName);
-        setShowWelcome(false);
-        localStorage.setItem('weather-location', locationName);
-      }
-    } catch (error) {
-      trackError(error as Error);
-      alert('Unable to get your location. Please search for a city instead.');
-    }
-  }, [trackInteraction, trackError]);
-
-  // Retry functionality for errors
-  const handleRetry = useCallback(() => {
-    if (lastSearch && errorRetryCount < 3) {
-      setErrorRetryCount(prev => prev + 1);
-      handleSearch(lastSearch);
-      toast.success('Retrying...');
-    } else {
-      setLocation('');
-      setLastSearch('');
-      setErrorRetryCount(0);
-      toast.error('Please try a different location');
-    }
-  }, [lastSearch, errorRetryCount, handleSearch]);
-
-  // Enhanced share functionality
-  const handleShare = useCallback(() => {
-    if (weather && navigator.share) {
-      navigator.share({
-        title: `Weather in ${weather.location}`,
-        text: `${weather.temperature.current}°C and ${weather.condition.description} in ${weather.location}`,
-        url: window.location.href
-      }).catch(() => {
-        // Fallback to clipboard
-        navigator.clipboard.writeText(
-          `🌤️ ${weather.temperature.current}°C and ${weather.condition.description} in ${weather.location}`
-        );
-        toast.success('Weather info copied to clipboard!');
-      });
-    } else if (weather) {
-      navigator.clipboard.writeText(
-        `🌤️ ${weather.temperature.current}°C and ${weather.condition.description} in ${weather.location}`
-      );
-      toast.success('Weather info copied to clipboard!');
-    }
-  }, [weather]);
-
-  // Enhanced weather gradient with mobile optimization
+  // Weather gradient based on conditions
   const weatherGradient = useMemo(() => {
-    if (!weather) return 'weather-gradient';
+    if (!weather) return '';
     
-    const condition = weather.condition.main.toLowerCase();
+    const condition = weather.condition?.main?.toLowerCase() || 'clear';
     const hour = new Date().getHours();
     const isDaytime = hour >= 6 && hour < 18;
     
-    // Mobile-optimized gradients (simpler, better performance)
-    if (isMobile) {
-      if (theme === 'dark' || !isDaytime) {
-        if (condition.includes('clear')) return 'night-sunny-gradient';
-        if (condition.includes('cloud')) return 'night-cloudy-gradient';
-        if (condition.includes('rain') || condition.includes('drizzle')) return 'night-rainy-gradient';
-        if (condition.includes('thunderstorm')) return 'night-gradient';
-        if (condition.includes('snow')) return 'night-gradient';
-        return 'night-gradient';
-      }
-      
-      if (condition.includes('clear')) return 'sunny-gradient';
-      if (condition.includes('cloud')) return 'cloudy-gradient';
-      if (condition.includes('rain') || condition.includes('drizzle')) return 'rainy-gradient';
+    if (condition.includes('rain')) return isDaytime ? 'rainy-gradient' : 'night-rainy-gradient';
+    if (condition.includes('snow')) return isDaytime ? 'snowy-gradient' : 'night-snowy-gradient';
+    if (condition.includes('cloud')) return isDaytime ? 'cloudy-gradient' : 'night-cloudy-gradient';
       if (condition.includes('thunderstorm')) return 'stormy-gradient';
-      if (condition.includes('snow')) return 'snowy-gradient';
-      return 'weather-gradient';
-    }
-    
-    // Desktop/tablet enhanced gradients
-    if (theme === 'dark' || !isDaytime) {
-      if (condition.includes('clear')) return 'night-sunny-gradient';
-      if (condition.includes('cloud')) return 'night-cloudy-gradient';
-      if (condition.includes('rain') || condition.includes('drizzle')) return 'night-rainy-gradient';
-      if (condition.includes('thunderstorm')) return 'night-gradient';
-      if (condition.includes('snow')) return 'night-gradient';
-      return 'night-gradient';
-    }
-    
-    if (condition.includes('clear')) return 'sunny-gradient';
-    if (condition.includes('cloud')) return 'cloudy-gradient';
-    if (condition.includes('rain') || condition.includes('drizzle')) return 'rainy-gradient';
-    if (condition.includes('thunderstorm')) return 'stormy-gradient';
-    if (condition.includes('snow')) return 'snowy-gradient';
-    return 'weather-gradient';
-  }, [weather, theme, isMobile]);
+    return isDaytime ? 'sunny-gradient' : 'night-gradient';
+  }, [weather]);
 
-  // Enhanced tab configuration with mobile optimization
-  const tabs = useMemo(() => [
-    { id: 'dashboard', label: t('Dashboard'), icon: BarChart3, mobileLabel: 'Home' },
-    { id: 'forecast', label: t('Forecast'), icon: Calendar, mobileLabel: 'Forecast' },
-    { id: 'analytics', label: t('Analytics'), icon: BarChart3, mobileLabel: 'Stats' },
-    { id: 'map', label: t('Map'), icon: Globe, mobileLabel: 'Map' },
-    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts' },
-    { id: 'insights', label: t('Insights'), icon: Sparkles, mobileLabel: 'AI' },
-    { id: 'gallery', label: t('Gallery'), icon: Image, mobileLabel: 'Gallery' }
-  ], [t]);
-
-  // Error handling
-  useEffect(() => {
-    if (isError && queryError) {
-      trackError(queryError as Error);
-    }
-  }, [isError, queryError, trackError]);
-
-  // Performance monitoring
-  useEffect(() => {
-    const metrics = getMetrics();
-    if (metrics.pageLoadTime > 3000) {
-      console.warn('Slow page load detected:', metrics.pageLoadTime);
-    }
-  }, [getMetrics]);
-
-  // Debug logging for weather and error state
-  useEffect(() => {
-    // Removed debugging logs for cleaner console
-  }, [weather, queryError, location, isLoadingQuery]);
-
-  // On mount, load accent color from localStorage
-  useEffect(() => {
-    const savedAccent = localStorage.getItem('meteora-accent');
-    if (savedAccent) {
-      document.documentElement.style.setProperty('--primary-light', savedAccent);
-    }
-  }, []);
-
-  // Inline alert generation logic for nav badge (move inside App)
+  // Get active alerts
   function getActiveAlerts(weather: any, forecast: any) {
-    if (!weather) return [];
     const alerts = [];
-    const { temperature, condition, wind, humidity, visibility } = weather;
-    if (temperature?.current < 0) alerts.push('freezing');
-    if (temperature?.current > 30) alerts.push('heat');
-    if (condition?.main === 'Thunderstorm') alerts.push('thunderstorm');
-    if (condition?.main === 'Rain') alerts.push('rain');
-    if (condition?.main === 'Snow') alerts.push('snow');
-    if (wind?.speed > 20) alerts.push('wind');
-    if (visibility < 5000) alerts.push('visibility');
-    if (humidity > 80) alerts.push('humidity');
-    if (forecast?.daily) {
-      const maxTemp = Math.max(...forecast.daily.map((day: any) => day.temperature.max));
-      const minTemp = Math.min(...forecast.daily.map((day: any) => day.temperature.min));
-      if (maxTemp > 35) alerts.push('heat-wave');
-      if (minTemp < -10) alerts.push('cold-wave');
+    
+    if (weather?.alerts) {
+      alerts.push(...weather.alerts);
     }
-    return alerts;
+    
+    if (forecast?.alerts) {
+      alerts.push(...forecast.alerts);
+    }
+    
+    return alerts.filter((alert: any, index: number, self: any[]) => 
+      index === self.findIndex((a: any) => a.event === alert.event)
+    );
   }
-
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const setAsHomeCity = (city: string) => {
     setHomeCity(city);
     localStorage.setItem('meteora-home-city', city);
+    toast.success(`${city} set as home city`);
   };
 
-  // Show toast on network status change
-  useEffect(() => {
-    if (isOnline) {
-      toast.success('You are back online!', { id: 'network-status', position: isMobile ? 'top-center' : 'bottom-right' });
-    } else {
-      toast.error('You are offline. Some features may not work.', { id: 'network-status', position: isMobile ? 'top-center' : 'bottom-right' });
-    }
-  }, [isOnline, isMobile]);
+  // Loading states
+  const isDataLoading = isLoadingQuery;
 
+  // Show welcome screen or loading
   if (showWelcome) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-          <Suspense fallback={<LoadingSkeleton />}>
+      <ErrorBoundary>
+        <div className={`app ${resolvedTheme} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+          <Suspense fallback={<div className="text-white text-lg">Loading...</div>}>
             <WelcomeScreen onSearch={handleSearch} />
           </Suspense>
         </div>
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      </QueryClientProvider>
+      </ErrorBoundary>
     );
   }
 
-  // Fallback UI if no weather data and not loading
-  if (!weather && !isLoading) {
+  // Error state
+  if (queryError && errorRetryCount >= 3) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white">
-          <h2 className="text-2xl font-bold mb-4">No weather data</h2>
-          <p className="mb-6">Please search for a city to see the weather.</p>
-          <motion.form 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch(searchQuery);
-            }}
-            className="mb-6"
-          >
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('Search for a city')}
-                className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-              />
+      <ErrorBoundary>
+        <div className={`app ${resolvedTheme} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center text-white">
+              <h1 className="text-2xl font-bold mb-4">Weather data unavailable</h1>
+              <p className="mb-4">Unable to load weather information. Please check your connection.</p>
               <button
-                type="submit"
-                disabled={isLoading}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-medium transition-colors duration-300 disabled:opacity-50"
-              >
-                {isLoading ? 'Searching...' : 'Search'}
+                className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => {
+                  setErrorRetryCount(0);
+                  refetch();
+                }}
+                              >
+                {isDataLoading ? 'Searching...' : 'Search'}
               </button>
             </div>
-          </motion.form>
+          </div>
           {queryError && (
             <div className="text-red-300 mt-2">{String(queryError)}</div>
           )}
         </div>
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      </QueryClientProvider>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <ErrorBoundary>
       {/* Toaster always visible and above mobile nav */}
       <Toaster position={isMobile ? 'top-center' : 'bottom-right'} toastOptions={{ duration: 3500, style: { zIndex: 9999 } }} />
+      
       <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
         {/* Animated Weather Background Overlay */}
         <WeatherBackground weather={weather} theme={resolvedTheme} />
+        
         {/* Global Loading Overlay */}
-        {(isLoading || isLoadingQuery) && (
+        {isDataLoading && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <Suspense fallback={<div className="text-white text-lg">Loading...</div>}>
               <LoadingSkeleton />
             </Suspense>
           </div>
         )}
+        
         <div className="glass-overlay" aria-hidden="true" />
         <WeatherOverlay weather={weather} theme={resolvedTheme} />
-        {/* Welcome Screen */}
-        <AnimatePresence>
-          {showWelcome && (
-            <Suspense fallback={<LoadingSkeleton />}>
-              <WelcomeScreen onSearch={handleSearch} />
-            </Suspense>
-          )}
-        </AnimatePresence>
 
-        {/* Main App Content */}
-        {!showWelcome && (
-          <div className="meteora-container relative z-10 max-w-full sm:max-w-[1600px] px-2 pb-2 sm:px-4 sm:pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 xl:px-16 xl:pb-16 mx-auto">
-            {/* Enhanced Header */}
-            <motion.header 
-              className="app-header flex flex-col sm:flex-row items-center justify-between gap-4 w-full bg-transparent shadow-none border-none px-2 sm:px-6 lg:px-8 py-2 sm:py-3"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              {/* Header Left: Logo and Search Bar */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+        {/* New Modern Layout */}
+        <div className="flex h-screen overflow-hidden">
+          {/* Left Sidebar - Desktop Only */}
+          {!isMobile && (
+            <aside className="w-80 bg-white/10 dark:bg-gray-900/20 backdrop-blur-xl border-r border-white/20 dark:border-gray-700/30 flex flex-col">
+              {/* Sidebar Header */}
+              <div className="p-6 border-b border-white/10 dark:border-gray-700/30">
                 <motion.h1 
-                  className="app-title text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent"
+                  className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
                 >
                   Meteora
                 </motion.h1>
-                {/* Glassmorphism Search Bar */}
-                <div className="flex-1 min-w-[220px] max-w-xl">
+                <p className="text-white/60 text-sm mt-1">Weather Intelligence</p>
+              </div>
+
+              {/* Search Section */}
+              <div className="p-6 border-b border-white/10 dark:border-gray-700/30">
+                <div className="space-y-4">
                   <SearchBar
                     value={searchQuery}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                     onSearch={(query: string) => {
+                      startTransition(() => {
                       setLocation(query);
                       setLastSearch(query);
                       localStorage.setItem('weather-location', query);
                       trackInteraction('search', { query });
+                      });
+                    }}
+                    aria-label={t('Search for a city')}
+                  />
+                  
+                  {/* Quick Actions */}
+                  <div className="flex gap-2">
+                    <button
+                      className="flex-1 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                      onClick={() => refetch()}
+                      aria-label={t('Refresh weather data')}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh
+                  </button>
+                <button
+                      className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 rounded-lg text-sm font-medium transition-all duration-200"
+                  onClick={() => setSettingsOpen(true)}
+                  aria-label={t('Open settings')}
+                >
+                      <Settings className="w-4 h-4" />
+                </button>
+              </div>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 p-6">
+                <div className="space-y-3">
+                  {tabList.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <motion.button
+                        key={tab.id}
+                        className={`relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-300 group overflow-hidden ${
+                          isActive 
+                            ? 'text-white' 
+                            : 'text-white/70 hover:text-white'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          startTransition(() => {
+                            setActiveTab(tab.id as TabType);
+                            trackInteraction('component_render', { tab: tab.id });
+                          });
+                        }}
+                        aria-label={tab.label}
+                        aria-selected={isActive}
+                        role="tab"
+                      >
+                        {/* Active Background */}
+                        {isActive && (
+                          <motion.div
+                            layoutId="desktopTabBackground"
+                            className="absolute inset-0 bg-gradient-to-r from-blue-500/30 via-purple-500/20 to-blue-400/30 dark:from-blue-400/40 dark:via-purple-400/30 dark:to-blue-300/40 rounded-2xl border border-white/20 dark:border-gray-600/30"
+                            initial={false}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        )}
+                        
+                        {/* Hover Background */}
+                        {!isActive && (
+                          <motion.div
+                            className="absolute inset-0 bg-white/5 dark:bg-gray-700/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            initial={false}
+                          />
+                        )}
+                        
+                        {/* Icon Container */}
+                        <div className={`relative z-10 p-3 rounded-xl transition-all duration-300 ${
+                          isActive 
+                            ? 'bg-white/20 dark:bg-white/10 text-white shadow-lg' 
+                            : 'bg-white/10 dark:bg-gray-700/30 text-white/60 group-hover:bg-white/20 group-hover:text-white'
+                        }`}>
+                          <tab.icon size={22} />
+                          
+                          {/* Notification Badge */}
+                          {tab.badge && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="notification-badge"
+                            >
+                              {tab.badge > 9 ? '9+' : tab.badge}
+                            </motion.div>
+                          )}
+                          
+                          {/* Glow Effect for Active Tab */}
+                          {isActive && (
+                            <motion.div
+                              className="absolute inset-0 rounded-xl bg-blue-400/20"
+                              animate={{
+                                boxShadow: [
+                                  "0 0 0 0 rgba(59, 130, 246, 0.4)",
+                                  "0 0 0 6px rgba(59, 130, 246, 0)",
+                                  "0 0 0 0 rgba(59, 130, 246, 0)"
+                                ]
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          )}
+                        </div>
+                        
+                        {/* Label */}
+                        <span className={`relative z-10 font-semibold text-base transition-all duration-300 ${
+                          isActive ? 'text-white' : 'text-white/70 group-hover:text-white'
+                        }`}>
+                          {tab.label}
+                        </span>
+                        
+                        {/* Active Indicator */}
+                        {isActive && (
+                          <motion.div
+                            layoutId="desktopTabIndicator"
+                            className="relative z-10 ml-auto w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full shadow-lg"
+                            initial={false}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        )}
+                        
+                        {/* Hover Arrow */}
+                        {!isActive && (
+                          <motion.div
+                            className="relative z-10 ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            initial={false}
+                          >
+                            <div className="w-2 h-2 border-r-2 border-t-2 border-white/40 transform rotate-45" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </nav>
+
+              {/* Sidebar Footer */}
+              <div className="p-6 border-t border-white/10 dark:border-gray-700/30">
+                <div className="space-y-3">
+                  {/* Network Status */}
+                  <div className={`flex items-center gap-2 text-sm ${
+                    isOnline ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${
+                      isOnline ? 'bg-green-400' : 'bg-red-400'
+                    }`}></span>
+                    {isOnline ? 'Online' : 'Offline'}
+                  </div>
+                  
+                  {/* Current Location */}
+                  <div className="text-white/60 text-sm">
+                    <div className="font-medium">Current Location</div>
+                    <div className="truncate">{location}</div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          )}
+
+          {/* Main Content Area */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {/* Top Header - Mobile Only */}
+            {isMobile && (
+              <header className="bg-white/10 dark:bg-gray-900/20 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/30 p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <motion.h1 
+                    className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Meteora
+                  </motion.h1>
+                  
+                  <div className="flex items-center gap-2">
+                <button
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      onClick={() => refetch()}
+                      aria-label={t('Refresh weather data')}
+                    >
+                      <RefreshCw className="w-4 h-4 text-white" />
+                </button>
+                <button
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      onClick={() => setSettingsOpen(true)}
+                      aria-label={t('Open settings')}
+                    >
+                      <Settings className="w-4 h-4 text-white" />
+                </button>
+              </div>
+                </div>
+                
+                {/* Mobile Search */}
+                <div className="mt-4">
+                  <SearchBar
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    onSearch={(query: string) => {
+                      startTransition(() => {
+                        setLocation(query);
+                        setLastSearch(query);
+                        localStorage.setItem('weather-location', query);
+                        trackInteraction('search', { query });
+                      });
                     }}
                     aria-label={t('Search for a city')}
                   />
                 </div>
-              </div>
-              {/* Header Right: Controls */}
-              <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
-                <motion.button
-                  className="theme-toggle bg-white/20 dark:bg-gray-700/20 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-full p-2 hover:scale-105 transition-all duration-300"
-                  onClick={() => {
-                    setThemeState(resolvedTheme === 'light' ? 'dark' : 'light');
-                  }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label={t('Toggle theme')}
-                  role="button"
-                  title={resolvedTheme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
-                >
-                  {resolvedTheme === 'light' ? (
-                    <Moon className="w-5 h-5 text-gray-700" />
-                  ) : (
-                    <Sun className="w-5 h-5 text-yellow-300" />
-                  )}
-                </motion.button>
-                <div className="flex items-center gap-1 ml-2">
-                  {accentColors.map((c) => (
-                    <button
-                      key={c.value}
-                      className="w-6 h-6 rounded-full border-2 border-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-transform hover:scale-110"
-                      style={{ background: c.value }}
-                      aria-label={`Set accent color to ${c.name}`}
-                      role="button"
-                      onClick={() => setAccentColorState(c.value)}
-                      title={`Set accent color to ${c.name}`}
-                    ></button>
-                  ))}
-                  <button
-                    className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white text-gray-500 text-xs font-bold ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:scale-110 transition-transform"
-                    aria-label={t('Reset accent color')}
-                    role="button"
-                    onClick={() => setAccentColorState('#3b82f6')}
-                    title={t('Reset accent color')}
-                  >
-                    ×
-                  </button>
-                </div>
-                <button
-                  className="ml-2 p-2 rounded-full bg-white/20 dark:bg-gray-700/20 hover:bg-white/40 dark:hover:bg-gray-700/40 transition"
-                  onClick={() => setSettingsOpen(true)}
-                  aria-label={t('Open settings')}
-                  role="button"
-                  style={{ minWidth: 44, minHeight: 44 }}
-                  title={t('Open settings')}
-                >
-                  <Settings className="w-5 h-5 text-gray-700 dark:text-gray-200" />
-                </button>
-              </div>
-            </motion.header>
-
-            {/* Quick Actions Bar (mobile: above tab bar, desktop: in header area) */}
-            {isMobile ? (
-              <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-40 w-[95vw] max-w-lg flex gap-2 items-center justify-center bg-white/30 dark:bg-gray-900/40 backdrop-blur-xl rounded-full shadow-lg px-3 py-2 border border-white/20 dark:border-gray-700/30 glassy-nav-glow">
-                {homeCity && (
-                  <button
-                    className="px-4 py-2 rounded-full font-semibold text-sm bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition relative group border-2 border-yellow-400"
-                    onClick={() => setLocation(homeCity)}
-                    aria-label={`Go to home city: ${homeCity}`}
-                    role="button"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    title={t('Go to your home city')}
-                  >
-                    <span className="mr-1">🏠</span>{homeCity}
-                  </button>
-                )}
-                {favorites.map(fav => (
-                  <button
-                    key={fav}
-                    className={`px-4 py-2 rounded-full font-semibold text-sm bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group${fav === homeCity ? ' border-2 border-yellow-400' : ''}`}
-                    onClick={() => setLocation(fav)}
-                    aria-label={`Switch to ${fav}`}
-                    role="button"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    title={`Switch to ${fav}`}
-                  >
-                    {fav}
-                    <span
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
-                      onClick={e => { e.stopPropagation(); removeFavorite(fav); }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Remove ${fav} from favorites`}
-                      title={`Remove ${fav} from favorites`}
-                    >×</span>
-                  </button>
-                ))}
-                <button
-                  className="px-3 py-2 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 font-semibold text-sm shadow-sm hover:bg-green-200 dark:hover:bg-green-800/60 transition"
-                  onClick={() => addFavorite(location)}
-                  aria-label={t('Add current location to favorites')}
-                  disabled={favorites.includes(location)}
-                  role="button"
-                  style={{ minWidth: 44, minHeight: 44 }}
-                  title={t('Add current location to favorites')}
-                >
-                  + Add
-                </button>
-                <button
-                  className="px-3 py-2 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 font-semibold text-sm shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition border-2 border-yellow-400"
-                  onClick={() => setAsHomeCity(location)}
-                  aria-label={t('Set current location as home city')}
-                  disabled={homeCity === location}
-                  role="button"
-                  style={{ minWidth: 44, minHeight: 44 }}
-                  title={t('Set current location as home city')}
-                >
-                  <span className="mr-1">🏠</span>{t('Set as Home')}
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2 items-center ml-4 mt-4 mb-2">
-                {homeCity && (
-                  <button
-                    className="px-3 py-1.5 rounded-full font-semibold text-xs bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition relative group border-2 border-yellow-400"
-                    onClick={() => setLocation(homeCity)}
-                    aria-label={`Go to home city: ${homeCity}`}
-                    role="button"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    title={t('Go to your home city')}
-                  >
-                    <span className="mr-1">🏠</span>{homeCity}
-                  </button>
-                )}
-                {favorites.map(fav => (
-                  <button
-                    key={fav}
-                    className={`px-3 py-1.5 rounded-full font-semibold text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-800/60 transition relative group${fav === homeCity ? ' border-2 border-yellow-400' : ''}`}
-                    onClick={() => setLocation(fav)}
-                    aria-label={`Switch to ${fav}`}
-                    role="button"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    title={`Switch to ${fav}`}
-                  >
-                    {fav}
-                    <span
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
-                      onClick={e => { e.stopPropagation(); removeFavorite(fav); }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Remove ${fav} from favorites`}
-                      title={`Remove ${fav} from favorites`}
-                    >×</span>
-                  </button>
-                ))}
-                <button
-                  className="px-2 py-1.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200 font-semibold text-xs shadow-sm hover:bg-green-200 dark:hover:bg-green-800/60 transition"
-                  onClick={() => addFavorite(location)}
-                  aria-label={t('Add current location to favorites')}
-                  disabled={favorites.includes(location)}
-                  role="button"
-                  style={{ minWidth: 44, minHeight: 44 }}
-                  title={t('Add current location to favorites')}
-                >
-                  + Add
-                </button>
-                <button
-                  className="px-2 py-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 font-semibold text-xs shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition border-2 border-yellow-400"
-                  onClick={() => setAsHomeCity(location)}
-                  aria-label={t('Set current location as home city')}
-                  disabled={homeCity === location}
-                  role="button"
-                  style={{ minWidth: 44, minHeight: 44 }}
-                  title={t('Set current location as home city')}
-                >
-                  <span className="mr-1">🏠</span>{t('Set as Home')}
-                </button>
-              </div>
+              </header>
             )}
 
-            {/* Enhanced Navigation Tabs */}
-            <div 
-              ref={navRef}
-              className="nav-tabs"
-              style={{
-                '--indicator-left': `${indicatorLeft}px`,
-                '--indicator-width': `${indicatorWidth}px`
-              } as React.CSSProperties}
-            >
-              {tabList.map((tab, idx) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    className={`tab-button ${isActive ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveTab(tab.id as TabType);
-                      trackInteraction('component_render', { tab: tab.id });
-                    }}
-                    aria-label={tab.label}
-                    aria-selected={isActive}
-                    role="tab"
-                    tabIndex={0}
-                  >
-                    {isMobile ? (tab.mobileLabel || tab.label) : tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Enhanced Search Bar */}
-            <div className="search-container">
-              <span className="search-icon">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="9" cy="9" r="7"/>
-                  <line x1="15" y1="15" x2="19" y2="19"/>
-                </svg>
-              </span>
-              <input
-                className="search-input"
-                type="text"
-                placeholder="Search city or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && searchQuery.trim()) {
-                    handleSearch(searchQuery);
-                  }
-                }}
-                aria-label="Search for a city or location"
-              />
-              <button 
-                className="search-button"
-                onClick={() => {
-                  if (searchQuery.trim()) {
-                    handleSearch(searchQuery);
-                  }
-                }}
-                aria-label="Search"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="8" cy="8" r="7"/>
-                  <line x1="13" y1="13" x2="17" y2="17"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Main Content Area */}
-            <main className="app-main flex-1 px-0 sm:px-2 md:px-4 lg:px-8 xl:px-12" aria-live="polite">
+            {/* Content Area */}
+            <div className="flex-1 overflow-auto p-6">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="weather-content grid gap-4 sm:gap-8 lg:gap-12 xl:gap-16 grid-cols-1 lg:grid-cols-3 px-1 sm:px-4 md:px-8 xl:px-16 py-3 sm:py-6"
+                  className="h-full"
                 >
                   {activeTab === 'dashboard' && (
-                    <>
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-2">
-                        <Suspense fallback={<LoadingSkeleton type="hero" />}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                      {/* Main Weather Card */}
+                      <div className="lg:col-span-2">
+                        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30 h-full">
+                          <Suspense fallback={<LoadingSkeleton type="hero" />}>
                           <WeatherHero weather={weather} theme={resolvedTheme} />
-                        </Suspense>
-                      </motion.div>
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="lg:col-span-1">
-                        <div className="col-span-full flex justify-center">
-                          <div className="w-full max-w-5xl">
-                            <Suspense fallback={<LoadingSkeleton type="forecast-item" />}>
-                              <WeatherForecast forecast={forecast} weather={weather} timeFormat={timeFormat} />
                             </Suspense>
                           </div>
                         </div>
-                      </motion.div>
-                    </>
+                      
+                      {/* Side Panel */}
+                      <div className="space-y-6">
+                        {/* Quick Stats */}
+                        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                          <h3 className="text-lg font-semibold text-white mb-4">Quick Stats</h3>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-white/70">Humidity</span>
+                              <span className="text-white font-medium">{weather?.humidity}%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-white/70">Wind Speed</span>
+                              <span className="text-white font-medium">{weather?.wind?.speed} km/h</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-white/70">Pressure</span>
+                              <span className="text-white font-medium">{weather?.pressure} hPa</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-white/70">Visibility</span>
+                              <span className="text-white font-medium">{weather?.visibility} km</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Favorites */}
+                        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                          <h3 className="text-lg font-semibold text-white mb-4">Favorites</h3>
+                          <div className="space-y-2">
+                            {favorites.slice(0, 3).map((fav, index) => (
+                              <button
+                                key={index}
+                                className="w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
+                                onClick={() => handleSearch(fav)}
+                              >
+                                {fav}
+                              </button>
+                            ))}
+                            {favorites.length === 0 && (
+                              <p className="text-white/50 text-sm">No favorites yet</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
+                  
                   {activeTab === 'forecast' && (
-                    <div className="col-span-full flex justify-center">
-                      <div className="w-full max-w-5xl">
-                        <Suspense fallback={<LoadingSkeleton type="forecast-item" />}>
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="forecast-item" />}>
                           <WeatherForecast forecast={forecast} weather={weather} timeFormat={timeFormat} />
                         </Suspense>
-                      </div>
                     </div>
                   )}
+                  
                   {activeTab === 'analytics' && (
-                    <div className="col-span-full flex justify-center">
-                      <div className="w-full max-w-5xl">
-                        <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
                           <WeatherAnalytics weather={weather} forecast={forecast} />
                         </Suspense>
-                      </div>
                     </div>
                   )}
+                  
                   {activeTab === 'map' && (
-                    <div className="col-span-full flex justify-center">
-                      <div className="w-full max-w-6xl">
-                        <Suspense fallback={<LoadingSkeleton type="map" />}>
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="map" />}>
                           <WeatherMap weather={weather} forecast={forecast} />
                         </Suspense>
-                      </div>
                     </div>
                   )}
+                  
                   {activeTab === 'alerts' && (
-                    <div className="col-span-full flex justify-center">
-                      <div className="w-full max-w-5xl">
-                        <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
                           <WeatherAlerts weather={weather} forecast={forecast} />
                         </Suspense>
-                      </div>
-                    </div>
-                  )}
-                  {activeTab === 'insights' && (
-                    <>
-                      {(!weather || !forecast) ? (
-                        <div className="col-span-full flex justify-center items-center min-h-[400px]">
-                          <LoadingSkeleton type="insights" />
-                        </div>
-                      ) : (
-                        <div className="col-span-full flex justify-center">
-                          <div className="w-full max-w-5xl">
-                            <Suspense fallback={<LoadingSkeleton type="insights" />}>
-                              <WeatherInsights weather={weather} forecast={forecast} />
-                            </Suspense>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {activeTab === 'gallery' && (
-                    <div className="col-span-full flex justify-center">
-                      <div className="w-full max-w-6xl">
-                        <Suspense fallback={<LoadingSkeleton type="weather-card" />}>
-                          <ImageSlider />
-                        </Suspense>
-                      </div>
                     </div>
                   )}
                 </motion.div>
               </AnimatePresence>
+            </div>
             </main>
-
-            {/* Enhanced Footer */}
-            <motion.footer 
-              className="app-footer bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl shadow-lg mt-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6">
-                <div className="text-center sm:text-left">
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    © 2024 Meteora Weather. Built with modern web technologies.
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className={`text-xs font-semibold flex items-center gap-1 ${isOnline ? 'text-green-600' : 'text-red-600'}`}
-                    style={{ fontSize: isMobile ? 16 : undefined }}>
-                    <span className={`inline-block w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                    {isOnline ? 'Online' : 'Offline'}
-                  </span>
-                  <button
-                    className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200"
-                    onClick={() => refetch()}
-                    aria-label={t('Refresh weather data')}
-                    role="button"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    title={t('Refresh weather data')}
-                  >
-                    <RefreshCw className="w-4 h-4 inline mr-1" />
-                    {t('Refresh')}
-                  </button>
-                </div>
-              </div>
-            </motion.footer>
-          </div>
-        )}
+        </div>
 
         {/* Bottom Mobile Navigation Bar */}
         {isMobile && (
           <nav
-            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center py-2 shadow-2xl md:hidden"
+            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-800/50 flex justify-around items-center py-3 px-2 shadow-2xl md:hidden"
             role="tablist"
             aria-label="Main navigation"
           >
             {tabList.map((tab, idx) => {
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <motion.button
                   key={tab.id}
-                  className={`flex flex-col items-center justify-center px-2 py-1 min-w-[44px] min-h-[44px] rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${isActive ? 'text-blue-600 dark:text-blue-300 font-bold' : 'text-gray-500 dark:text-gray-300'}`}
+                  className={`relative flex flex-col items-center justify-center px-3 py-2 min-w-[60px] min-h-[60px] rounded-2xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 ${
+                    isActive 
+                      ? 'text-blue-600 dark:text-blue-300 font-bold' 
+                      : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   aria-selected={isActive}
                   aria-label={tab.label}
                   aria-controls={`tabpanel-${tab.id}`}
                   role="tab"
                   tabIndex={0}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  style={{ fontSize: 13 }}
+                  onClick={() => {
+                    startTransition(() => {
+                      setActiveTab(tab.id as TabType);
+                      trackInteraction('component_render', { tab: tab.id });
+                    });
+                  }}
                 >
-                  <span className="mb-0.5">
-                    <tab.icon size={22} />
+                  {/* Active Background */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobileTabBackground"
+                      className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 dark:from-blue-400/30 dark:to-purple-400/30 rounded-2xl border border-blue-200/30 dark:border-blue-400/30"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  
+                  {/* Icon Container */}
+                  <div className={`relative z-10 mb-1 p-2 rounded-xl transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-300' 
+                      : 'bg-gray-100/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'
+                  }`}>
+                    <tab.icon size={24} />
+                    
+                    {/* Notification Badge */}
+                    {tab.badge && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="notification-badge"
+                      >
+                        {tab.badge > 9 ? '9+' : tab.badge}
+                      </motion.div>
+                    )}
+                    
+                    {/* Glow Effect for Active Tab */}
+                    {isActive && (
+                      <motion.div
+                        className="absolute inset-0 rounded-xl bg-blue-400/20"
+                        animate={{
+                          boxShadow: [
+                            "0 0 0 0 rgba(59, 130, 246, 0.4)",
+                            "0 0 0 8px rgba(59, 130, 246, 0)",
+                            "0 0 0 0 rgba(59, 130, 246, 0)"
+                          ]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Label */}
+                  <span className={`relative z-10 text-xs font-medium leading-tight transition-all duration-300 ${
+                    isActive ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {tab.mobileLabel || tab.label}
                   </span>
-                  <span className="text-xs leading-tight">{tab.mobileLabel || tab.label}</span>
-                </button>
+                  
+                  {/* Active Indicator */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobileTabIndicator"
+                      className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
               );
             })}
           </nav>
         )}
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              className="mobile-menu fixed inset-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl"
-              initial={{ opacity: 0, x: '-100%' }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '-100%' }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Mobile menu content... */}
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Settings Modal */}
         <SettingsModal
@@ -1206,7 +963,7 @@ function App() {
           <ReactQueryDevtools initialIsOpen={false} />
         )}
       </div>
-    </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

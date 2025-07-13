@@ -99,36 +99,36 @@ const fetchWithTimeout = async (url: string, timeout = API_CONFIG.timeout) => {
 const weatherCache = new Map<string, { data: WeatherData; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Fetch weather data with caching
+// Fetch weather data
 const fetchWeatherData = async (location: string): Promise<WeatherData> => {
-  console.log('fetchWeatherData called with location:', location);
   validateEnv();
   
-  // Check cache first
-  const cached = weatherCache.get(location);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log('Returning cached weather data for:', location);
-    return cached.data;
-  }
-  
-  // Use deployed API endpoints for weather
-  const url = `/api/weather?q=${encodeURIComponent(location)}`;
-  console.log('Fetching weather from URL:', url);
+  // Use OpenWeatherMap API directly for current weather
+  const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`;
   
   try {
-    const data = await fetchWithTimeout(url);
-    console.log('Weather API response received:', data);
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const text = await response.text();
+    
+    // Check if response is valid JSON
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('API returned invalid JSON:', text.substring(0, 200));
+      throw new Error('API returned invalid JSON - possible CORS or proxy issue');
+    }
+    
+    console.log('Weather API raw data:', data);
     
     if (!data || !data.main || !data.weather) {
-      try {
-        const response = await fetch(url);
-        const text = await response.text();
-        console.error('Weather API full response:', text);
-      } catch (e) {
-        console.error('Failed to fetch full weather API response:', e);
-      }
-      console.error('Weather API returned unexpected data:', data);
-      throw new Error('Weather API returned unexpected data');
+      throw new Error('Weather API returned unexpected data structure');
     }
     
     const weatherData: WeatherData = {
@@ -167,7 +167,7 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
   } catch (error) {
     console.error('Weather API error:', error);
     
-    // Always return fallback data for any error
+    // Return fallback data for any error
     console.warn('API failed, using fallback data for demo');
     return {
       location: location,
@@ -201,36 +201,91 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
 // Fetch forecast data
 const fetchForecastData = async (location: string): Promise<ForecastData> => {
   validateEnv();
-  // Use deployed API endpoints for forecast
-  const url = `/api/forecast?q=${encodeURIComponent(location)}`;
+  
+  // Use OpenWeatherMap API directly for forecast
+  const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`;
+  
   try {
-    const data = await fetchWithTimeout(url);
-    console.log('Forecast API raw data:', data); // Debug
-    if (!data || !data.daily) {
-      throw new Error('Forecast API returned unexpected data');
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    // Process daily forecast for up to 7 days from One Call API
-    const daily = data.daily.slice(0, 7).map((item: any) => ({
-      date: item.dt ? new Date(item.dt * 1000).toLocaleDateString() : 'N/A',
+    
+    const text = await response.text();
+    
+    // Check if response is valid JSON
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Forecast API returned invalid JSON:', text.substring(0, 200));
+      throw new Error('Forecast API returned invalid JSON - possible CORS or proxy issue');
+    }
+    
+    console.log('Forecast API raw data:', data);
+    
+    if (!data || !data.list) {
+      throw new Error('Forecast API returned unexpected data structure');
+    }
+    
+    // Process 5-day forecast data
+    const dailyData = new Map();
+    
+    data.list.forEach((item: any) => {
+      const date = new Date(item.dt * 1000).toLocaleDateString();
+      
+      if (!dailyData.has(date)) {
+        dailyData.set(date, {
+          date,
+          temperatures: [],
+          conditions: [],
+          humidity: [],
+          wind: [],
+          precipitation: []
+        });
+      }
+      
+      const dayData = dailyData.get(date);
+      dayData.temperatures.push(item.main.temp);
+      dayData.conditions.push(item.weather[0]);
+      dayData.humidity.push(item.main.humidity);
+      dayData.wind.push(item.wind.speed);
+      dayData.precipitation.push(item.pop || 0);
+    });
+    
+    // Convert to daily format
+    const daily = Array.from(dailyData.values()).slice(0, 7).map(dayData => ({
+      date: dayData.date,
       temperature: {
-        min: typeof item.temp?.min === 'number' ? Math.round(item.temp.min) : 0,
-        max: typeof item.temp?.max === 'number' ? Math.round(item.temp.max) : 0,
+        min: Math.round(Math.min(...dayData.temperatures)),
+        max: Math.round(Math.max(...dayData.temperatures)),
       },
       condition: {
-        main: item.weather?.[0]?.main || 'N/A',
-        description: item.weather?.[0]?.description || 'N/A',
+        main: dayData.conditions[0].main,
+        description: dayData.conditions[0].description,
       },
-      humidity: typeof item.humidity === 'number' ? item.humidity : 0,
+      humidity: Math.round(dayData.humidity.reduce((a: number, b: number) => a + b, 0) / dayData.humidity.length),
       wind: {
-        speed: typeof item.wind_speed === 'number' ? Math.round(item.wind_speed) : 0,
+        speed: Math.round(dayData.wind.reduce((a: number, b: number) => a + b, 0) / dayData.wind.length * 3.6),
       },
-      precipitation: typeof item.pop === 'number' ? Math.round(item.pop * 100) : 0,
+      precipitation: Math.round(Math.max(...dayData.precipitation) * 100),
     }));
-    // No hourly forecast from One Call free tier, so leave as empty array or fallback
-    return { daily, hourly: [] };
+    
+    // Create hourly forecast from 3-hour intervals
+    const hourly = data.list.slice(0, 8).map((item: any) => ({
+      time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      temperature: Math.round(item.main.temp),
+      condition: { main: item.weather[0].main },
+      precipitation: Math.round((item.pop || 0) * 100),
+    }));
+    
+    return { daily, hourly };
   } catch (error) {
     console.error('Forecast API error:', error);
-    // Always return fallback data for any error
+    
+    // Return fallback data for any error
     console.warn('Forecast API failed, using fallback data for demo');
     return {
       daily: [
@@ -256,7 +311,7 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           condition: { main: 'Rain', description: 'light rain' },
           humidity: 80,
           wind: { speed: 20 },
-          precipitation: 0,
+          precipitation: 20,
         },
         {
           date: new Date(Date.now() + 96 * 60 * 60 * 1000).toLocaleDateString(),
@@ -264,7 +319,7 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           condition: { main: 'Thunderstorm', description: 'thunderstorm' },
           humidity: 75,
           wind: { speed: 18 },
-          precipitation: 20,
+          precipitation: 40,
         },
         {
           date: new Date(Date.now() + 120 * 60 * 60 * 1000).toLocaleDateString(),
@@ -272,16 +327,14 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           condition: { main: 'Snow', description: 'light snow' },
           humidity: 85,
           wind: { speed: 10 },
-          precipitation: 40,
+          precipitation: 60,
         },
       ],
-      hourly: Array.from({ length: 24 }, (_, i) => ({
-        time: new Date(Date.now() + i * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      hourly: Array.from({ length: 8 }, (_, i) => ({
+        time: new Date(Date.now() + i * 3 * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         temperature: 20 + Math.floor(Math.random() * 10),
         condition: { main: 'Clear' },
         precipitation: 0,
-        humidity: 65,
-        wind: { speed: 12 },
       })),
     };
   }

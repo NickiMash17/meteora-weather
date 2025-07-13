@@ -1,6 +1,27 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sun, Moon, Monitor } from 'lucide-react';
+import '../styles/SettingsModal.css';
+import { 
+  X, 
+  Sun, 
+  Moon, 
+  Monitor, 
+  Palette, 
+  Clock, 
+  Globe, 
+  Bell, 
+  Shield, 
+  Info,
+  Check,
+  Settings as SettingsIcon,
+  Smartphone,
+  Monitor as DesktopIcon,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Download,
+  Trash2
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface SettingsModalProps {
@@ -28,6 +49,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const { t, i18n } = useTranslation();
+  const [activeTab, setActiveTab] = useState('appearance');
+  const [notifications, setNotifications] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [dataUsage, setDataUsage] = useState('balanced');
 
   // Focus trap
   useEffect(() => {
@@ -63,11 +88,299 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     localStorage.setItem('meteora-time-format', format);
   };
 
+  const clearCache = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
+  const tabs = [
+    { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'data', label: 'Data & Privacy', icon: Shield },
+    { id: 'about', label: 'About', icon: Info },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'appearance':
+        return (
+          <div className="space-y-6">
+            {/* Theme Selection */}
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <Sun className="w-5 h-5" />
+                Theme
+              </h3>
+              <p className="setting-description">Choose your preferred color scheme</p>
+              <div className="theme-options">
+                <button
+                  className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+                  onClick={() => setTheme('light')}
+                  aria-label="Light theme"
+                >
+                  <div className="theme-preview light">
+                    <Sun className="w-6 h-6" />
+                  </div>
+                  <span>Light</span>
+                  {theme === 'light' && <Check className="w-4 h-4" />}
+                </button>
+                <button
+                  className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+                  onClick={() => setTheme('dark')}
+                  aria-label="Dark theme"
+                >
+                  <div className="theme-preview dark">
+                    <Moon className="w-6 h-6" />
+                  </div>
+                  <span>Dark</span>
+                  {theme === 'dark' && <Check className="w-4 h-4" />}
+                </button>
+                <button
+                  className={`theme-option ${theme === 'system' ? 'active' : ''}`}
+                  onClick={() => setTheme('system')}
+                  aria-label="System theme"
+                >
+                  <div className="theme-preview system">
+                    <Monitor className="w-6 h-6" />
+                  </div>
+                  <span>System</span>
+                  {theme === 'system' && <Check className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Accent Color Selection */}
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <Palette className="w-5 h-5" />
+                Accent Color
+              </h3>
+              <p className="setting-description">Customize the app's accent color</p>
+              <div className="color-grid">
+                {accentColors.map((color) => (
+                  <button
+                    key={color.value}
+                    className={`color-option ${accentColor === color.value ? 'active' : ''}`}
+                    style={{ '--color': color.value } as React.CSSProperties}
+                    onClick={() => setAccentColor(color.value)}
+                    aria-label={`Set accent color to ${color.name}`}
+                  >
+                    <div className="color-preview" style={{ background: color.value }}></div>
+                    <span className="color-name">{color.name}</span>
+                    {accentColor === color.value && <Check className="w-4 h-4" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Time Format */}
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <Clock className="w-5 h-5" />
+                Time Format
+              </h3>
+              <p className="setting-description">Choose your preferred time display format</p>
+              <div className="format-options">
+                <button
+                  className={`format-option ${timeFormat === '12' ? 'active' : ''}`}
+                  onClick={() => handleTimeFormatChange('12')}
+                >
+                  <span className="format-label">12-hour</span>
+                  <span className="format-example">2:30 PM</span>
+                  {timeFormat === '12' && <Check className="w-4 h-4" />}
+                </button>
+                <button
+                  className={`format-option ${timeFormat === '24' ? 'active' : ''}`}
+                  onClick={() => handleTimeFormatChange('24')}
+                >
+                  <span className="format-label">24-hour</span>
+                  <span className="format-example">14:30</span>
+                  {timeFormat === '24' && <Check className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'notifications':
+        return (
+          <div className="space-y-6">
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <Bell className="w-5 h-5" />
+                Notifications
+              </h3>
+              <p className="setting-description">Manage your notification preferences</p>
+              
+              <div className="toggle-group">
+                <div className="toggle-item">
+                  <div className="toggle-info">
+                    <span className="toggle-label">Weather Alerts</span>
+                    <span className="toggle-description">Get notified about severe weather</span>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={notifications}
+                      onChange={(e) => setNotifications(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div className="toggle-item">
+                  <div className="toggle-info">
+                    <span className="toggle-label">Auto Refresh</span>
+                    <span className="toggle-description">Automatically update weather data</span>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'data':
+        return (
+          <div className="space-y-6">
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <Shield className="w-5 h-5" />
+                Data & Privacy
+              </h3>
+              <p className="setting-description">Control your data usage and privacy settings</p>
+              
+              <div className="data-usage-section">
+                <h4 className="section-subtitle">Data Usage</h4>
+                <div className="radio-group">
+                  {[
+                    { value: 'minimal', label: 'Minimal', desc: 'Lowest data usage' },
+                    { value: 'balanced', label: 'Balanced', desc: 'Recommended setting' },
+                    { value: 'high', label: 'High Quality', desc: 'Best experience' }
+                  ].map((option) => (
+                    <label key={option.value} className="radio-option">
+                      <input
+                        type="radio"
+                        name="dataUsage"
+                        value={option.value}
+                        checked={dataUsage === option.value}
+                        onChange={(e) => setDataUsage(e.target.value)}
+                      />
+                      <div className="radio-content">
+                        <span className="radio-label">{option.label}</span>
+                        <span className="radio-description">{option.desc}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="actions-section">
+                <h4 className="section-subtitle">Actions</h4>
+                <div className="action-buttons">
+                  <button className="action-button" onClick={clearCache}>
+                    <Trash2 className="w-4 h-4" />
+                    Clear Cache
+                  </button>
+                  <button className="action-button">
+                    <Download className="w-4 h-4" />
+                    Export Data
+                  </button>
+                  <button className="action-button">
+                    <RefreshCw className="w-4 h-4" />
+                    Reset Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'about':
+        return (
+          <div className="space-y-6">
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <Info className="w-5 h-5" />
+                About Meteora
+              </h3>
+              
+              <div className="about-content">
+                <div className="app-info">
+                  <div className="app-logo">
+                    <SettingsIcon className="w-12 h-12" />
+                  </div>
+                  <div className="app-details">
+                    <h3 className="app-name">Meteora Weather</h3>
+                    <p className="app-version">Version 1.0.0</p>
+                    <p className="app-description">
+                      A modern weather application built with React and TypeScript
+                    </p>
+                  </div>
+                </div>
+
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Language</span>
+                    <select
+                      value={i18n.language}
+                      onChange={e => i18n.changeLanguage(e.target.value)}
+                      className="language-select"
+                    >
+                      <option value="en">English</option>
+                      <option value="es">Español</option>
+                      <option value="fr">Français</option>
+                      <option value="de">Deutsch</option>
+                    </select>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Connection</span>
+                    <div className="connection-status">
+                      <Wifi className="w-4 h-4" />
+                      <span>Online</span>
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Platform</span>
+                    <div className="platform-info">
+                      <Smartphone className="w-4 h-4" />
+                      <span>Web App</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="credits">
+                  <h4 className="credits-title">Credits</h4>
+                  <p className="credits-text">
+                    Weather data provided by OpenWeatherMap API. 
+                    Icons by Lucide React. Built with modern web technologies.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="settings-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -77,99 +390,43 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         >
           <motion.div
             ref={modalRef}
-            className="glass-card max-w-md w-full p-6 rounded-2xl shadow-2xl relative focus:outline-none"
+            className="settings-modal"
             initial={{ scale: 0.95, opacity: 0, y: 40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 40 }}
             tabIndex={0}
             aria-label="Settings Modal"
           >
-            {/* Close Button */}
-            <button
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/20 dark:bg-gray-700/20 hover:bg-white/40 dark:hover:bg-gray-700/40 transition"
-              onClick={onClose}
-              aria-label="Close settings"
-            >
-              <X className="w-5 h-5 text-gray-700 dark:text-gray-200" />
-            </button>
-            <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">Settings</h2>
-            {/* Theme Selection */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Theme</h3>
-              <div className="flex items-center justify-center gap-4">
-                <button
-                  className={`flex flex-col items-center px-4 py-2 rounded-lg border-2 transition focus:outline-none ${theme === 'light' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-transparent'}`}
-                  onClick={() => setTheme('light')}
-                  aria-label="Light theme"
-                >
-                  <Sun className="w-6 h-6 mb-1 text-yellow-400" />
-                  <span className="text-xs font-medium">Light</span>
-                </button>
-                <button
-                  className={`flex flex-col items-center px-4 py-2 rounded-lg border-2 transition focus:outline-none ${theme === 'dark' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-transparent'}`}
-                  onClick={() => setTheme('dark')}
-                  aria-label="Dark theme"
-                >
-                  <Moon className="w-6 h-6 mb-1 text-purple-400" />
-                  <span className="text-xs font-medium">Dark</span>
-                </button>
-                <button
-                  className={`flex flex-col items-center px-4 py-2 rounded-lg border-2 transition focus:outline-none ${theme === 'system' ? 'border-gray-500 bg-gray-50 dark:bg-gray-900/20' : 'border-transparent'}`}
-                  onClick={() => setTheme('system')}
-                  aria-label="System theme"
-                >
-                  <Monitor className="w-6 h-6 mb-1 text-gray-400" />
-                  <span className="text-xs font-medium">System</span>
-                </button>
-              </div>
-            </div>
-            {/* Accent Color Selection */}
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Accent Color</h3>
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                {accentColors.map((c) => (
-                  <button
-                    key={c.value}
-                    className={`w-8 h-8 rounded-full border-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-transform hover:scale-110 ${accentColor === c.value ? 'border-blue-500 ring-2 ring-blue-300' : 'border-white/70'}`}
-                    style={{ background: c.value }}
-                    aria-label={`Set accent color to ${c.name}`}
-                    onClick={() => setAccentColor(c.value)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 mt-4">
-              <label className="font-medium text-gray-700 dark:text-gray-200">Time Format</label>
-              <div className="flex gap-3">
-                <button
-                  className={`px-3 py-1 rounded-lg border ${timeFormat === '12' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'} transition`}
-                  onClick={() => handleTimeFormatChange('12')}
-                  aria-label="Set 12-hour time format"
-                  type="button"
-                >
-                  12-hour
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-lg border ${timeFormat === '24' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'} transition`}
-                  onClick={() => handleTimeFormatChange('24')}
-                  aria-label="Set 24-hour time format"
-                  type="button"
-                >
-                  24-hour
-                </button>
-              </div>
-            </div>
-            <div className="settings-option">
-              <label htmlFor="language-select">{t('Language')}</label>
-              <select
-                id="language-select"
-                value={i18n.language}
-                onChange={e => i18n.changeLanguage(e.target.value)}
-                aria-label={t('Language')}
+            {/* Header */}
+            <div className="settings-header">
+              <h2 className="settings-title">Settings</h2>
+              <button
+                className="close-button"
+                onClick={onClose}
+                aria-label="Close settings"
               >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-              </select>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="settings-tabs">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-label={tab.label}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="settings-content">
+              {renderTabContent()}
             </div>
           </motion.div>
         </motion.div>
