@@ -724,3 +724,122 @@
   50% { filter: blur(10px) brightness(1.4); }
   100% { filter: blur(6px) brightness(1.1); }
 }
+
+/* --- Remove the large search card above nav tab --- */
+.header-search-card,
+.header-search-bar,
+.header-search-container {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: none !important;
+}
+
+/* --- Make dashboard search bar (previously below nav) prominent at the top --- */
+.dashboard-search-bar,
+.dashboard-search-container,
+.dashboard-search {
+  /* Make it prominent and centered at the top */
+  margin: 2.5rem auto 1.5rem auto !important;
+  max-width: 440px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255,255,255,0.82);
+  border-radius: 2.5rem;
+  box-shadow: 0 6px 32px 0 rgba(124, 58, 237, 0.12), 0 2px 12px 0 rgba(56,189,248,0.10);
+  border: 2px solid #38bdf8;
+  position: relative;
+  z-index: 20;
+  padding: 0.25rem 0.75rem;
+  transition: box-shadow 0.3s, background 0.3s, border 0.3s;
+}
+
+/* Style the input and button for a clean look */
+.dashboard-search-input,
+.dashboard-search input {
+  flex: 1;
+  padding: 1.1rem 1.7rem 1.1rem 3.2rem;
+  background: transparent;
+  border: none;
+  border-radius: 2.5rem;
+  color: #1e293b;
+  font-size: 1.18rem;
+  font-family: var(--font-main);
+  letter-spacing: 0.01em;
+  outline: none;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: none;
+}
+
+.dashboard-search-input::placeholder,
+.dashboard-search input::placeholder {
+  color: #64748b;
+  opacity: 0.8;
+  font-size: 1.08rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+.dashboard-search-icon,
+.dashboard-search .search-icon {
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #38bdf8;
+  font-size: 1.35rem;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px #bae6fd);
+  transition: color 0.2s;
+}
+
+.dashboard-search-btn,
+.dashboard-search button {
+  margin-left: -2.7rem;
+  background: linear-gradient(90deg, #38bdf8 60%, #a78bfa 100%);
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 12px rgba(56,189,248,0.18);
+  cursor: pointer;
+  transition: box-shadow 0.18s, background 0.18s, transform 0.18s;
+  outline: none;
+}
+
+.dashboard-search-btn:active,
+.dashboard-search button:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 4px rgba(56,189,248,0.28);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .dashboard-search-bar,
+  .dashboard-search-container,
+  .dashboard-search {
+    max-width: 98vw !important;
+    padding: 0.1rem 0.2rem !important;
+  }
+  .dashboard-search-input,
+  .dashboard-search input {
+    font-size: 1rem !important;
+    padding-left: 2.2rem !important;
+  }
+  .dashboard-search-btn,
+  .dashboard-search button {
+    width: 2rem !important;
+    height: 2rem !important;
+    font-size: 1.1rem !important;
+  }
+}
