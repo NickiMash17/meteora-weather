@@ -1129,49 +1129,67 @@
 
 /* Outstanding Tab Styles */
 .tab-button {
-  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(31,41,55,0.7);
+  font-weight: 600;
+  border-radius: 1rem;
+  min-width: 60px;
+  min-height: 60px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  outline: none;
+  overflow: hidden;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.tab-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.tab-button:hover::before {
-  opacity: 1;
 }
 
 .tab-button.active {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #38bdf8 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(56,189,248,0.25);
+  font-weight: 700;
+  animation: tabGlow 2s ease-in-out infinite;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  transform: translateY(-2px);
 }
 
-.tab-button.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 2px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 1px;
+.tab-button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tab-button:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+.tab-icon.glow-icon {
+  filter: drop-shadow(0 0 10px #a78bfa) drop-shadow(0 0 18px #38bdf8);
+  transition: filter 0.3s cubic-bezier(.4,2,.6,1);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Tab Label Styles */
+.tab-label {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+}
+
+.tab-button.active .tab-label {
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
 }
 
 /* Outstanding Input Styles */
@@ -1588,6 +1606,71 @@
   z-index: 0;
 }
 
+/* Tab Button Styles */
+.tab-button {
+  position: relative;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(31,41,55,0.7);
+  font-weight: 600;
+  border-radius: 1rem;
+  min-width: 60px;
+  min-height: 60px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  outline: none;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #38bdf8 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(56,189,248,0.25);
+  font-weight: 700;
+  animation: tabGlow 2s ease-in-out infinite;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  transform: translateY(-2px);
+}
+
+.tab-button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tab-button:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+.tab-icon.glow-icon {
+  filter: drop-shadow(0 0 10px #a78bfa) drop-shadow(0 0 18px #38bdf8);
+  transition: filter 0.3s cubic-bezier(.4,2,.6,1);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Tab Label Styles */
+.tab-label {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+}
+
+.tab-button.active .tab-label {
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
 /* Enhanced Mobile Navigation */
 @media (max-width: 768px) {
   /* Mobile Navigation Container */
@@ -1595,8 +1678,9 @@
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(20px) !important;
     border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
-    padding: 0.75rem 0.5rem !important;
+    padding: 1rem 0.5rem !important;
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 1.5rem 1.5rem 0 0 !important;
   }
   
   /* Dark mode mobile navigation */
@@ -1616,6 +1700,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     font-size: 0.75rem !important;
     font-weight: 500 !important;
+    margin: 0 0.25rem !important;
   }
   
   /* Mobile Tab Hover Effects */
@@ -1628,14 +1713,16 @@
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15)) !important;
     border: 1px solid rgba(59, 130, 246, 0.3) !important;
     box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2) !important;
+    transform: translateY(-2px) !important;
   }
   
   /* Mobile Tab Icon Container */
   nav[role="tablist"] button > div:first-of-type {
     position: relative !important;
-    padding: 0.5rem !important;
+    padding: 0.75rem !important;
     border-radius: 0.75rem !important;
     transition: all 0.3s ease !important;
+    margin: 0.25rem !important;
   }
   
   /* Mobile Tab Active Icon */
@@ -1707,6 +1794,67 @@
   }
 }
 
+/* Enhanced Accessibility */
+.tab-button:focus-visible {
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Improved Touch Targets */
+@media (max-width: 768px) {
+  .tab-button {
+    min-width: 60px !important;
+    min-height: 60px !important;
+    padding: 0.75rem !important;
+  }
+  
+  .tab-icon {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+}
+
+/* Smooth Scrolling for Mobile */
+@media (max-width: 768px) {
+  nav[role="tablist"] {
+    scroll-behavior: smooth !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Enhanced Visual Feedback */
+.tab-button:hover:not(.active) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tab-button:active {
+  transform: translateY(0) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* Dark Mode Enhancements */
+.dark .tab-button {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .tab-button.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #3b82f6 100%) !important;
+  color: white !important;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.dark .tab-button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
 /* Navigation Animations */
 @keyframes tabGlow {
   0%, 100% {
@@ -1737,45 +1885,70 @@ nav button[aria-selected="true"] > div:first-of-type {
 
 /* Notification Badge Styles */
 .notification-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.75rem;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0.125rem;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  animation: badgePulse 2s ease-in-out infinite;
+  position: absolute !important;
+  top: -2px !important;
+  right: -2px !important;
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  min-width: 1rem !important;
+  height: 1rem !important;
+  font-size: 0.7rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  box-shadow: 0 0 8px #ef4444aa !important;
+  animation: badgePulse 1.5s infinite !important;
+  border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
 }
 
 @keyframes badgePulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
-  }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 8px #ef4444aa; }
+  50% { transform: scale(1.15); box-shadow: 0 0 16px #ef4444cc; }
 }
 
 /* Mobile badge adjustments */
 @media (max-width: 768px) {
   .notification-badge {
-    min-width: 1rem;
-    height: 1rem;
-    font-size: 0.625rem;
-    top: -2px;
-    right: -2px;
+    min-width: 0.9rem !important;
+    height: 0.9rem !important;
+    font-size: 0.6rem !important;
+    top: -1px !important;
+    right: -1px !important;
   }
+  .tab-icon {
+    padding: 0.5rem !important;
+  }
+  .tab-icon:has(.notification-badge) {
+    padding-right: 0.7rem !important;
+    padding-top: 0.7rem !important;
+  }
+}
+
+/* Enhanced Active State Indicators */
+.tab-button.active {
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-button.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  border-radius: inherit;
+  animation: activeGlow 3s ease-in-out infinite;
+}
+
+@keyframes activeGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
 }
 
 /* Enhanced Search Bar UI */
@@ -2405,3 +2578,44 @@ img {
   border-radius: 0.5rem !important;
   text-align: center !important;
 } 
+
+/* Icon Container with Badge Support */
+.tab-icon {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  margin: 0;
+  min-width: unset;
+  min-height: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible !important;
+}
+
+.tab-icon:has(.notification-badge) {
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.tab-button:has(.notification-badge) {
+  overflow: visible !important;
+}
+
+@media (max-width: 768px) {
+  .notification-badge {
+    min-width: 0.9rem !important;
+    height: 0.9rem !important;
+    font-size: 0.6rem !important;
+    top: -1px !important;
+    right: -1px !important;
+  }
+  .tab-icon {
+    padding: 0.5rem !important;
+  }
+  .tab-icon:has(.notification-badge) {
+    padding-right: 0.7rem !important;
+    padding-top: 0.7rem !important;
+  }
+}

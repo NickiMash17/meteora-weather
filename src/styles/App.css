@@ -795,7 +795,7 @@ body {
 }
 
 .app-footer::after {
-  content: "Developed with 🌧️⚡ by Nicolette & Mashaba";
+  content: "Developed by Nicolette Mashaba";
   display: block;
   margin-top: 1rem;
   font-style: italic;

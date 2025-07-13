@@ -362,7 +362,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="credits">
                   <h4 className="credits-title">Credits</h4>
                   <p className="credits-text">
-                    Weather data provided by OpenWeatherMap API. 
+                    Meteora Weather App developed by <strong>Nicolette Mashaba</strong>.<br/>
+                    Weather data provided by OpenWeatherMap API.<br/>
                     Icons by Lucide React. Built with modern web technologies.
                   </p>
                 </div>

@@ -557,9 +557,9 @@ function App() {
                     return (
                       <motion.button
                         key={tab.id}
-                        className={`relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-300 group overflow-hidden ${
+                        className={`tab-button relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-300 group overflow-hidden ${
                           isActive 
-                            ? 'text-white' 
+                            ? 'active text-white' 
                             : 'text-white/70 hover:text-white'
                         }`}
                         whileHover={{ scale: 1.02 }}
@@ -593,9 +593,9 @@ function App() {
                         )}
                         
                         {/* Icon Container */}
-                        <div className={`relative z-10 p-3 rounded-xl transition-all duration-300 ${
+                        <div className={`tab-icon relative z-10 rounded-xl transition-all duration-300 ${
                           isActive 
-                            ? 'bg-white/20 dark:bg-white/10 text-white shadow-lg' 
+                            ? 'bg-white/20 dark:bg-white/10 text-white shadow-lg glow-icon' 
                             : 'bg-white/10 dark:bg-gray-700/30 text-white/60 group-hover:bg-white/20 group-hover:text-white'
                         }`}>
                           <tab.icon size={22} />
@@ -610,29 +610,10 @@ function App() {
                               {tab.badge > 9 ? '9+' : tab.badge}
                             </motion.div>
                           )}
-                          
-                          {/* Glow Effect for Active Tab */}
-                          {isActive && (
-                            <motion.div
-                              className="absolute inset-0 rounded-xl bg-blue-400/20"
-                              animate={{
-                                boxShadow: [
-                                  "0 0 0 0 rgba(59, 130, 246, 0.4)",
-                                  "0 0 0 6px rgba(59, 130, 246, 0)",
-                                  "0 0 0 0 rgba(59, 130, 246, 0)"
-                                ]
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }}
-                            />
-                          )}
                         </div>
                         
                         {/* Label */}
-                        <span className={`relative z-10 font-semibold text-base transition-all duration-300 ${
+                        <span className={`tab-label relative z-10 font-semibold text-base transition-all duration-300 ${
                           isActive ? 'text-white' : 'text-white/70 group-hover:text-white'
                         }`}>
                           {tab.label}
@@ -657,6 +638,8 @@ function App() {
                             <div className="w-2 h-2 border-r-2 border-t-2 border-white/40 transform rotate-45" />
                           </motion.div>
                         )}
+                        
+
                       </motion.button>
                     );
                   })}
@@ -855,13 +838,13 @@ function App() {
               return (
                 <motion.button
                   key={tab.id}
-                  className={`relative flex flex-col items-center justify-center px-3 py-2 min-w-[60px] min-h-[60px] rounded-2xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 ${
-                    isActive 
-                      ? 'text-blue-600 dark:text-blue-300 font-bold' 
-                      : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'
+                  className={`tab-button relative flex flex-col items-center justify-center px-4 py-2 min-w-[60px] min-h-[60px] rounded-2xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 ${
+                    isActive
+                      ? 'active font-bold text-blue-600 dark:text-blue-300'
+                      : 'text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-200'
                   }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.96 }}
                   aria-selected={isActive}
                   aria-label={tab.label}
                   aria-controls={`tabpanel-${tab.id}`}
@@ -874,25 +857,13 @@ function App() {
                     });
                   }}
                 >
-                  {/* Active Background */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="mobileTabBackground"
-                      className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 dark:from-blue-400/30 dark:to-purple-400/30 rounded-2xl border border-blue-200/30 dark:border-blue-400/30"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                  
                   {/* Icon Container */}
-                  <div className={`relative z-10 mb-1 p-2 rounded-xl transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-300' 
-                      : 'bg-gray-100/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'
+                  <div className={`tab-icon relative z-10 mb-1 rounded-xl transition-all duration-300 ${
+                    isActive
+                      ? 'bg-blue-500/20 dark:bg-blue-400/20 glow-icon'
+                      : 'bg-gray-100/50 dark:bg-gray-800/50'
                   }`}>
                     <tab.icon size={24} />
-                    
-                    {/* Notification Badge */}
                     {tab.badge && (
                       <motion.div
                         initial={{ scale: 0 }}
@@ -902,43 +873,12 @@ function App() {
                         {tab.badge > 9 ? '9+' : tab.badge}
                       </motion.div>
                     )}
-                    
-                    {/* Glow Effect for Active Tab */}
-                    {isActive && (
-                      <motion.div
-                        className="absolute inset-0 rounded-xl bg-blue-400/20"
-                        animate={{
-                          boxShadow: [
-                            "0 0 0 0 rgba(59, 130, 246, 0.4)",
-                            "0 0 0 8px rgba(59, 130, 246, 0)",
-                            "0 0 0 0 rgba(59, 130, 246, 0)"
-                          ]
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      />
-                    )}
                   </div>
                   
-                  {/* Label */}
-                  <span className={`relative z-10 text-xs font-medium leading-tight transition-all duration-300 ${
-                    isActive ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {tab.mobileLabel || tab.label}
-                  </span>
+                  {/* Tab Label */}
+                  <span className="tab-label text-xs mt-1">{tab.mobileLabel || tab.label}</span>
                   
-                  {/* Active Indicator */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="mobileTabIndicator"
-                      className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
+
                 </motion.button>
               );
             })}
