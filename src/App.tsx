@@ -16,7 +16,10 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
-  Settings
+  Settings,
+  Eye,
+  Volume2,
+  Trophy
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import Lottie from 'lottie-react';
@@ -29,6 +32,7 @@ import insightsAnim from './lottie/insights.json';
 import galleryAnim from './lottie/gallery.json';
 import './i18n';
 import { useTranslation } from 'react-i18next';
+import './styles/enhanced.css';
 
 // Custom hooks
 import { useWeatherOptimized } from './hooks/useWeatherOptimized';
@@ -54,10 +58,14 @@ import WeatherAnalytics from './components/WeatherAnalytics';
 import WeatherMap from './components/WeatherMap';
 import WeatherAlerts from './components/WeatherAlerts';
 import WeatherInsights from './components/WeatherInsights';
+import WeatherAI from './components/WeatherAI';
+import Weather3D from './components/Weather3D';
+import WeatherSound from './components/WeatherSound';
+import WeatherGamification from './components/WeatherGamification';
 import ImageSlider from './components/ImageSlider';
 import WeatherBackground from './components/WeatherBackground';
 
-type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights';
+type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights' | 'ai' | '3d' | 'sound' | 'gamification';
 
 // QueryClient is now provided by main.tsx
 
@@ -194,13 +202,19 @@ function App() {
     refetch 
   } = useWeatherOptimized(location);
 
-  // Simplified tab list with notification badges
+  // Enhanced tab list with new features
   const tabList = [
     { id: 'dashboard', label: t('Dashboard'), icon: BarChart3, mobileLabel: 'Home', badge: null },
     { id: 'forecast', label: t('Forecast'), icon: Calendar, mobileLabel: 'Forecast', badge: null },
     { id: 'analytics', label: t('Analytics'), icon: BarChart3, mobileLabel: 'Stats', badge: null },
     { id: 'map', label: t('Map'), icon: Globe, mobileLabel: 'Map', badge: null },
-    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts', badge: getActiveAlerts(weather, forecast)?.length || null }
+    { id: 'alerts', label: t('Alerts'), icon: AlertTriangle, mobileLabel: 'Alerts', badge: getActiveAlerts(weather, forecast)?.length || null },
+    { id: 'insights', label: t('Insights'), icon: Sparkles, mobileLabel: 'Insights', badge: null },
+    { id: 'gallery', label: t('Gallery'), icon: Image, mobileLabel: 'Gallery', badge: null },
+    { id: 'ai', label: 'AI Insights', icon: Sparkles, mobileLabel: 'AI', badge: null },
+    { id: '3d', label: '3D View', icon: Eye, mobileLabel: '3D', badge: null },
+    { id: 'sound', label: 'Sound', icon: Volume2, mobileLabel: 'Sound', badge: null },
+    { id: 'gamification', label: 'Game', icon: Trophy, mobileLabel: 'Game', badge: null }
   ];
 
   // Performance monitoring - disabled for better performance
@@ -867,6 +881,46 @@ function App() {
                     <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
                       <Suspense fallback={<LoadingSkeleton type="insights" />}>
                           <WeatherAlerts weather={weather} forecast={forecast} />
+                        </Suspense>
+                    </div>
+                  )}
+                  
+                  {activeTab === 'insights' && (
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                          <WeatherInsights weather={weather} forecast={forecast} />
+                        </Suspense>
+                    </div>
+                  )}
+                  
+                  {activeTab === 'ai' && (
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                          <WeatherAI weather={weather} forecast={forecast} />
+                        </Suspense>
+                    </div>
+                  )}
+                  
+                  {activeTab === '3d' && (
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                          <Weather3D weather={weather} forecast={forecast} theme={resolvedTheme} />
+                        </Suspense>
+                    </div>
+                  )}
+                  
+                  {activeTab === 'sound' && (
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                          <WeatherSound weather={weather} forecast={forecast} theme={resolvedTheme} />
+                        </Suspense>
+                    </div>
+                  )}
+                  
+                  {activeTab === 'gamification' && (
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                          <WeatherGamification weather={weather} forecast={forecast} userLocation={location} />
                         </Suspense>
                     </div>
                   )}
