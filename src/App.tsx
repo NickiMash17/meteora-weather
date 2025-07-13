@@ -730,7 +730,7 @@ function App() {
             )}
 
             {/* Content Area */}
-            <div className="flex-1 overflow-auto p-6">
+            <div className={`flex-1 overflow-auto p-6 ${isMobile ? 'pb-32' : ''}`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
@@ -835,6 +835,29 @@ function App() {
             </main>
         </div>
 
+        {/* Footer - Always visible, with extra bottom margin on mobile */}
+        <footer className={`app-footer text-center w-full ${isMobile ? 'mb-32' : ''}`}>
+          <div>Meteora Weather &copy; {new Date().getFullYear()}</div>
+          <div className="footer-links flex items-center justify-center gap-4">
+            <a href="https://github.com/nicolette-mashaba/meteora-weather" className="footer-link flex items-center gap-1" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <svg className="w-5 h-5 hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.809 1.304 3.495.997.108-.775.418-1.305.762-1.605-2.665-.305-5.466-1.334-5.466-5.931 0-1.31.469-2.381 1.236-3.221-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.984-.399 3.003-.404 1.018.005 2.046.138 3.006.404 2.291-1.553 3.297-1.23 3.297-1.23.653 1.653.242 2.873.119 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.803 5.624-5.475 5.921.43.371.823 1.102.823 2.222v3.293c0 .322.218.694.825.576C20.565 21.796 24 17.299 24 12c0-6.627-5.373-12-12-12z"/></svg>
+              GitHub
+            </a>
+            <a href="https://linkedin.com/in/nicolette-mashaba" className="footer-link flex items-center gap-1" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <svg className="w-5 h-5 hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.025-3.063-1.868-3.063-1.868 0-2.154 1.459-2.154 2.968v5.699h-3v-10h2.881v1.367h.041c.401-.761 1.379-1.563 2.841-1.563 3.039 0 3.6 2.001 3.6 4.601v5.595z"/></svg>
+              LinkedIn
+            </a>
+            <a href="/about" className="footer-link">About</a>
+            <a href="/credits" className="footer-link">Credits</a>
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {/* Animated weather icon (Sun) */}
+            <span className="inline-block animate-spin-slow"><svg className="w-6 h-6 text-yellow-400 drop-shadow-lg" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2m11-11h-2M3 12H1m16.95 7.07l-1.41-1.41M6.34 6.34L4.93 4.93m12.02 0l-1.41 1.41M6.34 17.66l-1.41 1.41"/></svg></span>
+            <span className="footer-gradient-text font-bold text-base md:text-lg animate-gradient-x bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Developed by Nicolette Mashaba</span>
+          </div>
+          <div className="mt-2 text-xs text-blue-400 font-semibold animate-fade-in">Powered by sunshine and code ☀️</div>
+        </footer>
+
         {/* Bottom Mobile Navigation Bar */}
         {isMobile && (
           <nav
@@ -913,7 +936,7 @@ function App() {
         )}
       </div>
       {/* Footer always visible */}
-      <footer className="app-footer" />
+      {/* <footer className="app-footer" /> */}
     </ErrorBoundary>
   );
 }

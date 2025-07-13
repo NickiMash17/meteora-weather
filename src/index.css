@@ -2666,3 +2666,63 @@ img {
     gap: 0.75rem !important;
   }
 }
+
+@media (max-width: 768px) {
+  .meteora-container, .app-main, .main-content {
+    padding-bottom: 5.5rem !important;
+  }
+}
+
+.footer-gradient-text {
+  background: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6, #fbbf24);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-x 4s ease-in-out infinite alternate;
+}
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+.animate-gradient-x {
+  animation: gradient-x 4s ease-in-out infinite alternate;
+}
+.animate-fade-in {
+  animation: fadeIn 2s ease-in;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.app-footer {
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 -8px 32px 0 rgba(56,189,248,0.12), 0 -2px 8px 0 rgba(124,58,237,0.10);
+  border-radius: 2rem 2rem 0 0;
+  border-top: 4px solid;
+  border-image: linear-gradient(90deg, #a78bfa, #38bdf8, #f472b6, #fbbf24) 1;
+}
+.footer-link svg {
+  transition: transform 0.3s cubic-bezier(.4,2,.6,1), color 0.3s;
+}
+.footer-link:hover svg {
+  color: #fbbf24;
+  transform: scale(1.2) rotate(-8deg);
+}
+@media (max-width: 640px) {
+  .app-footer {
+    padding: 1.5rem 0.5rem;
+    font-size: 1rem;
+    border-radius: 1.2rem 1.2rem 0 0;
+  }
+  .footer-gradient-text {
+    font-size: 1rem;
+  }
+}
