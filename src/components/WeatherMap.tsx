@@ -33,26 +33,34 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
   const [showLegend, setShowLegend] = useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const mapTypes = [
+  const mapLayers = [
     { id: 'temperature', label: t('Temperature'), icon: Thermometer, color: 'text-red-400' },
     { id: 'precipitation', label: t('Precipitation'), icon: CloudRain, color: 'text-blue-400' },
     { id: 'wind', label: t('Wind'), icon: Wind, color: 'text-green-400' },
     { id: 'satellite', label: t('Satellite'), icon: Globe, color: 'text-purple-400' }
   ];
 
-  const getMapBackground = () => {
-    switch (mapType) {
-      case 'temperature':
-        return 'bg-gradient-to-br from-blue-900 via-purple-900 to-red-900';
-      case 'precipitation':
-        return 'bg-gradient-to-br from-blue-800 via-cyan-800 to-blue-600';
-      case 'wind':
-        return 'bg-gradient-to-br from-green-900 via-emerald-800 to-teal-700';
-      case 'satellite':
-        return 'bg-gradient-to-br from-gray-900 via-slate-800 to-zinc-700';
-      default:
-        return 'bg-gradient-to-br from-blue-900 via-purple-900 to-red-900';
+  const getMapStyle = (layer: string) => {
+    if (layer === 'temperature') {
+      return 'bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900';
     }
+    if (layer === 'precipitation') {
+      return 'bg-gradient-to-br from-blue-800 via-cyan-800 to-blue-600';
+    }
+    if (layer === 'wind') {
+      return 'bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900';
+    }
+    if (layer === 'satellite') {
+      return 'bg-gradient-to-br from-blue-900 via-purple-900 to-red-900';
+    }
+    return 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800';
+  };
+
+  const getTemperatureColor = (temp: number) => {
+    if (temp > 25) return 'bg-red-500/20';
+    if (temp > 15) return 'bg-yellow-500/20';
+    if (temp > 5) return 'bg-blue-500/20';
+    return 'bg-purple-500/20';
   };
 
   const getWeatherOverlay = () => {
@@ -100,10 +108,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
                 <motion.div
                   key={i}
                   className="absolute w-1 h-8 bg-blue-400 rounded-full opacity-60"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 2}s`,
-                  }}
+                  style={{ backgroundColor: 'var(--primary-light)' }}
                   animate={{
                     y: [0, 400],
                     opacity: [0.6, 0],
@@ -185,21 +190,17 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
               <span className="text-white/80">{t('Temperature')}</span>
               <Thermometer className="w-4 h-4 text-red-400" />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span className="text-xs text-white/60">{t('Hot (&gt;25°C)')}</span>
+              <span className="text-sm text-gray-300">Hot</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-              <span className="text-xs text-white/60">{t('Warm (15-25°C)')}</span>
-            </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span className="text-xs text-white/60">{t('Cool (5-15°C)')}</span>
+              <span className="text-sm text-gray-300">Cold</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-purple-500 rounded"></div>
-              <span className="text-xs text-white/60">{t('Cold (&lt;5°C)')}</span>
+              <span className="text-sm text-gray-300">Freezing</span>
             </div>
           </div>
         );
@@ -267,7 +268,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
 
         {/* Map Type Selector */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-          {mapTypes.map((type) => {
+          {mapLayers.map((type) => {
             const Icon = type.icon;
             return (
               <button
@@ -309,7 +310,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ weather, forecast }) => {
       {/* Interactive Map */}
       <motion.div
         ref={mapRef}
-        className={`relative h-96 rounded-3xl overflow-hidden glass-card ${getMapBackground()}`}
+        className={`relative h-96 rounded-3xl overflow-hidden glass-card ${getMapStyle(mapType)}`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}

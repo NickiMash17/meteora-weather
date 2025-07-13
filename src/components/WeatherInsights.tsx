@@ -23,7 +23,9 @@ import {
   Car,
   Plane,
   TreePine,
-  Droplets
+  Droplets,
+  CloudRain,
+  Gauge
 } from 'lucide-react';
 import { getCityDate } from '../utils/timezone';
 import { useTranslation } from 'react-i18next';
@@ -231,6 +233,57 @@ const WeatherInsights: React.FC<WeatherInsightsProps> = ({ weather, forecast }) 
   };
 
   const activityRec = getActivityRecommendation();
+
+  const insightTypes = [
+    {
+      type: 'temperature',
+      icon: Thermometer,
+      title: t('Temperature Trends'),
+      description: t('Analyze temperature patterns and trends'),
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-400/10'
+    },
+    {
+      type: 'precipitation',
+      icon: CloudRain,
+      title: t('Precipitation Analysis'),
+      description: t('Understand rainfall patterns and intensity'),
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-400/10'
+    },
+    {
+      type: 'wind',
+      icon: Wind,
+      title: t('Wind Patterns'),
+      description: t('Track wind speed and direction changes'),
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-400/10'
+    },
+    {
+      type: 'humidity',
+      icon: Droplets,
+      title: t('Humidity Levels'),
+      description: t('Monitor humidity variations throughout the day'),
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-400/10'
+    },
+    {
+      type: 'pressure',
+      icon: Gauge,
+      title: t('Pressure Changes'),
+      description: t('Track atmospheric pressure fluctuations'),
+      color: 'text-purple-400',
+      bgColor: 'bg-purple-400/10'
+    },
+    {
+      type: 'uv',
+      icon: Sun,
+      title: t('UV Index'),
+      description: t('Monitor UV radiation levels for sun protection'),
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-400/10'
+    }
+  ];
 
   return (
     <div className="space-y-6">

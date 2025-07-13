@@ -14,21 +14,28 @@ import {
   ArrowRight,
   MapPin,
   Zap,
-  Star
+  Star,
+  BarChart3,
+  SkipForward,
+  Heart
 } from 'lucide-react';
 import Lottie from 'lottie-react';
 import sunCloudAnim from '../lottie/sun-cloud.json'; // You can swap this for any premium Lottie
+import { useTranslation } from 'react-i18next';
 
 export interface WelcomeScreenProps {
   onSearch: (query: string) => void;
+  onGetStarted: () => void;
+  onSkip: () => void;
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }: WelcomeScreenProps) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch, onGetStarted, onSkip }: WelcomeScreenProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [currentWeather, setCurrentWeather] = useState(0);
   const [showFeatures, setShowFeatures] = useState(false);
   const [factIdx, setFactIdx] = useState(0);
+  const { t } = useTranslation();
 
   const weatherIcons = [
     { icon: Sun, color: 'text-yellow-400', delay: 0 },
@@ -41,29 +48,29 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }: WelcomeScreen
 
   const features = [
     {
-      icon: Globe,
-      title: 'Global Coverage',
-      description: 'Get weather data from anywhere in the world',
+      icon: MapPin,
+      title: t('Real-time Weather'),
+      description: t('Get current weather conditions for any location'),
       color: 'text-blue-400'
     },
     {
-      icon: Sparkles,
-      title: 'AI Insights',
-      description: 'Smart recommendations based on weather conditions',
+      icon: BarChart3,
+      title: t('Detailed Forecasts'),
+      description: t('7-day forecasts with hourly breakdowns'),
       color: 'text-purple-400'
     },
     {
-      icon: Zap,
-      title: 'Real-time Updates',
-      description: 'Live weather data and instant notifications',
+      icon: Sun,
+      title: t('Beautiful UI'),
+      description: t('Modern, responsive design with smooth animations'),
       color: 'text-yellow-400'
     },
     {
-      icon: Star,
-      title: 'Beautiful Design',
-      description: 'Stunning visuals and smooth animations',
+      icon: Heart,
+      title: t('Personalized'),
+      description: t('Save favorite locations and customize your experience'),
       color: 'text-pink-400'
-    }
+    },
   ];
 
   const weatherFacts = [
@@ -134,7 +141,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }: WelcomeScreen
       <div className="flex flex-col items-center gap-4 w-full max-w-md z-20">
         <button
           className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white font-bold text-lg shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300 animate-bounce"
-          onClick={() => onSearch('')}
+          onClick={onGetStarted}
           aria-label="Get Started"
         >
           Get Started

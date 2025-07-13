@@ -48,6 +48,10 @@ const ImageSlider: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center border border-pink-400/20 bg-pink-400/5 mt-4"
+        style={{
+          border: '1px solid var(--primary-light)',
+          background: 'rgba(236, 72, 153, 0.05)'
+        }}
       >
         <motion.div
           initial={{ scale: 0.8, rotate: -10 }}
@@ -56,13 +60,18 @@ const ImageSlider: React.FC = () => {
           className="mb-4"
         >
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="12" y="20" width="40" height="28" rx="6" fill="#fbbf24" />
+            <rect x="12" y="20" width="40" height="28" rx="6" style={{ fill: 'var(--primary-light)' }} />
             <circle cx="32" cy="34" r="8" fill="#60a5fa" />
-            <rect x="24" y="16" width="16" height="8" rx="2" fill="#a78bfa" />
+            <rect x="24" y="16" width="16" height="8" rx="2" style={{ fill: 'var(--accent-light)' }} />
             <circle cx="32" cy="34" r="3" fill="#fff" />
           </svg>
         </motion.div>
-        <h3 className="text-2xl font-bold text-pink-400 mb-2">No Gallery Images</h3>
+        <h3 
+          className="text-2xl font-bold text-pink-400 mb-2"
+          style={{ color: 'var(--primary-light)' }}
+        >
+          No Gallery Images
+        </h3>
         <p className="text-white/80 text-lg mb-2">No images to display yet. Add some beautiful weather moments soon! 📸</p>
       </motion.div>
     );
@@ -119,7 +128,10 @@ const ImageSlider: React.FC = () => {
             <button
               key={i}
               onClick={() => { setDirection(i > index ? 1 : -1); setIndex(i); }}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${i === index ? 'bg-blue-400' : 'bg-white/30'}`}
+              className={`w-3 h-3 rounded-full transition-all duration-200`}
+              style={{
+                backgroundColor: i === index ? 'var(--primary-light)' : 'rgba(255, 255, 255, 0.3)'
+              }}
               aria-label={`Go to image ${i + 1}`}
             />
           ))}

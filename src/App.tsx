@@ -120,9 +120,11 @@ const tabLottieMap = {
 const accentColors = [
   { name: 'Blue', value: '#3b82f6' },
   { name: 'Purple', value: '#a21caf' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Orange', value: '#f59e42' },
   { name: 'Pink', value: '#ec4899' },
+  { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Yellow', value: '#fbbf24' },
+  { name: 'Rose', value: '#f472b6' }
 ];
 
 function setAccentColor(color: string) {
@@ -207,7 +209,6 @@ function App() {
   // Track user interactions
   const trackInteraction = useCallback((action: string, data?: any) => {
     // Analytics tracking placeholder
-    console.log('Track interaction:', action, data);
   }, []);
 
   // Handle search
@@ -260,11 +261,9 @@ function App() {
 
     const savedAccent = localStorage.getItem('meteora-accent');
     if (savedAccent) {
-      console.log('Loading saved accent color:', savedAccent);
       setAccentColorState(savedAccent);
       document.documentElement.style.setProperty('--primary-light', savedAccent);
     } else {
-      console.log('No saved accent color, using default');
       document.documentElement.style.setProperty('--primary-light', '#3b82f6');
     }
 
@@ -442,7 +441,11 @@ function App() {
       <ErrorBoundary>
         <div className={`app ${resolvedTheme} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
           <Suspense fallback={<div className="text-white text-lg">Loading...</div>}>
-            <WelcomeScreen onSearch={handleSearch} />
+            <WelcomeScreen 
+          onSearch={handleSearch} 
+          onGetStarted={() => setShowWelcome(false)}
+          onSkip={() => setShowWelcome(false)}
+        />
           </Suspense>
         </div>
       </ErrorBoundary>
@@ -479,11 +482,9 @@ function App() {
 
   // Replace setAccentColorState with a new function that updates both state and CSS variable
   const handleAccentColorChange = (color: string) => {
-    console.log('Accent color change:', color);
     setAccentColorState(color);
     document.documentElement.style.setProperty('--primary-light', color);
     localStorage.setItem('meteora-accent', color);
-    console.log('CSS variable set:', document.documentElement.style.getPropertyValue('--primary-light'));
   };
 
   return (
@@ -491,7 +492,12 @@ function App() {
       {/* Toaster always visible and above mobile nav */}
       <Toaster position={isMobile ? 'top-center' : 'bottom-right'} toastOptions={{ duration: 3500, style: { zIndex: 9999 } }} />
       
-      <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500 w-full max-w-full overflow-x-hidden`}>
+      <div 
+        className={`app ${resolvedTheme} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}
+        style={{
+          background: 'linear-gradient(135deg, var(--primary-light), var(--accent-light))'
+        }}
+      >
         {/* Animated Weather Background Overlay */}
         <WeatherBackground weather={weather} theme={resolvedTheme} />
         
@@ -780,19 +786,51 @@ function App() {
                           </div>
                           {/* Favorites */}
                           <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
-                            <h3 className="text-lg font-semibold text-white mb-4">Favorites</h3>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold text-white">Favorites</h3>
+                              {!favorites.includes(location) && (
+                                <button
+                                  onClick={() => addFavorite(location)}
+                                  className="flex items-center gap-1 px-3 py-1 text-sm bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white/80 hover:text-white"
+                                  title="Add current location to favorites"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                  Add
+                                </button>
+                              )}
+                            </div>
                             <div className="space-y-2">
                               {favorites.slice(0, 3).map((fav, index) => (
-                                <button
-                                  key={index}
-                                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
-                                  onClick={() => handleSearch(fav)}
-                                >
-                                  {fav}
-                                </button>
+                                <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/10 transition-colors">
+                                  <button
+                                    className="flex-1 text-left text-white/80 hover:text-white transition-colors"
+                                    onClick={() => handleSearch(fav)}
+                                  >
+                                    {fav}
+                                  </button>
+                                  <button
+                                    onClick={() => removeFavorite(fav)}
+                                    className="p-1 text-white/50 hover:text-red-400 transition-colors"
+                                    title="Remove from favorites"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
                               ))}
                               {favorites.length === 0 && (
-                                <p className="text-white/50 text-sm">No favorites yet</p>
+                                <p className="text-white/50 text-sm">No favorites yet. Add the current location to get started!</p>
+                              )}
+                              {favorites.length > 3 && (
+                                <button
+                                  onClick={() => setActiveTab('dashboard')}
+                                  className="w-full text-center p-2 text-sm text-white/60 hover:text-white transition-colors"
+                                >
+                                  View all {favorites.length} favorites
+                                </button>
                               )}
                             </div>
                           </div>
@@ -931,6 +969,10 @@ function App() {
           accentColors={accentColors}
           timeFormat={timeFormat}
           setTimeFormat={setTimeFormat}
+          favorites={favorites}
+          onAddFavorite={addFavorite}
+          onRemoveFavorite={removeFavorite}
+          currentLocation={location}
         />
 
         {/* React Query DevTools */}

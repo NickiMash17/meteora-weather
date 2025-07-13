@@ -123,13 +123,18 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
         >
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="12" y="28" width="8" height="24" rx="3" fill="#60a5fa" />
-            <rect x="28" y="20" width="8" height="32" rx="3" fill="#fbbf24" />
+            <rect x="28" y="20" width="8" height="32" rx="3" style={{ fill: 'var(--primary-light)' }} />
             <rect x="44" y="36" width="8" height="16" rx="3" fill="#34d399" />
             <circle cx="54" cy="54" r="6" stroke="#60a5fa" strokeWidth="3" fill="none" />
             <line x1="58" y1="58" x2="62" y2="62" stroke="#60a5fa" strokeWidth="3" strokeLinecap="round" />
           </svg>
         </motion.div>
-        <h3 className="text-xl font-bold text-blue-400 mb-2">{t('No Analytics Data')}</h3>
+        <h3 
+          className="text-xl font-bold text-blue-400 mb-2"
+          style={{ color: 'var(--primary-light)' }}
+        >
+          {t('No Analytics Data')}
+        </h3>
         <p className="text-white/80 text-base mb-2">{t('No analytics available yet. Check back soon for trends and insights!')}</p>
       </motion.div>
     );
@@ -180,6 +185,8 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
       trend: getTrend(tempTrend),
       data: tempTrend,
       color: '#fbbf24',
+      backgroundColor: 'rgba(251, 191, 36, 0.1)',
+      borderColor: '#fbbf24',
       tooltip: t('Max temperature trend for the next 5 days.')
     },
     {
@@ -188,7 +195,9 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
       value: `${weather.humidity}%`,
       trend: getTrend(humidityTrend),
       data: humidityTrend,
-      color: '#60a5fa',
+      color: 'var(--accent-light)',
+      backgroundColor: 'rgba(6, 182, 212, 0.1)',
+      borderColor: 'var(--accent-light)',
       tooltip: t('Humidity trend for the next 5 days.')
     },
     {

@@ -69,7 +69,7 @@ const WeatherOverlay: React.FC<WeatherOverlayProps> = ({ weather, theme }) => {
               cx={40 + (i * 40) % 320}
               cy={40 + (i * 30) % 120}
               rx="2.5" ry="10"
-              fill="#38bdf8"
+              style={{ fill: 'var(--primary-light)' }}
               initial={{ y: -20, opacity: 0.5 }}
               animate={{ y: 220, opacity: [0.5, 0.7, 0] }}
               transition={{

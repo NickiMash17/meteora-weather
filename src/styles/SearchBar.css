@@ -2,6 +2,8 @@
 .search-container-modern {
   position: relative;
   width: 100%;
+  border-image: linear-gradient(90deg, var(--primary-light), var(--accent-light), #f472b6, #fbbf24) 1;
+  box-shadow: 0 0 16px 2px var(--primary-light), 0 4px 24px rgba(59,130,246,0.12);
 }
 
 .search-form-modern {
@@ -35,7 +37,7 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
   border-radius: 12px;
   color: white;
   border: none;
@@ -88,7 +90,7 @@
 /* Modern search button polish */
 .search-button-modern:hover, .search-button-modern:focus {
   box-shadow: 0 0 16px 2px #8b5cf6a0, 0 4px 24px rgba(59,130,246,0.18);
-  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  background: linear-gradient(135deg, var(--accent-light), var(--primary-light));
 }
 .search-button-modern:active {
   transform: scale(0.96);
@@ -218,7 +220,7 @@
 }
 
 .suggestion-item-modern.direct-search {
-  color: #3b82f6;
+  color: var(--primary-light);
   font-weight: 600;
 }
 
@@ -256,7 +258,7 @@
 
 .quick-access-tag {
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(59,130,246,0.12);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
@@ -269,8 +271,8 @@
   border-radius: 999px;
   padding: 0.4em 1em;
   font-weight: 500;
-  color: #38bdf8;
-  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+  color: var(--primary-light);
+  box-shadow: 0 2px 8px var(--primary-light);
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   cursor: pointer;
   margin: 0 0.25em 0.5em 0;

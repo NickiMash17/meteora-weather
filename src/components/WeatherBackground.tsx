@@ -37,7 +37,13 @@ const WeatherBackground: React.FC<WeatherBackgroundProps> = ({ weather, theme })
       )}
       {/* Rain for rainy/drizzle weather */}
       {(main.includes('rain') || main.includes('drizzle')) && (
-        <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ fill: 'var(--primary-light)' }}
+        >
           {[...Array(24)].map((_, i) => (
             <rect
               key={i}

@@ -197,6 +197,20 @@ const WeatherAlerts: React.FC<WeatherAlertsProps> = ({ weather, forecast }) => {
     }
   };
 
+  const getAlertStyle = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'extreme':
+      case 'severe':
+        return 'border-red-500/50 bg-red-500/10';
+      case 'moderate':
+        return 'border-yellow-500/50 bg-yellow-500/10';
+      case 'minor':
+        return 'border-blue-500/50 bg-blue-500/10';
+      default:
+        return 'border-yellow-500/50 bg-yellow-500/10';
+    }
+  };
+
   if (alerts.length === 0) {
     return (
       <motion.div

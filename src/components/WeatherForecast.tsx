@@ -26,22 +26,23 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, weather, ti
   const { t } = useTranslation();
 
   const getWeatherIcon = (condition: string) => {
-    if (!condition || typeof condition !== 'string') return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
-    switch (condition.toLowerCase()) {
-      case 'clear':
-        return <Sun className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 drop-shadow-sm" />;
-      case 'clouds':
-        return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
-      case 'rain':
-      case 'drizzle':
-        return <CloudRain className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 drop-shadow-sm" />;
-      case 'thunderstorm':
-        return <CloudLightning className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400 drop-shadow-sm" />;
-      case 'snow':
-        return <Snowflake className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 drop-shadow-sm" />;
-      default:
-        return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
+    const conditionLower = condition.toLowerCase();
+    if (conditionLower.includes('clear')) {
+      return <Sun className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 drop-shadow-sm" />;
     }
+    if (conditionLower.includes('cloud') || conditionLower.includes('overcast')) {
+      return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
+    }
+    if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) {
+      return <CloudRain className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 drop-shadow-sm" />;
+    }
+    if (conditionLower.includes('thunder') || conditionLower.includes('storm')) {
+      return <CloudLightning className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400 drop-shadow-sm" />;
+    }
+    if (conditionLower.includes('snow') || conditionLower.includes('sleet')) {
+      return <Snowflake className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 drop-shadow-sm" />;
+    }
+    return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
   };
 
   const formatDate = (timestamp: number) => {

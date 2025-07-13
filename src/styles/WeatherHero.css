@@ -58,6 +58,10 @@
   background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(103, 58, 183, 0.1));
 }
 
+.weather-hero-gradient {
+  background: linear-gradient(90deg, var(--primary-light), var(--accent-light));
+}
+
 /* Header Section */
 .weather-hero-header {
   display: flex;

@@ -90,7 +90,7 @@
 
 .tab-button.active {
   color: white;
-  border-bottom-color: #3b82f6;
+  border-bottom-color: var(--primary-light);
 }
 
 .tab-button.active::after {
@@ -100,7 +100,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(90deg, var(--primary-light), var(--accent-light));
   border-radius: 1px;
 }
 
@@ -127,7 +127,7 @@
 }
 
 .setting-description {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--primary-light);
   font-size: 14px;
   margin: 0 0 20px 0;
   line-height: 1.5;
@@ -161,7 +161,7 @@
 }
 
 .theme-option.active {
-  border-color: #3b82f6;
+  border-color: var(--primary-light);
   background: rgba(59, 130, 246, 0.1);
 }
 
@@ -172,7 +172,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
   border-radius: 18px;
   z-index: -1;
 }
@@ -226,6 +226,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .color-option:hover {
@@ -245,6 +247,7 @@
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   background: var(--color) !important;
+  background-color: var(--color) !important;
 }
 
 .color-name {
@@ -288,7 +291,7 @@
 }
 
 .format-option.active {
-  border-color: #3b82f6;
+  border-color: var(--primary-light);
   background: rgba(59, 130, 246, 0.1);
 }
 
@@ -306,7 +309,7 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  color: #3b82f6;
+  color: var(--primary-light);
 }
 
 /* Toggle Switches */
@@ -381,7 +384,7 @@
 }
 
 input:checked + .toggle-slider {
-  background: #3b82f6;
+  background: var(--primary-light);
 }
 
 input:checked + .toggle-slider:before {
@@ -414,7 +417,7 @@ input:checked + .toggle-slider:before {
 .radio-option input[type="radio"] {
   width: 18px;
   height: 18px;
-  accent-color: #3b82f6;
+  accent-color: var(--primary-light);
 }
 
 .radio-content {

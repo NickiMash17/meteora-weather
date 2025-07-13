@@ -31,21 +31,23 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast, 
   const { t } = useTranslation();
 
   const getWeatherIcon = (condition: string) => {
-    switch (condition.toLowerCase()) {
-      case 'clear':
-        return <Sun className="w-20 h-20 text-yellow-400 drop-shadow-lg" />;
-      case 'clouds':
-        return <Cloud className="w-20 h-20 text-gray-300 drop-shadow-lg" />;
-      case 'rain':
-      case 'drizzle':
-        return <CloudRain className="w-20 h-20 text-blue-400 drop-shadow-lg" />;
-      case 'thunderstorm':
-        return <CloudLightning className="w-20 h-20 text-purple-400 drop-shadow-lg" />;
-      case 'snow':
-        return <Snowflake className="w-20 h-20 text-blue-200 drop-shadow-lg" />;
-      default:
-        return <Cloud className="w-20 h-20 text-gray-300 drop-shadow-lg" />;
+    const conditionLower = condition.toLowerCase();
+    if (conditionLower.includes('clear')) {
+      return <Sun className="w-20 h-20 text-yellow-400 drop-shadow-lg" />;
     }
+    if (conditionLower.includes('cloud') || conditionLower.includes('overcast')) {
+      return <Cloud className="w-20 h-20 text-gray-400 drop-shadow-lg" />;
+    }
+    if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) {
+      return <CloudRain className="w-20 h-20 text-blue-400 drop-shadow-lg" />;
+    }
+    if (conditionLower.includes('thunder') || conditionLower.includes('storm')) {
+      return <CloudLightning className="w-20 h-20 text-purple-400 drop-shadow-lg" />;
+    }
+    if (conditionLower.includes('snow') || conditionLower.includes('sleet')) {
+      return <Snowflake className="w-20 h-20 text-blue-200 drop-shadow-lg" />;
+    }
+    return <Cloud className="w-20 h-20 text-gray-400 drop-shadow-lg" />;
   };
 
   const formatTime = (timestamp: number) => {
@@ -58,11 +60,30 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast, 
   };
 
   const getTemperatureColor = (temp: number) => {
-    if (temp >= 30) return 'text-red-400';
-    if (temp >= 20) return 'text-orange-400';
-    if (temp >= 10) return 'text-yellow-400';
+    if (temp >= 25) return 'text-red-400';
+    if (temp >= 15) return 'text-yellow-400';
     if (temp >= 0) return 'text-blue-400';
     return 'text-purple-400';
+  };
+
+  const getWeatherStats = () => {
+    const stats = [
+      {
+        label: t('Feels Like'),
+        value: `${Math.round(weather?.feels_like || 0)}°`,
+        icon: Thermometer,
+        color: 'text-blue-400',
+        gradient: 'from-blue-400 to-cyan-400'
+      },
+      {
+        label: t('Humidity'),
+        value: `${weather?.humidity || 0}%`,
+        icon: Droplets,
+        color: 'text-purple-400',
+        gradient: 'from-purple-400 to-pink-400'
+      }
+    ];
+    return stats;
   };
 
   const metrics = [
@@ -294,7 +315,12 @@ const WeatherDashboard: React.FC<WeatherDashboardProps> = ({ weather, forecast, 
             className="flex items-center space-x-3 sm:space-x-4"
             whileHover={{ scale: 1.05 }}
           >
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg">
+            <div 
+              className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, var(--primary-light), var(--accent-light))'
+              }}
+            >
               <Sunset className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <div>

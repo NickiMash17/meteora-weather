@@ -20,7 +20,8 @@ import {
   WifiOff,
   RefreshCw,
   Download,
-  Trash2
+  Trash2,
+  Heart
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -31,9 +32,13 @@ interface SettingsModalProps {
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   accentColor: string;
   setAccentColor: (color: string) => void;
-  accentColors: { name: string; value: string }[];
+  accentColors: { name: string; value: string; }[];
   timeFormat: '12' | '24';
   setTimeFormat: (format: '12' | '24') => void;
+  favorites?: string[];
+  onAddFavorite?: (location: string) => void;
+  onRemoveFavorite?: (location: string) => void;
+  currentLocation?: string;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -46,6 +51,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   accentColors,
   timeFormat,
   setTimeFormat,
+  favorites = [],
+  onAddFavorite,
+  onRemoveFavorite,
+  currentLocation = ''
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const { t, i18n } = useTranslation();
@@ -53,6 +62,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [notifications, setNotifications] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [dataUsage, setDataUsage] = useState('balanced');
+  const [newFavorite, setNewFavorite] = useState('');
 
   // Focus trap
   useEffect(() => {
@@ -99,6 +109,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'data', label: 'Data & Privacy', icon: Shield },
     { id: 'about', label: 'About', icon: Info },
+          { id: 'favorites', label: 'Favorites', icon: Heart },
   ];
 
   const renderTabContent = () => {
@@ -157,6 +168,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 Accent Color
               </h3>
               <p className="setting-description">Customize the app's accent color</p>
+              
               <div className="color-grid">
                 {accentColors.map((color) => (
                   <button
@@ -164,14 +176,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     className={`color-option ${accentColor === color.value ? 'active' : ''}`}
                     style={{ '--color': color.value } as React.CSSProperties}
                     onClick={() => {
-                      console.log('Color option clicked:', color.name, color.value);
                       setAccentColor(color.value);
                     }}
                     aria-label={`Set accent color to ${color.name}`}
                   >
-                    <div className="color-preview" style={{ background: color.value }}></div>
+                    <div className="color-preview"></div>
                     <span className="color-name">{color.name}</span>
-                    {accentColor === color.value && <Check className="w-4 h-4" />}
                   </button>
                 ))}
               </div>
@@ -370,6 +380,96 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     Icons by Lucide React. Built with modern web technologies.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'favorites':
+        return (
+          <div className="space-y-6">
+            {/* Favorites Management */}
+            <div className="setting-group">
+              <h3 className="setting-title">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Favorite Locations
+              </h3>
+              <p className="setting-description">Manage your favorite weather locations</p>
+              
+              {/* Add new favorite */}
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={newFavorite}
+                  onChange={(e) => setNewFavorite(e.target.value)}
+                  placeholder="Enter city name..."
+                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+                />
+                <button
+                  onClick={() => {
+                    if (newFavorite.trim() && onAddFavorite) {
+                      onAddFavorite(newFavorite.trim());
+                      setNewFavorite('');
+                    }
+                  }}
+                  disabled={!newFavorite.trim()}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Current location quick add */}
+              {currentLocation && !favorites.includes(currentLocation) && (
+                <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">Current Location</p>
+                      <p className="text-white/60 text-sm">{currentLocation}</p>
+                    </div>
+                    <button
+                      onClick={() => onAddFavorite?.(currentLocation)}
+                      className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-colors"
+                    >
+                      Add to Favorites
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Favorites list */}
+              <div className="space-y-2">
+                {favorites.map((fav, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                    <div className="flex items-center gap-3">
+                      <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-white">{fav}</span>
+                    </div>
+                    <button
+                      onClick={() => onRemoveFavorite?.(fav)}
+                      className="p-1 text-white/50 hover:text-red-400 transition-colors"
+                      title="Remove from favorites"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+                {favorites.length === 0 && (
+                  <div className="text-center py-8 text-white/50">
+                    <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <p>No favorite locations yet</p>
+                    <p className="text-sm">Add locations to quickly access their weather</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
