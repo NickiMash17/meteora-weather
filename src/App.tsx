@@ -2,59 +2,26 @@ import React, { useState, useEffect, Suspense, lazy, useCallback, useMemo, start
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Sun, 
-  Moon, 
   BarChart3,
   Calendar,
   AlertTriangle,
   Sparkles,
   Globe,
-  Menu,
-  X,
   RefreshCw,
   Image,
-  ArrowUp,
-  ArrowDown,
-  Minus,
   Settings,
   Eye,
   Volume2,
   Trophy
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import Lottie from 'lottie-react';
-import dashboardAnim from './lottie/dashboard.json';
-import forecastAnim from './lottie/forecast.json';
-import analyticsAnim from './lottie/analytics.json';
-import mapAnim from './lottie/map.json';
-import alertsAnim from './lottie/alerts.json';
-import insightsAnim from './lottie/insights.json';
-import galleryAnim from './lottie/gallery.json';
-import './i18n';
-import { useTranslation } from 'react-i18next';
-import './styles/enhanced.css';
-
-// Custom hooks
-import { useWeatherOptimized } from './hooks/useWeatherOptimized';
-import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
-
-// Components
-import SearchBar from './components/SearchBar';
-import WeatherForecast from './components/WeatherForecast';
-import WeatherOverlay from './components/WeatherOverlay';
-import SettingsModal from './components/SettingsModal';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from './components/ErrorBoundary';
-import AIChatAssist from './components/AIChatAssist';
-
-// Lazy load components for code splitting
-const WeatherHero = lazy(() => import('./components/WeatherHero'));
-import type { FC } from 'react';
-import type { WelcomeScreenProps } from './components/WelcomeScreen';
-const WelcomeScreen = lazy(() => import('./components/WelcomeScreen')) as React.LazyExoticComponent<FC<WelcomeScreenProps>>;
-const LoadingSkeleton = lazy(() => import('./components/LoadingSkeleton'));
-
-// New components
-import WeatherDashboard from './components/WeatherDashboard';
+import LoadingScreen from './components/LoadingScreen';
+import WelcomeScreen from './components/WelcomeScreen';
+import SearchBar from './components/SearchBar';
+import CurrentWeather from './components/CurrentWeather';
+import WeatherForecast from './components/WeatherForecast';
 import WeatherAnalytics from './components/WeatherAnalytics';
 import WeatherMap from './components/WeatherMap';
 import WeatherAlerts from './components/WeatherAlerts';
@@ -63,68 +30,26 @@ import WeatherAI from './components/WeatherAI';
 import Weather3D from './components/Weather3D';
 import WeatherSound from './components/WeatherSound';
 import WeatherGamification from './components/WeatherGamification';
-import ImageSlider from './components/ImageSlider';
+import AIChatAssist from './components/AIChatAssist';
+import SettingsModal from './components/SettingsModal';
+import LoadingSkeleton from './components/LoadingSkeleton';
+import WeatherOverlay from './components/WeatherOverlay';
 import WeatherBackground from './components/WeatherBackground';
+import ImageSlider from './components/ImageSlider';
+import { useWeatherOptimized } from './hooks/useWeatherOptimized';
+import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
+import './styles/enhanced.css';
+import './i18n';
+import { useTranslation } from 'react-i18next';
 
-type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'gallery' | 'insights' | 'ai' | '3d' | 'sound' | 'gamification';
+// Type definitions
+type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'insights' | 'gallery' | 'ai' | '3d' | 'sound' | 'gamification';
 
-// QueryClient is now provided by main.tsx
+// Lazy load components for code splitting
+const WeatherHero = lazy(() => import('./components/WeatherHero'));
+const WeatherDashboard = lazy(() => import('./components/WeatherDashboard'));
 
-// PWA Service Worker Registration - REMOVED (already registered in main.tsx)
-// const registerServiceWorker = async () => {
-//   if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
-//     try {
-//       const registration = await navigator.serviceWorker.register('/sw.js');
-//       console.log('Service Worker registered:', registration);
-//       
-//       // Handle updates
-//       registration.addEventListener('updatefound', () => {
-//         const newWorker = registration.installing;
-//         if (newWorker) {
-//           newWorker.addEventListener('statechange', () => {
-//             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-//               // New content is available
-//               if (confirm('New version available! Reload to update?')) {
-//                 window.location.reload();
-//               }
-//             }
-//           });
-//         }
-//       });
-//     } catch (error) {
-//       console.error('Service Worker registration failed:', error);
-//     }
-//   }
-// };
-
-// Theme detection
-const getSystemTheme = () => {
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark';
-  }
-  return 'light';
-};
-
-// Tooltip descriptions and fun facts
-const tabDescriptions = {
-  dashboard: 'Your personalized weather dashboard',
-  forecast: '5-day and hourly weather forecast',
-  analytics: 'Weather analytics and trends',
-  map: 'Interactive weather map',
-  alerts: 'Live weather alerts and warnings',
-  insights: 'AI-powered weather insights',
-  gallery: 'Weather photo gallery'
-};
-
-const tabLottieMap = {
-  dashboard: dashboardAnim,
-  forecast: forecastAnim,
-  analytics: analyticsAnim,
-  map: mapAnim,
-  alerts: alertsAnim,
-  insights: insightsAnim,
-  gallery: galleryAnim,
-};
+// Remove unused tabDescriptions and tabLottieMap
 
 const accentColors = [
   { name: 'Blue', value: '#3b82f6' },
@@ -136,14 +61,14 @@ const accentColors = [
   { name: 'Rose', value: '#f472b6' }
 ];
 
-function setAccentColor(color: string) {
-  document.documentElement.style.setProperty('--primary-light', color);
-  localStorage.setItem('meteora-accent', color);
-}
+// Remove unused setAccentColor and resetAccentColor
 
-function resetAccentColor() {
-  document.documentElement.style.setProperty('--primary-light', '#3b82f6');
-  localStorage.removeItem('meteora-accent');
+// Restore getSystemTheme function
+function getSystemTheme() {
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+  return 'light';
 }
 
 function App() {
@@ -159,18 +84,14 @@ function App() {
   });
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(getSystemTheme());
   const [showWelcome, setShowWelcome] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [manualThemeOverride, setManualThemeOverride] = useState(false);
-  const [lastSearch, setLastSearch] = useState('');
+  // Remove unused isLoading, setIsLoading, isMobileMenuOpen, setIsMobileMenuOpen, lastSearch, isTablet, viewportHeight, homeCity, indicatorLeft, indicatorWidth
   const [errorRetryCount, setErrorRetryCount] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   // Enhanced mobile responsiveness state
   const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [accentColor, setAccentColorState] = useState(() => localStorage.getItem('meteora-accent') || '#3b82f6');
 
   // Add state for time format
@@ -185,20 +106,14 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [homeCity, setHomeCity] = useState<string>(() => {
-    return localStorage.getItem('meteora-home-city') || '';
-  });
-
   // Navigation refs for indicator
   const navRef = useRef<HTMLDivElement>(null);
-  const [indicatorLeft, setIndicatorLeft] = useState(0);
-  const [indicatorWidth, setIndicatorWidth] = useState(0);
 
   // Weather data
   const { 
     weather, 
     forecast,
-    isLoading: isLoadingQuery, 
+    isLoading: isDataLoading, 
     error: queryError, 
     refetch 
   } = useWeatherOptimized(location);
@@ -218,11 +133,8 @@ function App() {
     { id: 'gamification', label: 'Game', icon: Trophy, mobileLabel: 'Game', badge: null }
   ];
 
-  // Performance monitoring - disabled for better performance
-  // usePerformanceMonitor();
-
   // Track user interactions
-  const trackInteraction = useCallback((action: string, data?: any) => {
+  const trackInteraction = useCallback(() => {
     // Analytics tracking placeholder
   }, []);
 
@@ -231,9 +143,8 @@ function App() {
     if (query.trim()) {
       startTransition(() => {
         setLocation(query.trim());
-        setLastSearch(query.trim());
         localStorage.setItem('weather-location', query.trim());
-        trackInteraction('search', { query: query.trim() });
+        trackInteraction();
         setShowWelcome(false);
       });
     }
@@ -261,8 +172,8 @@ function App() {
     if (navRef.current) {
       const activeButton = navRef.current.querySelector('.tab-button.active') as HTMLElement;
       if (activeButton) {
-        setIndicatorLeft(activeButton.offsetLeft);
-        setIndicatorWidth(activeButton.offsetWidth);
+        // setIndicatorLeft(activeButton.offsetLeft); // Removed
+        // setIndicatorWidth(activeButton.offsetWidth); // Removed
       }
     }
   }, [activeTab]);
@@ -325,13 +236,13 @@ function App() {
     const checkDevice = () => {
       const width = window.innerWidth;
       setIsMobile(width < 768);
-      setIsTablet(width >= 768 && width < 1024);
+      // setIsTablet(width >= 768 && width < 1024); // Removed
     };
 
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
-      setViewportHeight(window.innerHeight);
+      // setViewportHeight(window.innerHeight); // Removed
     };
     
     checkDevice();
@@ -442,13 +353,13 @@ function App() {
   }
 
   const setAsHomeCity = (city: string) => {
-    setHomeCity(city);
+    // setHomeCity(city); // Removed
     localStorage.setItem('meteora-home-city', city);
     toast.success(`${city} set as home city`);
   };
 
   // Loading states
-  const isDataLoading = isLoadingQuery;
+  // const isDataLoading = isLoadingQuery; // Removed
 
   // Show welcome screen or loading
   if (showWelcome) {
@@ -697,7 +608,6 @@ function App() {
                     onSearch={(query: string) => {
                       startTransition(() => {
                         setLocation(query);
-                        setLastSearch(query);
                         localStorage.setItem('weather-location', query);
                         trackInteraction('search', { query });
                       });
@@ -732,7 +642,6 @@ function App() {
                                 onSearch={(query: string) => {
                                   startTransition(() => {
                                     setLocation(query);
-                                    setLastSearch(query);
                                     localStorage.setItem('weather-location', query);
                                     trackInteraction('search', { query });
                                   });
@@ -890,6 +799,14 @@ function App() {
                     <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
                       <Suspense fallback={<LoadingSkeleton type="insights" />}>
                           <WeatherInsights weather={weather} forecast={forecast} />
+                        </Suspense>
+                    </div>
+                  )}
+                  
+                  {activeTab === 'gallery' && (
+                    <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                      <Suspense fallback={<LoadingSkeleton type="gallery" />}>
+                          <ImageSlider weather={weather} />
                         </Suspense>
                     </div>
                   )}

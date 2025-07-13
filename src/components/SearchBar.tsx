@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent, ChangeEvent, useRef, KeyboardEvent } from 'react';
+import React, { useState, useEffect, useRef, ChangeEvent, KeyboardEvent } from 'react';
 import '../styles/SearchBar.css';
 import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Clock, Globe } from 'lucide-react';
@@ -40,11 +40,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
     localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
   };
   
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (value.trim()) {
-      onSearch(value);
-      saveSearch(value);
+      onSearch(value.trim());
+      saveSearch(value.trim());
     }
     setShowSuggestions(false);
   };

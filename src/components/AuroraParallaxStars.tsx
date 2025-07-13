@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
 // Number of stars and layers
 const STAR_LAYERS = [

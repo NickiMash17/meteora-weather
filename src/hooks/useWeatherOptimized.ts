@@ -103,9 +103,8 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const fetchWeatherData = async (location: string): Promise<WeatherData> => {
   validateEnv();
   
-  // Use OpenWeatherMap API directly for current weather
-  const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`;
+  // Use our proxy server for current weather
+  const url = `/api/weather?location=${encodeURIComponent(location)}`;
   
   try {
     const response = await fetch(url);
@@ -202,9 +201,8 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
 const fetchForecastData = async (location: string): Promise<ForecastData> => {
   validateEnv();
   
-  // Use OpenWeatherMap API directly for forecast
-  const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`;
+  // Use our proxy server for forecast
+  const url = `/api/forecast?location=${encodeURIComponent(location)}`;
   
   try {
     const response = await fetch(url);

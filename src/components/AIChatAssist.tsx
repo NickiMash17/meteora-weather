@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Send, Bot, User, Settings, Compass, Sun, Moon, Cloud, Map, BarChart3 } from 'lucide-react';
+import { Sparkles, X, Send, Bot, User } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -14,7 +14,7 @@ const initialWelcome = `Hello! I'm your Meteora AI Assistant. I can help with we
 // Helper to call backend OpenAI proxy
 async function fetchOpenAIChat(messages: {role: string, content: string}[]): Promise<string> {
   try {
-    const res = await fetch('http://localhost:3001/openai-proxy', {
+    const res = await fetch('/api/openai-proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -29,14 +29,14 @@ async function fetchOpenAIChat(messages: {role: string, content: string}[]): Pro
       return data.choices[0].message.content.trim();
     }
     return 'Sorry, I could not get a response from the AI.';
-  } catch (err) {
+  } catch {
     return 'Error contacting AI assistant.';
   }
 }
 
 const AIChatAssist: React.FC<{
   onNavigate?: (tab: string) => void;
-  onUpdateSettings?: (setting: string, value: any) => void;
+  onUpdateSettings?: (setting: string, value?: any) => void;
 }> = ({ onNavigate, onUpdateSettings }) => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -91,7 +91,7 @@ const AIChatAssist: React.FC<{
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSend();
   };
 

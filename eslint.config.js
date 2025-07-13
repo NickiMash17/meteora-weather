@@ -11,7 +11,10 @@ export default tseslint.config(
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        // Remove whitespace from the global name
+        AudioWorkletGlobalScope: 'readonly',
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
