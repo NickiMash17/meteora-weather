@@ -54,6 +54,14 @@ const WeatherAnalytics: React.FC<WeatherAnalyticsProps> = ({ weather, forecast }
   const [selectedMetric, setSelectedMetric] = React.useState<'temperature' | 'humidity' | 'wind'>('temperature');
   const { t } = useTranslation();
 
+  // Defensive: Log forecast for debugging
+  console.log('WeatherAnalytics forecast:', forecast);
+
+  // Defensive: Check for valid data
+  if (!forecast || !forecast.daily || !Array.isArray(forecast.daily) || forecast.daily.length === 0 || forecast.daily.some((d: any) => !d.temperature || typeof d.temperature.max !== 'number' || isNaN(d.temperature.max))) {
+    return <div className="text-red-500 text-center p-4">No valid analytics data available.</div>;
+  }
+
   const getMetricData = (): MetricData[] => {
     if (!forecast?.hourly) return [];
     return forecast.hourly.slice(0, 24).map((hour: any, index: number) => ({

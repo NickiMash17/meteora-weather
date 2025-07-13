@@ -26,6 +26,7 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, weather, ti
   const { t } = useTranslation();
 
   const getWeatherIcon = (condition: string) => {
+    if (!condition || typeof condition !== 'string') return <Cloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 drop-shadow-sm" />;
     switch (condition.toLowerCase()) {
       case 'clear':
         return <Sun className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 drop-shadow-sm" />;
@@ -203,16 +204,16 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, weather, ti
                 className="text-center p-3 sm:p-4 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl flex-shrink-0 snap-center min-w-[70px] sm:min-w-[90px] border border-white/20 dark:border-gray-700/30 hover:scale-105 transition-transform duration-200"
               >
                 <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mb-2 font-medium">
-                  {hour.time && hour.time !== 'Invalid Date' ? formatTime(Date.parse(hour.time) / 1000) : t('N/A')}
+                  {typeof hour.timestamp === 'number' ? formatTime(hour.timestamp / 1000) : t('N/A')}
                 </p>
                 <div className="flex justify-center mb-2">
-                  {getWeatherIcon(hour.condition.main)}
+                  {getWeatherIcon(hour.condition)}
                 </div>
                 <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base mb-1">
                   {typeof hour.temperature === 'number' && !isNaN(hour.temperature) ? hour.temperature : t('--')}°
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 text-xs capitalize">
-                  {hour.condition?.main || t('N/A')}
+                  {hour.condition || t('N/A')}
                 </p>
                 {typeof hour.precipitation === 'number' && hour.precipitation > 0 && (
                   <div className="flex items-center justify-center gap-1 mt-1">

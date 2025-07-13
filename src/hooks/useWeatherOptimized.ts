@@ -45,12 +45,12 @@ interface ForecastData {
     precipitation: number | null;
   }>;
   hourly: Array<{
-    time: string;
+    timestamp: number;
     temperature: number;
-    condition: {
-      main: string;
-    };
-    precipitation: number | null;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    condition: string;
   }>;
 }
 
@@ -274,11 +274,13 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
     }));
     
     // Create hourly forecast from 3-hour intervals
-    const hourly = data.list.slice(0, 8).map((item: any) => ({
-      time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    const hourly = data.list.slice(0, 24).map((item: any) => ({
+      timestamp: item.dt * 1000,
       temperature: Math.round(item.main.temp),
-      condition: { main: item.weather[0].main },
-      precipitation: Math.round((item.pop || 0) * 100),
+      humidity: item.main.humidity,
+      windSpeed: Math.round(item.wind.speed * 3.6),
+      precipitation: item.pop || 0,
+      condition: item.weather[0].main,
     }));
     
     return { daily, hourly };
@@ -330,11 +332,13 @@ const fetchForecastData = async (location: string): Promise<ForecastData> => {
           precipitation: 60,
         },
       ],
-      hourly: Array.from({ length: 8 }, (_, i) => ({
-        time: new Date(Date.now() + i * 3 * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      hourly: Array.from({ length: 24 }, (_, i) => ({
+        timestamp: Date.now() + i * 3 * 60 * 60 * 1000,
         temperature: 20 + Math.floor(Math.random() * 10),
-        condition: { main: 'Clear' },
+        humidity: 60,
+        windSpeed: 10,
         precipitation: 0,
+        condition: 'Clear',
       })),
     };
   }

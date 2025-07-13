@@ -28,6 +28,14 @@ interface WeatherChartsProps {
 const WeatherCharts: React.FC<WeatherChartsProps> = ({ forecast, weather }) => {
   const { t } = useTranslation();
 
+  // Defensive: Log forecast for debugging
+  console.log('WeatherCharts forecast:', forecast);
+
+  // Defensive: Check for valid data
+  if (!forecast || !forecast.hourly || !Array.isArray(forecast.hourly) || forecast.hourly.length === 0 || forecast.hourly.some((h: any) => typeof h.temperature !== 'number' || isNaN(h.temperature))) {
+    return <div className="text-red-500 text-center p-4">No valid forecast data available for chart.</div>;
+  }
+
   const hourlyData = useMemo(() => {
     if (!forecast?.hourly) return [];
     

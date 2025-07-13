@@ -478,7 +478,7 @@ function App() {
       {/* Toaster always visible and above mobile nav */}
       <Toaster position={isMobile ? 'top-center' : 'bottom-right'} toastOptions={{ duration: 3500, style: { zIndex: 9999 } }} />
       
-      <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
+      <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500 w-full max-w-full overflow-x-hidden`}>
         {/* Animated Weather Background Overlay */}
         <WeatherBackground weather={weather} theme={resolvedTheme} />
         
@@ -495,10 +495,10 @@ function App() {
         <WeatherOverlay weather={weather} theme={resolvedTheme} />
 
         {/* New Modern Layout */}
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden w-full max-w-full">
           {/* Left Sidebar - Desktop Only */}
           {!isMobile && (
-            <aside className="w-80 bg-white/10 dark:bg-gray-900/20 backdrop-blur-xl border-r border-white/20 dark:border-gray-700/30 flex flex-col">
+            <aside className="w-80 bg-white/10 dark:bg-gray-900/20 backdrop-blur-xl border-r border-white/20 dark:border-gray-700/30 flex flex-col h-full">
               {/* Sidebar Header */}
               <div className="p-6 border-b border-white/10 dark:border-gray-700/30">
                 <motion.h1 
@@ -527,9 +527,25 @@ function App() {
                     }}
                     aria-label={t('Search for a city')}
                   />
-                  
-                  {/* Quick Actions */}
-                  <div className="flex gap-2">
+                  {/* Quick Search Cities */}
+                  <div className="mt-4">
+                    <div className="text-xs text-white/70 mb-2 font-semibold tracking-wide uppercase">Quick Search</div>
+                    <div className="flex flex-wrap gap-2">
+                      {["New York", "London", "Tokyo"].map(city => (
+                        <button
+                          key={city}
+                          className="px-3 py-1.5 bg-white/10 hover:bg-blue-500/30 text-white/80 rounded-full text-xs font-medium transition-all duration-200 border border-white/20"
+                          onClick={() => handleSearch(city)}
+                          aria-label={`Quick search for ${city}`}
+                        >
+                          {city}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* End Quick Search */}
+                  {/* Refresh and Settings Buttons */}
+                  <div className="flex gap-2 mt-4">
                     <button
                       className="flex-1 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
                       onClick={() => refetch()}
@@ -537,20 +553,21 @@ function App() {
                     >
                       <RefreshCw className="w-4 h-4" />
                       Refresh
-                  </button>
-                <button
-                      className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 rounded-lg text-sm font-medium transition-all duration-200"
-                  onClick={() => setSettingsOpen(true)}
-                  aria-label={t('Open settings')}
-                >
+                    </button>
+                    <button
+                      className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                      onClick={() => setSettingsOpen(true)}
+                      aria-label={t('Open settings')}
+                    >
                       <Settings className="w-4 h-4" />
-                </button>
-              </div>
+                      Settings
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Navigation */}
-              <nav className="flex-1 p-6">
+              {/* Sidebar Navigation - Make scrollable */}
+              <nav className="flex-1 p-6 overflow-y-auto min-h-0">
                 <div className="space-y-3">
                   {tabList.map((tab) => {
                     const isActive = activeTab === tab.id;
@@ -583,7 +600,6 @@ function App() {
                             transition={{ type: "spring", stiffness: 500, damping: 30 }}
                           />
                         )}
-                        
                         {/* Hover Background */}
                         {!isActive && (
                           <motion.div
@@ -591,7 +607,6 @@ function App() {
                             initial={false}
                           />
                         )}
-                        
                         {/* Icon Container */}
                         <div className={`tab-icon relative z-10 rounded-xl transition-all duration-300 ${
                           isActive 
@@ -599,7 +614,6 @@ function App() {
                             : 'bg-white/10 dark:bg-gray-700/30 text-white/60 group-hover:bg-white/20 group-hover:text-white'
                         }`}>
                           <tab.icon size={22} />
-                          
                           {/* Notification Badge */}
                           {tab.badge && (
                             <motion.div
@@ -611,14 +625,12 @@ function App() {
                             </motion.div>
                           )}
                         </div>
-                        
                         {/* Label */}
                         <span className={`tab-label relative z-10 font-semibold text-base transition-all duration-300 ${
                           isActive ? 'text-white' : 'text-white/70 group-hover:text-white'
                         }`}>
                           {tab.label}
                         </span>
-                        
                         {/* Active Indicator */}
                         {isActive && (
                           <motion.div
@@ -628,7 +640,6 @@ function App() {
                             transition={{ type: "spring", stiffness: 500, damping: 30 }}
                           />
                         )}
-                        
                         {/* Hover Arrow */}
                         {!isActive && (
                           <motion.div
@@ -638,8 +649,6 @@ function App() {
                             <div className="w-2 h-2 border-r-2 border-t-2 border-white/40 transform rotate-45" />
                           </motion.div>
                         )}
-                        
-
                       </motion.button>
                     );
                   })}
@@ -670,11 +679,11 @@ function App() {
           )}
 
           {/* Main Content Area */}
-          <main className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 flex flex-col overflow-hidden w-full max-w-full">
             {/* Top Header - Mobile Only */}
             {isMobile && (
-              <header className="bg-white/10 dark:bg-gray-900/20 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/30 p-4">
-                <div className="flex items-center justify-between gap-4">
+              <header className="bg-white/10 dark:bg-gray-900/20 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/30 p-4 sticky top-0 left-0 right-0 z-50 w-full max-w-full">
+                <div className="flex items-center justify-between gap-4 w-full max-w-full">
                   <motion.h1 
                     className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
                     whileHover={{ scale: 1.05 }}
@@ -829,59 +838,59 @@ function App() {
         {/* Bottom Mobile Navigation Bar */}
         {isMobile && (
           <nav
-            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-800/50 flex justify-around items-center py-3 px-2 shadow-2xl md:hidden"
+            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-800/50 flex items-center py-3 px-4 shadow-2xl md:hidden overflow-x-auto scrollbar-thin scrollbar-thumb-blue-400/40 scrollbar-track-transparent"
             role="tablist"
             aria-label="Main navigation"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            {tabList.map((tab, idx) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <motion.button
-                  key={tab.id}
-                  className={`tab-button relative flex flex-col items-center justify-center px-4 py-2 min-w-[60px] min-h-[60px] rounded-2xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 ${
-                    isActive
-                      ? 'active font-bold text-blue-600 dark:text-blue-300'
-                      : 'text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-200'
-                  }`}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.96 }}
-                  aria-selected={isActive}
-                  aria-label={tab.label}
-                  aria-controls={`tabpanel-${tab.id}`}
-                  role="tab"
-                  tabIndex={0}
-                  onClick={() => {
-                    startTransition(() => {
-                      setActiveTab(tab.id as TabType);
-                      trackInteraction('component_render', { tab: tab.id });
-                    });
-                  }}
-                >
-                  {/* Icon Container */}
-                  <div className={`tab-icon relative z-10 mb-1 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? 'bg-blue-500/20 dark:bg-blue-400/20 glow-icon'
-                      : 'bg-gray-100/50 dark:bg-gray-800/50'
-                  }`}>
-                    <tab.icon size={24} />
-                    {tab.badge && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="notification-badge"
-                      >
-                        {tab.badge > 9 ? '9+' : tab.badge}
-                      </motion.div>
-                    )}
-                  </div>
-                  
-                  {/* Tab Label */}
-                  <span className="tab-label text-xs mt-1">{tab.mobileLabel || tab.label}</span>
-                  
-
-                </motion.button>
-              );
-            })}
+            <div className="flex gap-2 min-w-max">
+              {tabList.map((tab, idx) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <motion.button
+                    key={tab.id}
+                    className={`tab-button relative flex flex-col items-center justify-center px-4 py-2 min-w-[60px] min-h-[60px] rounded-2xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 flex-shrink-0 ${
+                      isActive
+                        ? 'active font-bold text-blue-600 dark:text-blue-300'
+                        : 'text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-200'
+                    }`}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.96 }}
+                    aria-selected={isActive}
+                    aria-label={tab.label}
+                    aria-controls={`tabpanel-${tab.id}`}
+                    role="tab"
+                    tabIndex={0}
+                    onClick={() => {
+                      startTransition(() => {
+                        setActiveTab(tab.id as TabType);
+                        trackInteraction('component_render', { tab: tab.id });
+                      });
+                    }}
+                  >
+                    {/* Icon Container */}
+                    <div className={`tab-icon relative z-10 mb-1 rounded-xl transition-all duration-300 ${
+                      isActive
+                        ? 'bg-blue-500/20 dark:bg-blue-400/20 glow-icon'
+                        : 'bg-gray-100/50 dark:bg-gray-800/50'
+                    }`}>
+                      <tab.icon size={24} />
+                      {tab.badge && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="notification-badge"
+                        >
+                          {tab.badge > 9 ? '9+' : tab.badge}
+                        </motion.div>
+                      )}
+                    </div>
+                    {/* Tab Label */}
+                    <span className="tab-label text-xs mt-1">{tab.mobileLabel || tab.label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
           </nav>
         )}
 
@@ -903,6 +912,8 @@ function App() {
           <ReactQueryDevtools initialIsOpen={false} />
         )}
       </div>
+      {/* Footer always visible */}
+      <footer className="app-footer" />
     </ErrorBoundary>
   );
 }

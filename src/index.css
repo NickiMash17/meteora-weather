@@ -166,10 +166,11 @@
   /* Enhanced Mobile Optimizations */
   @media (max-width: 640px) {
     .glass-card, .glass-card-dark {
-      backdrop-filter: none !important;
-      background: rgba(34,34,34,0.95) !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
+      /* Remove forced dark background and let theme classes handle it */
+      /* backdrop-filter: none !important; */
+      /* background: rgba(34,34,34,0.95) !important; */
+      /* box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important; */
+      /* border: 1px solid rgba(255,255,255,0.08) !important; */
     }
     
     /* Disable heavy background effects for performance */
@@ -194,12 +195,12 @@
     }
     
     * {
-      backdrop-filter: none !important;
-      filter: none !important;
+      /* backdrop-filter: none !important; */
+      /* filter: none !important; */
     }
     
     body, .app {
-      background: #222 !important;
+      /* background: #222 !important; */
     }
     
     /* Enhanced touch targets */
@@ -1522,6 +1523,18 @@
     max-width: 100vw !important;
     margin: 0.5rem auto !important;
   }
+  .settings-modal, .modal-content, .share-modal, .notification-toast, .glass-overlay, .modal-overlay {
+    width: 98vw !important;
+    max-width: 98vw !important;
+    max-height: 98vh !important;
+    border-radius: 12px !important;
+    left: 1vw !important;
+    right: 1vw !important;
+    top: 1vh !important;
+    bottom: 1vh !important;
+    overflow-y: auto !important;
+    margin: 0 auto !important;
+  }
 }
 
 .tab-button.active::after {
@@ -2617,5 +2630,39 @@ img {
   .tab-icon:has(.notification-badge) {
     padding-right: 0.7rem !important;
     padding-top: 0.7rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .glass-card, .weather-card, .forecast-card, .stat-card {
+    padding: 0.75rem !important;
+    font-size: 0.95rem !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    margin: 0.5rem auto !important;
+    box-sizing: border-box !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .glass-card h1, .glass-card h2, .glass-card h3,
+  .weather-card h1, .weather-card h2, .weather-card h3,
+  .forecast-card h1, .forecast-card h2, .forecast-card h3,
+  .stat-card h1, .stat-card h2, .stat-card h3 {
+    font-size: 1.1rem !important;
+  }
+  .glass-card p, .weather-card p, .forecast-card p, .stat-card p {
+    font-size: 0.95rem !important;
+  }
+  .glass-card button, .weather-card button, .forecast-card button, .stat-card button,
+  .glass-card svg, .weather-card svg, .forecast-card svg, .stat-card svg {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 1.1rem !important;
+    touch-action: manipulation !important;
+  }
+  .glass-card .grid, .weather-card .grid, .forecast-card .grid, .stat-card .grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
   }
 }
