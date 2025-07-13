@@ -82,6 +82,7 @@ const ImageSlider: React.FC = () => {
             exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             draggable={false}
+            loading="lazy"
           />
         </AnimatePresence>
         {/* Overlay for glass effect */}

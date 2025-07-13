@@ -1327,14 +1327,16 @@
     backdrop-filter: blur(10px);
   }
   
-  .btn-primary {
-    min-height: 48px;
-    font-size: 16px;
+  .btn-primary, .btn-secondary, .tab-button, .search-button, .quick-access-button, button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
   }
-  
-  .tab-button {
-    min-height: 44px;
-    font-size: 14px;
+  button:active, .btn-primary:active, .btn-secondary:active, .tab-button:active, .search-button:active, .quick-access-button:active {
+    transform: scale(0.96) !important;
+    filter: brightness(0.96) !important;
+    transition: transform 0.1s, filter 0.1s;
   }
 }
 
@@ -1390,4 +1392,320 @@
     border: 1px solid #ccc !important;
     color: #333 !important;
   }
+} 
+
+/* Professional UI/UX Enhancements */
+.weather-card,
+.forecast-card,
+.detail-card,
+.stat-card {
+  transition: transform 0.18s cubic-bezier(.4,1.5,.6,1), box-shadow 0.18s, border 0.18s;
+  box-shadow: 0 4px 24px rgba(59,130,246,0.08);
+  border: 2px solid transparent;
+  background: rgba(255,255,255,0.92);
+}
+
+.weather-card:hover,
+.forecast-card:hover,
+.detail-card:hover,
+.stat-card:hover {
+  transform: scale(1.03) rotateZ(-0.5deg);
+  box-shadow: 0 20px 56px 0 rgba(56,189,248,0.18), 0 6px 18px 0 rgba(124,58,237,0.10);
+  border-image: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6) 1;
+}
+
+.app-header,
+.app-footer {
+  border-bottom: 3px solid;
+  border-image: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6) 1;
+  animation: gradientBG 8s ease-in-out infinite alternate;
+}
+
+@keyframes gradientBG {
+  0% { border-image: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6) 1; }
+  100% { border-image: linear-gradient(90deg, #f472b6, #38bdf8, #a78bfa) 1; }
+}
+
+.tab-button,
+.theme-toggle,
+.quick-access-button,
+.search-button {
+  transition: transform 0.18s cubic-bezier(.4,1.5,.6,1), box-shadow 0.18s, background 0.18s;
+  will-change: transform;
+  touch-action: manipulation;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.tab-button:active,
+.theme-toggle:active,
+.quick-access-button:active,
+.search-button:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(56,189,248,0.18);
+}
+
+.app.light {
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 60%, #f472b6 100%);
+  background-size: 200% 200%;
+  animation: pro-gradient-move 16s ease-in-out infinite;
+}
+
+@keyframes pro-gradient-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.aurora-bg {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(254, 202, 87, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 80%, rgba(72, 219, 251, 0.3) 0%, transparent 50%);
+  filter: blur(40px);
+  animation: aurora-shift-enhanced 15s ease infinite;
+}
+
+*:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px #a78bfa44;
+}
+
+.settings-modal,
+.notification-toast {
+  transition: opacity 0.3s cubic-bezier(.4,0,.2,1), transform 0.3s cubic-bezier(.4,0,.2,1);
+  will-change: opacity, transform;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+@media (max-width: 640px) {
+  .meteora-container {
+    padding: 0.5rem 0.5rem 2.5rem 0.5rem !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  .weather-card, .glass-card {
+    padding: 1rem !important;
+    font-size: 0.95rem !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    margin: 0.5rem auto !important;
+  }
+}
+
+.tab-button.active::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 6px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6);
+  box-shadow: 0 0 8px 2px #3b82f6aa;
+  animation: underline-glow 2s linear infinite;
+}
+
+@keyframes underline-glow {
+  0% { box-shadow: 0 0 8px 2px #3b82f6aa; }
+  100% { box-shadow: 0 0 16px 4px #06b6d4aa; }
+} 
+
+/* Enhanced Navigation & Search Bar Styles */
+
+/* Nav Tab Container */
+.nav-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.2rem;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(12px);
+  border-radius: 2rem;
+  padding: 0.5rem 1.5rem;
+  box-shadow: 0 4px 24px rgba(59,130,246,0.08);
+  position: relative;
+  margin: 2rem auto 1.5rem auto;
+  width: fit-content;
+}
+
+/* Tab Button - Pill Style */
+.tab-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: #312e81;
+  font-weight: 600;
+  font-size: 1.08rem;
+  padding: 0.6rem 1.6rem;
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s, box-shadow 0.18s;
+  z-index: 1;
+  outline: none;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.tab-button.active,
+.tab-button:focus-visible {
+  background: linear-gradient(90deg, #38bdf8 60%, #a78bfa 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(56,189,248,0.12);
+}
+
+.tab-button:hover:not(.active) {
+  background: rgba(56,189,248,0.1);
+  color: #1e40af;
+}
+
+/* Animated Indicator */
+.nav-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: var(--indicator-left, 0);
+  width: var(--indicator-width, 80px);
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #38bdf8, #a78bfa);
+  box-shadow: 0 0 12px 2px #38bdf855;
+  transition: left 0.3s cubic-bezier(.4,0,.2,1), width 0.3s cubic-bezier(.4,0,.2,1);
+  z-index: 0;
+}
+
+/* Enhanced Search Bar UI */
+.search-container {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+  margin: 0 auto 2rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  background: rgba(255,255,255,0.22);
+  border-radius: 2.5rem;
+  box-shadow: 0 8px 32px 0 rgba(58, 97, 255, 0.18), 0 1.5px 12px 0 rgba(164, 89, 255, 0.12);
+  backdrop-filter: blur(18px) saturate(1.2);
+  padding: 0.25rem 0.75rem;
+  transition: box-shadow 0.3s, background 0.3s;
+}
+
+.search-container:focus-within {
+  box-shadow: 0 0 0 4px #38bdf844, 0 8px 32px 0 rgba(58, 97, 255, 0.22);
+  background: rgba(255,255,255,0.32);
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.85rem 1.5rem 0.85rem 2.8rem;
+  background: transparent;
+  border: none;
+  border-radius: 2rem;
+  color: #1e293b;
+  font-size: 1.15rem;
+  font-family: var(--font-main);
+  box-shadow: none;
+  outline: none;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.search-input::placeholder {
+  color: #64748b;
+  opacity: 0.7;
+  font-size: 1.08rem;
+  font-style: italic;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #38bdf8;
+  font-size: 1.3rem;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px #bae6fd);
+  transition: color 0.2s;
+}
+
+.search-button {
+  margin-left: 0.5rem;
+  background: linear-gradient(90deg, #38bdf8 60%, #a78bfa 100%);
+  border: none;
+  border-radius: 50%;
+  width: 2.4rem;
+  height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 8px rgba(56,189,248,0.18);
+  cursor: pointer;
+  transition: box-shadow 0.18s, background 0.18s, transform 0.18s;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.search-button:hover {
+  box-shadow: 0 4px 12px rgba(56,189,248,0.25);
+  background: linear-gradient(90deg, #0ea5e9 60%, #9333ea 100%);
+}
+
+.search-button:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 4px rgba(56,189,248,0.28);
+}
+
+@media (max-width: 640px) {
+  .search-container {
+    max-width: 98vw;
+    padding: 0.15rem 0.25rem;
+  }
+  .search-input {
+    font-size: 1rem;
+    padding-left: 2.2rem;
+  }
+  .search-button {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Dark theme for search bar */
+.dark .search-container {
+  background: rgba(30,41,59,0.55);
+  box-shadow: 0 8px 32px 0 rgba(124, 58, 237, 0.18), 0 1.5px 12px 0 rgba(56,189,248,0.12);
+}
+
+.dark .search-input {
+  color: #f8fafc;
+}
+
+.dark .search-input::placeholder {
+  color: #94a3b8;
+  opacity: 0.7;
+}
+
+.dark .search-icon {
+  color: #a78bfa;
+  filter: drop-shadow(0 0 6px #7c3aed);
 } 

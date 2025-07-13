@@ -103,12 +103,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
   return (
     <div className="search-container-glass">
       <form className={`search-form-glass${isFocused ? ' focused' : ''}`} onSubmit={handleSubmit} autoComplete="off">
-        <div className="search-input-glass-wrapper">
+        <div className="dashboard-search-bar">
+          <span className="dashboard-search-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="9" cy="9" r="7"/><line x1="15" y1="15" x2="19" y2="19"/>
+            </svg>
+          </span>
           <input
             ref={inputRef}
             type="text"
-            className="search-input-glass"
-            placeholder={t('Search for a city or location...')}
+            className="dashboard-search-input"
+            placeholder={t('Search city or location...')}
             value={value}
             onChange={handleInput}
             onFocus={() => {
@@ -122,33 +127,21 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
             onKeyDown={handleKeyDown}
             aria-label={t('Search for a location')}
           />
-          {value && (
-            <button
-              type="button"
-              className="clear-input-glass"
-              aria-label={t('Clear search')}
-              onClick={() => {
-                onChange({ target: { value: '' } } as any);
-                inputRef.current?.focus();
-              }}
-            >
-              ×
-            </button>
-          )}
           <button 
             type="submit" 
-            className="search-button-glass"
+            className="dashboard-search-btn"
             aria-label={t('Search')}
           >
             {isLoadingSuggestions ? (
               <span className="loader-spinner w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin inline-block"></span>
             ) : (
-              <svg className="search-icon w-6 h-6 fill-white" viewBox="0 0 24 24">
-                <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 0 0-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 0 0 5.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="8" cy="8" r="7"/><line x1="13" y1="13" x2="17" y2="17"/>
               </svg>
             )}
           </button>
         </div>
+        
         <div className={`search-suggestions-anim-wrapper${showSuggestions && suggestions.length > 0 ? ' open' : ''}`} style={{ position: 'relative' }}>
           <div className={`search-suggestions-glass absolute top-full left-0 right-0 mt-2 z-50 max-h-80 overflow-y-auto transition-all duration-200${showSuggestions && suggestions.length > 0 ? ' opacity-100 translate-y-0' : ' opacity-0 -translate-y-2 pointer-events-none'}`}
             role="listbox"

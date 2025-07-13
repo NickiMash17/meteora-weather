@@ -202,6 +202,27 @@ function App() {
     return saved === '24' ? '24' : '12';
   });
 
+  // Add state for animated indicator
+  const [indicatorLeft, setIndicatorLeft] = useState(0);
+  const [indicatorWidth, setIndicatorWidth] = useState(80);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  // Update indicator position when active tab changes
+  useEffect(() => {
+    if (navRef.current) {
+      const activeButton = navRef.current.querySelector('.tab-button.active') as HTMLElement;
+      if (activeButton) {
+        const navRect = navRef.current.getBoundingClientRect();
+        const buttonRect = activeButton.getBoundingClientRect();
+        const left = buttonRect.left - navRect.left;
+        const width = buttonRect.width;
+        
+        setIndicatorLeft(left);
+        setIndicatorWidth(width);
+      }
+    }
+  }, [activeTab]);
+
   // Weather data with React Query
   const { weather, forecast, isLoading: isLoadingQuery, isError, error: queryError, refetch } = useWeatherOptimized(location);
 
@@ -626,6 +647,15 @@ function App() {
     localStorage.setItem('meteora-home-city', city);
   };
 
+  // Show toast on network status change
+  useEffect(() => {
+    if (isOnline) {
+      toast.success('You are back online!', { id: 'network-status', position: isMobile ? 'top-center' : 'bottom-right' });
+    } else {
+      toast.error('You are offline. Some features may not work.', { id: 'network-status', position: isMobile ? 'top-center' : 'bottom-right' });
+    }
+  }, [isOnline, isMobile]);
+
   if (showWelcome) {
     return (
       <QueryClientProvider client={queryClient}>
@@ -683,6 +713,8 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Toaster always visible and above mobile nav */}
+      <Toaster position={isMobile ? 'top-center' : 'bottom-right'} toastOptions={{ duration: 3500, style: { zIndex: 9999 } }} />
       <div className={`app ${resolvedTheme} ${weatherGradient} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
         {/* Animated Weather Background Overlay */}
         <WeatherBackground weather={weather} theme={resolvedTheme} />
@@ -696,20 +728,6 @@ function App() {
         )}
         <div className="glass-overlay" aria-hidden="true" />
         <WeatherOverlay weather={weather} theme={resolvedTheme} />
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
-              color: resolvedTheme === 'dark' ? '#f9fafb' : '#1e2937',
-              border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
-              borderRadius: '12px',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-            },
-          }}
-        />
-
         {/* Welcome Screen */}
         <AnimatePresence>
           {showWelcome && (
@@ -926,169 +944,75 @@ function App() {
               </div>
             )}
 
-            {/* Enhanced Navigation Tabs - Premium Glassy Pill Nav */}
-            <motion.nav
-              className={`weather-tabs-nav ${isMobile ? 'fixed left-1/2 -translate-x-1/2 bottom-0 z-50 w-full max-w-lg px-1 py-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl rounded-t-2xl shadow-2xl border-t border-white/30 dark:border-gray-700/40 flex gap-1 items-center justify-center glassy-nav-glow overflow-x-auto scrollbar-hide' : 'mt-8 mb-4 flex gap-3 items-center justify-center'} ${isMobile ? '' : 'relative'}`}
-              style={isMobile ? { pointerEvents: 'auto' } : {}}
-              role="tablist"
-              aria-label={t('Main navigation tabs')}
-              initial={{ opacity: 0, y: isMobile ? 40 : 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+            {/* Enhanced Navigation Tabs */}
+            <div 
+              ref={navRef}
+              className="nav-tabs"
+              style={{
+                '--indicator-left': `${indicatorLeft}px`,
+                '--indicator-width': `${indicatorWidth}px`
+              } as React.CSSProperties}
             >
               {tabList.map((tab, idx) => {
                 const isActive = activeTab === tab.id;
-                // Micro-stat logic
-                let microStat = null;
-                if (isActive && forecast && forecast.daily && forecast.daily.length >= 2) {
-                  const today = forecast.daily[0];
-                  const prev = forecast.daily[1];
-                  const diff = Math.round(today.temperature.max - prev.temperature.max);
-                  if (diff > 0) {
-                    microStat = (
-                      <motion.span
-                        className="ml-2 flex items-center text-green-500 font-semibold text-xs"
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <ArrowUp className="w-3 h-3 mr-0.5" />
-                        {`+${diff}°C warmer than yesterday`}
-                      </motion.span>
-                    );
-                  } else if (diff < 0) {
-                    microStat = (
-                      <motion.span
-                        className="ml-2 flex items-center text-blue-500 font-semibold text-xs"
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <ArrowDown className="w-3 h-3 mr-0.5" />
-                        {`${diff}°C cooler than yesterday`}
-                      </motion.span>
-                    );
-                  } else {
-                    microStat = (
-                      <motion.span
-                        className="ml-2 flex items-center text-gray-500 font-semibold text-xs"
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <Minus className="w-3 h-3 mr-0.5" />
-                        No change
-                      </motion.span>
-                    );
-                  }
-                }
-                // Animated badge for Alerts tab
-                let alertBadge = null;
-                if (tab.id === 'alerts') {
-                  const alerts = getActiveAlerts(weather, forecast);
-                  if (alerts.length > 0) {
-                    alertBadge = (
-                      <motion.span
-                        className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 shadow-lg border-2 border-white z-10"
-                        initial={{ scale: 0.7, opacity: 0.7 }}
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
-                        transition={{ duration: 1.2, repeat: Infinity, repeatType: 'loop' }}
-                      />
-                    );
-                  }
-                }
-                // Tooltip logic (moved out of map)
-                const tooltipContent = Math.random() < 0.5
-                  ? tabDescriptions[tab.id as keyof typeof tabDescriptions]
-                  : weatherFacts[Math.floor(Math.random() * weatherFacts.length)];
                 return (
-                  <motion.button
+                  <button
                     key={tab.id}
-                    ref={el => tabRefs.current[idx] = el}
-                    className={`tab-button flex flex-col items-center gap-0.5 px-2 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-base relative focus-visible:outline-4 focus-visible:outline-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:z-20 transition-all duration-300 rounded-full group ${isActive ? 'text-white dark:text-blue-200' : 'text-blue-900 dark:text-blue-200/80'} min-w-[44px] min-h-[44px]`}
-                    id={`tab-${tab.id}`}
-                    role="tab"
-                    tabIndex={0}
-                    aria-selected={isActive}
-                    aria-controls={`tabpanel-${tab.id}`}
+                    className={`tab-button ${isActive ? 'active' : ''}`}
                     onClick={() => {
                       setActiveTab(tab.id as TabType);
                       trackInteraction('component_render', { tab: tab.id });
                     }}
-                    whileHover={{ scale: 1.09 }}
-                    whileTap={{ scale: 0.97 }}
-                    onMouseEnter={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? true : v))}
-                    onMouseLeave={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? false : v))}
-                    onFocus={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? true : v))}
-                    onBlur={() => setShowTooltips(tips => tips.map((v, i) => i === idx ? false : v))}
-                    onKeyDown={e => {
-                      if (e.key === 'ArrowRight') {
-                        e.preventDefault();
-                        const next = (idx + 1) % tabList.length;
-                        tabRefs.current[next]?.focus();
-                      } else if (e.key === 'ArrowLeft') {
-                        e.preventDefault();
-                        const prev = (idx - 1 + tabList.length) % tabList.length;
-                        tabRefs.current[prev]?.focus();
-                      } else if (e.key === 'Enter' || e.key === ' ') {
-                        setActiveTab(tab.id as TabType);
-                        trackInteraction('component_render', { tab: tab.id });
-                      }
-                    }}
+                    aria-label={tab.label}
+                    aria-selected={isActive}
+                    role="tab"
+                    tabIndex={0}
                   >
-                    <span className="relative flex flex-col items-center">
-                      <motion.span
-                        className={`inline-flex shadow-lg ${isActive ? 'glow-icon' : ''}`}
-                        animate={isActive ? { scale: [1, 1.18, 0.95, 1.1, 1] } : { scale: 1 }}
-                        transition={isActive ? { duration: 0.7, times: [0, 0.2, 0.5, 0.8, 1], repeat: Infinity, repeatType: 'loop' } : {}}
-                      >
-                        <Lottie
-                          animationData={tabLottieMap[tab.id as keyof typeof tabLottieMap]}
-                          loop={true}
-                          autoplay={isActive}
-                          style={{ width: isMobile ? 24 : 32, height: isMobile ? 24 : 32, marginRight: 0 }}
-                          rendererSettings={{ preserveAspectRatio: 'xMidYMid slice' }}
-                        />
-                      </motion.span>
-                      {alertBadge}
-                      {/* Glowing animated underline for active tab */}
-                      {isActive && (
-                        <motion.span
-                          layoutId="nav-underline"
-                          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-7 sm:w-10 h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-teal-400 blur-sm opacity-80 shadow-xl animate-pulse"
-                          initial={{ scaleX: 0.7, opacity: 0 }}
-                          animate={{ scaleX: 1, opacity: 1 }}
-                          exit={{ scaleX: 0.7, opacity: 0 }}
-                          transition={{ duration: 0.4 }}
-                        />
-                      )}
-                    </span>
-                    <span className={`inline mt-0.5 drop-shadow-sm ${isMobile ? 'hidden xs:inline text-xs' : ''}`}>
-                      {isMobile ? (tab.mobileLabel || tab.label) : tab.label}
-                    </span>
-                    {microStat}
-                    {/* Tooltip */}
-                    <AnimatePresence>
-                      {showTooltips[idx] && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.25 }}
-                          className="absolute left-1/2 -translate-x-1/2 -top-12 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg z-50 whitespace-nowrap pointer-events-none"
-                          role="tooltip"
-                        >
-                          {tooltipContent}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.button>
+                    {isMobile ? (tab.mobileLabel || tab.label) : tab.label}
+                  </button>
                 );
               })}
-            </motion.nav>
+            </div>
+
+            {/* Enhanced Search Bar */}
+            <div className="search-container">
+              <span className="search-icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="9" cy="9" r="7"/>
+                  <line x1="15" y1="15" x2="19" y2="19"/>
+                </svg>
+              </span>
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search city or location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    handleSearch(searchQuery);
+                  }
+                }}
+                aria-label="Search for a city or location"
+              />
+              <button 
+                className="search-button"
+                onClick={() => {
+                  if (searchQuery.trim()) {
+                    handleSearch(searchQuery);
+                  }
+                }}
+                aria-label="Search"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="8" cy="8" r="7"/>
+                  <line x1="13" y1="13" x2="17" y2="17"/>
+                </svg>
+              </button>
+            </div>
 
             {/* Main Content Area */}
-            <main className="app-main flex-1 px-0 sm:px-2 md:px-4 lg:px-8 xl:px-12">
+            <main className="app-main flex-1 px-0 sm:px-2 md:px-4 lg:px-8 xl:px-12" aria-live="polite">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
@@ -1101,14 +1025,14 @@ function App() {
                   {activeTab === 'dashboard' && (
                     <>
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-2">
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton type="hero" />}>
                           <WeatherHero weather={weather} theme={resolvedTheme} />
                         </Suspense>
                       </motion.div>
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="lg:col-span-1">
                         <div className="col-span-full flex justify-center">
                           <div className="w-full max-w-5xl">
-                            <Suspense fallback={<LoadingSkeleton />}>
+                            <Suspense fallback={<LoadingSkeleton type="forecast-item" />}>
                               <WeatherForecast forecast={forecast} weather={weather} timeFormat={timeFormat} />
                             </Suspense>
                           </div>
@@ -1119,7 +1043,7 @@ function App() {
                   {activeTab === 'forecast' && (
                     <div className="col-span-full flex justify-center">
                       <div className="w-full max-w-5xl">
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton type="forecast-item" />}>
                           <WeatherForecast forecast={forecast} weather={weather} timeFormat={timeFormat} />
                         </Suspense>
                       </div>
@@ -1128,7 +1052,7 @@ function App() {
                   {activeTab === 'analytics' && (
                     <div className="col-span-full flex justify-center">
                       <div className="w-full max-w-5xl">
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton type="insights" />}>
                           <WeatherAnalytics weather={weather} forecast={forecast} />
                         </Suspense>
                       </div>
@@ -1137,7 +1061,7 @@ function App() {
                   {activeTab === 'map' && (
                     <div className="col-span-full flex justify-center">
                       <div className="w-full max-w-6xl">
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton type="map" />}>
                           <WeatherMap weather={weather} forecast={forecast} />
                         </Suspense>
                       </div>
@@ -1146,7 +1070,7 @@ function App() {
                   {activeTab === 'alerts' && (
                     <div className="col-span-full flex justify-center">
                       <div className="w-full max-w-5xl">
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton type="insights" />}>
                           <WeatherAlerts weather={weather} forecast={forecast} />
                         </Suspense>
                       </div>
@@ -1161,7 +1085,9 @@ function App() {
                       ) : (
                         <div className="col-span-full flex justify-center">
                           <div className="w-full max-w-5xl">
-                            <WeatherInsights weather={weather} forecast={forecast} />
+                            <Suspense fallback={<LoadingSkeleton type="insights" />}>
+                              <WeatherInsights weather={weather} forecast={forecast} />
+                            </Suspense>
                           </div>
                         </div>
                       )}
@@ -1170,7 +1096,7 @@ function App() {
                   {activeTab === 'gallery' && (
                     <div className="col-span-full flex justify-center">
                       <div className="w-full max-w-6xl">
-                        <Suspense fallback={<LoadingSkeleton />}>
+                        <Suspense fallback={<LoadingSkeleton type="weather-card" />}>
                           <ImageSlider />
                         </Suspense>
                       </div>
@@ -1194,8 +1120,10 @@ function App() {
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-500 dark:text-gray-400 text-xs">
-                    {isOnline ? '🟢 Online' : '🔴 Offline'}
+                  <span className={`text-xs font-semibold flex items-center gap-1 ${isOnline ? 'text-green-600' : 'text-red-600'}`}
+                    style={{ fontSize: isMobile ? 16 : undefined }}>
+                    <span className={`inline-block w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                    {isOnline ? 'Online' : 'Offline'}
                   </span>
                   <button
                     className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200"
@@ -1212,6 +1140,37 @@ function App() {
               </div>
             </motion.footer>
           </div>
+        )}
+
+        {/* Bottom Mobile Navigation Bar */}
+        {isMobile && (
+          <nav
+            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center py-2 shadow-2xl md:hidden"
+            role="tablist"
+            aria-label="Main navigation"
+          >
+            {tabList.map((tab, idx) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  className={`flex flex-col items-center justify-center px-2 py-1 min-w-[44px] min-h-[44px] rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${isActive ? 'text-blue-600 dark:text-blue-300 font-bold' : 'text-gray-500 dark:text-gray-300'}`}
+                  aria-selected={isActive}
+                  aria-label={tab.label}
+                  aria-controls={`tabpanel-${tab.id}`}
+                  role="tab"
+                  tabIndex={0}
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  style={{ fontSize: 13 }}
+                >
+                  <span className="mb-0.5">
+                    <tab.icon size={22} />
+                  </span>
+                  <span className="text-xs leading-tight">{tab.mobileLabel || tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         )}
 
         {/* Mobile Menu */}
