@@ -163,7 +163,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     key={color.value}
                     className={`color-option ${accentColor === color.value ? 'active' : ''}`}
                     style={{ '--color': color.value } as React.CSSProperties}
-                    onClick={() => setAccentColor(color.value)}
+                    onClick={() => {
+                      console.log('Color option clicked:', color.name, color.value);
+                      setAccentColor(color.value);
+                    }}
                     aria-label={`Set accent color to ${color.name}`}
                   >
                     <div className="color-preview" style={{ background: color.value }}></div>

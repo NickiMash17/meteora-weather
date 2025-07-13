@@ -260,8 +260,12 @@ function App() {
 
     const savedAccent = localStorage.getItem('meteora-accent');
     if (savedAccent) {
+      console.log('Loading saved accent color:', savedAccent);
       setAccentColorState(savedAccent);
-      setAccentColor(savedAccent);
+      document.documentElement.style.setProperty('--primary-light', savedAccent);
+    } else {
+      console.log('No saved accent color, using default');
+      document.documentElement.style.setProperty('--primary-light', '#3b82f6');
     }
 
     const savedTimeFormat = localStorage.getItem('meteora-time-format');
@@ -341,7 +345,7 @@ function App() {
   // Accent color persistence
   useEffect(() => {
     localStorage.setItem('meteora-accent', accentColor);
-    setAccentColor(accentColor);
+    document.documentElement.style.setProperty('--primary-light', accentColor);
   }, [accentColor]);
 
   // Time format persistence
@@ -473,6 +477,15 @@ function App() {
     );
   }
 
+  // Replace setAccentColorState with a new function that updates both state and CSS variable
+  const handleAccentColorChange = (color: string) => {
+    console.log('Accent color change:', color);
+    setAccentColorState(color);
+    document.documentElement.style.setProperty('--primary-light', color);
+    localStorage.setItem('meteora-accent', color);
+    console.log('CSS variable set:', document.documentElement.style.getPropertyValue('--primary-light'));
+  };
+
   return (
     <ErrorBoundary>
       {/* Toaster always visible and above mobile nav */}
@@ -511,61 +524,6 @@ function App() {
                 <p className="text-white/60 text-sm mt-1">Weather Intelligence</p>
               </div>
 
-              {/* Search Section */}
-              <div className="p-6 border-b border-white/10 dark:border-gray-700/30">
-                <div className="space-y-4">
-                  <SearchBar
-                    value={searchQuery}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                    onSearch={(query: string) => {
-                      startTransition(() => {
-                      setLocation(query);
-                      setLastSearch(query);
-                      localStorage.setItem('weather-location', query);
-                      trackInteraction('search', { query });
-                      });
-                    }}
-                    aria-label={t('Search for a city')}
-                  />
-                  {/* Quick Search Cities */}
-                  <div className="mt-4">
-                    <div className="text-xs text-white/70 mb-2 font-semibold tracking-wide uppercase">Quick Search</div>
-                    <div className="flex flex-wrap gap-2">
-                      {["New York", "London", "Tokyo"].map(city => (
-                        <button
-                          key={city}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-blue-500/30 text-white/80 rounded-full text-xs font-medium transition-all duration-200 border border-white/20"
-                          onClick={() => handleSearch(city)}
-                          aria-label={`Quick search for ${city}`}
-                        >
-                          {city}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* End Quick Search */}
-                  {/* Refresh and Settings Buttons */}
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      className="flex-1 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
-                      onClick={() => refetch()}
-                      aria-label={t('Refresh weather data')}
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Refresh
-                    </button>
-                    <button
-                      className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
-                      onClick={() => setSettingsOpen(true)}
-                      aria-label={t('Open settings')}
-                    >
-                      <Settings className="w-4 h-4" />
-                      Settings
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               {/* Sidebar Navigation - Make scrollable */}
               <nav className="flex-1 p-6 overflow-y-auto min-h-0">
                 <div className="space-y-3">
@@ -574,7 +532,7 @@ function App() {
                     return (
                       <motion.button
                         key={tab.id}
-                        className={`tab-button relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-300 group overflow-hidden ${
+                        className={`sidebar-link tab-button relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-300 group overflow-hidden ${
                           isActive 
                             ? 'active text-white' 
                             : 'text-white/70 hover:text-white'
@@ -741,57 +699,102 @@ function App() {
                   className="h-full"
                 >
                   {activeTab === 'dashboard' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                      {/* Main Weather Card */}
-                      <div className="lg:col-span-2">
-                        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30 h-full">
-                          <Suspense fallback={<LoadingSkeleton type="hero" />}>
-                          <WeatherHero weather={weather} theme={resolvedTheme} />
+                    <div className="flex flex-col gap-6">
+                      {!isMobile && (
+                        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 py-4 bg-white/10 dark:bg-gray-800/20 rounded-2xl shadow-md mb-6 border border-white/10 dark:border-gray-700/30 dashboard-header">
+                          <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Dashboard</h2>
+                          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto max-w-full">
+                            <div className="w-full md:w-96 max-w-full">
+                              <SearchBar
+                                value={searchQuery}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                                onSearch={(query: string) => {
+                                  startTransition(() => {
+                                    setLocation(query);
+                                    setLastSearch(query);
+                                    localStorage.setItem('weather-location', query);
+                                    trackInteraction('search', { query });
+                                  });
+                                }}
+                                aria-label={t('Search for a city')}
+                              />
+                            </div>
+                            <button
+                              className="btn-primary flex items-center gap-2"
+                              onClick={() => refetch()}
+                              aria-label={t('Refresh weather data')}
+                              disabled={isDataLoading}
+                              aria-busy={isDataLoading}
+                              aria-live="polite"
+                            >
+                              {isDataLoading ? (
+                                <span className="w-5 h-5 animate-spin inline-block border-2 border-white border-t-transparent rounded-full"></span>
+                              ) : (
+                                <RefreshCw className="w-5 h-5" />
+                              )}
+                              <span className="hidden sm:inline">Refresh</span>
+                            </button>
+                            <button
+                              className="btn-secondary flex items-center gap-2"
+                              onClick={() => setSettingsOpen(true)}
+                              aria-label={t('Open settings')}
+                            >
+                              <Settings className="w-5 h-5" />
+                              <span className="hidden sm:inline">Settings</span>
+                            </button>
+                          </div>
+                        </header>
+                      )}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        {/* Main Weather Card */}
+                        <div className="lg:col-span-2">
+                          <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30 h-full">
+                            <Suspense fallback={<LoadingSkeleton type="hero" />}>
+                              <WeatherHero weather={weather} theme={resolvedTheme} />
                             </Suspense>
                           </div>
                         </div>
-                      
-                      {/* Side Panel */}
-                      <div className="space-y-6">
-                        {/* Quick Stats */}
-                        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
-                          <h3 className="text-lg font-semibold text-white mb-4">Quick Stats</h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-white/70">Humidity</span>
-                              <span className="text-white font-medium">{weather?.humidity}%</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-white/70">Wind Speed</span>
-                              <span className="text-white font-medium">{weather?.wind?.speed} km/h</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-white/70">Pressure</span>
-                              <span className="text-white font-medium">{weather?.pressure} hPa</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-white/70">Visibility</span>
-                              <span className="text-white font-medium">{weather?.visibility} km</span>
+                        {/* Side Panel */}
+                        <div className="space-y-6">
+                          {/* Quick Stats */}
+                          <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                            <h3 className="text-lg font-semibold text-white mb-4">Quick Stats</h3>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-white/70">Humidity</span>
+                                <span className="text-white font-medium">{weather?.humidity}%</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-white/70">Wind Speed</span>
+                                <span className="text-white font-medium">{weather?.wind?.speed} km/h</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-white/70">Pressure</span>
+                                <span className="text-white font-medium">{weather?.pressure} hPa</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-white/70">Visibility</span>
+                                <span className="text-white font-medium">{weather?.visibility} km</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        
-                        {/* Favorites */}
-                        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
-                          <h3 className="text-lg font-semibold text-white mb-4">Favorites</h3>
-                          <div className="space-y-2">
-                            {favorites.slice(0, 3).map((fav, index) => (
-                              <button
-                                key={index}
-                                className="w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
-                                onClick={() => handleSearch(fav)}
-                              >
-                                {fav}
-                              </button>
-                            ))}
-                            {favorites.length === 0 && (
-                              <p className="text-white/50 text-sm">No favorites yet</p>
-                            )}
+                          {/* Favorites */}
+                          <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/30">
+                            <h3 className="text-lg font-semibold text-white mb-4">Favorites</h3>
+                            <div className="space-y-2">
+                              {favorites.slice(0, 3).map((fav, index) => (
+                                <button
+                                  key={index}
+                                  className="w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
+                                  onClick={() => handleSearch(fav)}
+                                >
+                                  {fav}
+                                </button>
+                              ))}
+                              {favorites.length === 0 && (
+                                <p className="text-white/50 text-sm">No favorites yet</p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -924,7 +927,7 @@ function App() {
           theme={theme}
           setTheme={setThemeState}
           accentColor={accentColor}
-          setAccentColor={setAccentColorState}
+          setAccentColor={handleAccentColorChange}
           accentColors={accentColors}
           timeFormat={timeFormat}
           setTimeFormat={setTimeFormat}

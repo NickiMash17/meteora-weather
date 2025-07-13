@@ -236,6 +236,7 @@
 .color-option.active {
   border-color: var(--color);
   background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 2px var(--color);
 }
 
 .color-preview {
@@ -243,6 +244,7 @@
   height: 32px;
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  background: var(--color) !important;
 }
 
 .color-name {
