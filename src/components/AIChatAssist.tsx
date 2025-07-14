@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, Send, Bot, User } from 'lucide-react';
 
+type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'insights' | 'gallery' | 'ai' | '3d' | 'sound' | 'gamification';
+
 interface Message {
   id: number;
   sender: 'user' | 'ai';
@@ -35,8 +37,8 @@ async function fetchOpenAIChat(messages: {role: string, content: string}[]): Pro
 }
 
 const AIChatAssist: React.FC<{
-  onNavigate?: (tab: string) => void;
-  onUpdateSettings?: (setting: string, value?: any) => void;
+  onNavigate?: (tab: TabType) => void;
+  onUpdateSettings?: (theme: 'light' | 'dark' | 'system') => void;
 }> = ({ onNavigate, onUpdateSettings }) => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -83,7 +85,10 @@ const AIChatAssist: React.FC<{
     // Navigation/settings triggers (parse [tab] or [setting] in aiText)
     if (onNavigate) {
       const tabMatch = aiText.match(/\[(dashboard|forecast|analytics|map|alerts|gallery|insights|ai|3d|sound|gamification)\]/i);
-      if (tabMatch) onNavigate(tabMatch[1].toLowerCase());
+      if (tabMatch) {
+        const tab = tabMatch[1].toLowerCase() as TabType;
+        onNavigate(tab);
+      }
     }
     if (onUpdateSettings) {
       if (/dark mode/i.test(aiText)) onUpdateSettings('dark');

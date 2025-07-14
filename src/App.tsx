@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, useCallback, useMemo, startTransition, useRef } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useCallback, startTransition, useRef } from 'react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -15,12 +15,9 @@ import {
   Trophy
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from './components/ErrorBoundary';
-import LoadingScreen from './components/LoadingScreen';
 import WelcomeScreen from './components/WelcomeScreen';
 import SearchBar from './components/SearchBar';
-import CurrentWeather from './components/CurrentWeather';
 import WeatherForecast from './components/WeatherForecast';
 import WeatherAnalytics from './components/WeatherAnalytics';
 import WeatherMap from './components/WeatherMap';
@@ -37,7 +34,6 @@ import WeatherOverlay from './components/WeatherOverlay';
 import WeatherBackground from './components/WeatherBackground';
 import ImageSlider from './components/ImageSlider';
 import { useWeatherOptimized } from './hooks/useWeatherOptimized';
-import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import './styles/enhanced.css';
 import './i18n';
 import { useTranslation } from 'react-i18next';
@@ -47,21 +43,6 @@ type TabType = 'dashboard' | 'forecast' | 'analytics' | 'map' | 'alerts' | 'insi
 
 // Lazy load components for code splitting
 const WeatherHero = lazy(() => import('./components/WeatherHero'));
-const WeatherDashboard = lazy(() => import('./components/WeatherDashboard'));
-
-// Remove unused tabDescriptions and tabLottieMap
-
-const accentColors = [
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Purple', value: '#a21caf' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Cyan', value: '#06b6d4' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Yellow', value: '#fbbf24' },
-  { name: 'Rose', value: '#f472b6' }
-];
-
-// Remove unused setAccentColor and resetAccentColor
 
 // Restore getSystemTheme function
 function getSystemTheme() {
@@ -91,7 +72,6 @@ function App() {
   // Enhanced mobile responsiveness state
   const [isMobile, setIsMobile] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [accentColor, setAccentColorState] = useState(() => localStorage.getItem('meteora-accent') || '#3b82f6');
 
   // Add state for time format
@@ -145,7 +125,7 @@ function App() {
   ];
 
   // Track user interactions
-  const trackInteraction = useCallback(() => {
+  const trackInteraction = useCallback((_action?: string, _data?: unknown) => {
     // Analytics tracking placeholder
   }, []);
 
@@ -217,7 +197,7 @@ function App() {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     const handleThemeChange = (e: MediaQueryListEvent) => {
-      if (!manualThemeOverride) {
+      if (theme === 'system') {
         setResolvedTheme(e.matches ? 'dark' : 'light');
       }
     };
@@ -232,7 +212,6 @@ function App() {
       setResolvedTheme(getSystemTheme());
     } else {
       setResolvedTheme(theme);
-      setManualThemeOverride(true);
     }
 
     return () => {
@@ -240,7 +219,7 @@ function App() {
       window.removeEventListener('offline', handleOffline);
       mediaQuery.removeEventListener('change', handleThemeChange);
     };
-  }, [theme, manualThemeOverride]);
+  }, [theme]);
 
   // Device detection and responsive behavior
   useEffect(() => {
@@ -313,7 +292,7 @@ function App() {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     const handleThemeChange = (e: MediaQueryListEvent) => {
-      if (!manualThemeOverride) {
+      if (theme === 'system') {
         setResolvedTheme(e.matches ? 'dark' : 'light');
       }
     };
@@ -329,45 +308,24 @@ function App() {
       window.removeEventListener('offline', handleOffline);
       mediaQuery.removeEventListener('change', handleThemeChange);
     };
-  }, [manualThemeOverride]);
-
-  // Weather gradient based on conditions
-  const weatherGradient = useMemo(() => {
-    if (!weather) return '';
-    
-    const condition = weather.condition?.main?.toLowerCase() || 'clear';
-    const hour = new Date().getHours();
-    const isDaytime = hour >= 6 && hour < 18;
-    
-    if (condition.includes('rain')) return isDaytime ? 'rainy-gradient' : 'night-rainy-gradient';
-    if (condition.includes('snow')) return isDaytime ? 'snowy-gradient' : 'night-snowy-gradient';
-    if (condition.includes('cloud')) return isDaytime ? 'cloudy-gradient' : 'night-cloudy-gradient';
-      if (condition.includes('thunderstorm')) return 'stormy-gradient';
-    return isDaytime ? 'sunny-gradient' : 'night-gradient';
-  }, [weather]);
+  }, [theme]);
 
   // Get active alerts
-  function getActiveAlerts(weather: any, forecast: any) {
-    const alerts = [];
+  function getActiveAlerts(weather: unknown, forecast: unknown) {
+    const alerts: unknown[] = [];
     
-    if (weather?.alerts) {
-      alerts.push(...weather.alerts);
+    if ((weather as { alerts?: unknown[] })?.alerts) {
+      alerts.push(...(weather as { alerts: unknown[] }).alerts);
     }
     
-    if (forecast?.alerts) {
-      alerts.push(...forecast.alerts);
+    if ((forecast as { alerts?: unknown[] })?.alerts) {
+      alerts.push(...(forecast as { alerts: unknown[] }).alerts);
     }
     
-    return alerts.filter((alert: any, index: number, self: any[]) => 
-      index === self.findIndex((a: any) => a.event === alert.event)
+    return alerts.filter((alert: unknown, index: number, self: unknown[]) => 
+      index === self.findIndex((a: unknown) => (a as { event?: string })?.event === (alert as { event?: string })?.event)
     );
   }
-
-  const setAsHomeCity = (city: string) => {
-    // setHomeCity(city); // Removed
-    localStorage.setItem('meteora-home-city', city);
-    toast.success(`${city} set as home city`);
-  };
 
   // Loading states
   // const isDataLoading = isLoadingQuery; // Removed
@@ -890,7 +848,7 @@ function App() {
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <div className="flex gap-2 min-w-max">
-              {tabList.map((tab, idx) => {
+              {tabList.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
                   <motion.button
