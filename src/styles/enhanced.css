@@ -232,18 +232,18 @@
   font-weight: 600;
   color: var(--text-primary-light);
   margin: 0;
-}
+  }
 
 .dark .ai-insight-title {
   color: var(--text-primary-dark);
-}
+  }
 
 .ai-insight-description {
   color: var(--text-secondary-light);
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 1rem;
-}
+  }
 
 .dark .ai-insight-description {
   color: var(--text-secondary-dark);
@@ -783,12 +783,12 @@
 .gamification-challenge.completed {
   border-left-color: var(--success-color);
   background: rgba(255, 255, 255, 0.15);
-}
+  }
 
 .gamification-challenge:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
+  }
 
 .gamification-challenge-header {
   display: flex;

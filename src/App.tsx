@@ -100,6 +100,17 @@ function App() {
     return (saved === '12' || saved === '24') ? saved : '12';
   });
 
+  // Sound and notifications state
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('meteora-sound-enabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    const saved = localStorage.getItem('meteora-notifications-enabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
   // Favorites and home city management
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem('meteora-favorites');
@@ -368,10 +379,9 @@ function App() {
         <div className={`app ${resolvedTheme} min-h-screen min-h-dvh bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 dark:from-gray-900 dark:to-gray-800 transition-all duration-500`}>
           <Suspense fallback={<div className="text-white text-lg">Loading...</div>}>
             <WelcomeScreen 
-          onSearch={handleSearch} 
-          onGetStarted={() => setShowWelcome(false)}
-          onSkip={() => setShowWelcome(false)}
-        />
+              onSearch={handleSearch} 
+              onSkip={() => setShowWelcome(false)}
+            />
           </Suspense>
         </div>
       </ErrorBoundary>
@@ -935,16 +945,24 @@ function App() {
           isOpen={settingsOpen}
           onClose={() => setSettingsOpen(false)}
           theme={theme}
-          setTheme={setThemeState}
+          onThemeChange={setThemeState}
           accentColor={accentColor}
-          setAccentColor={handleAccentColorChange}
-          accentColors={accentColors}
+          onAccentColorChange={handleAccentColorChange}
           timeFormat={timeFormat}
-          setTimeFormat={setTimeFormat}
-          favorites={favorites}
-          onAddFavorite={addFavorite}
-          onRemoveFavorite={removeFavorite}
-          currentLocation={location}
+          onTimeFormatChange={(format) => {
+            setTimeFormat(format);
+            localStorage.setItem('meteora-time-format', format);
+          }}
+          soundEnabled={soundEnabled}
+          onSoundToggle={(enabled) => {
+            setSoundEnabled(enabled);
+            localStorage.setItem('meteora-sound-enabled', JSON.stringify(enabled));
+          }}
+          notificationsEnabled={notificationsEnabled}
+          onNotificationsToggle={(enabled) => {
+            setNotificationsEnabled(enabled);
+            localStorage.setItem('meteora-notifications-enabled', JSON.stringify(enabled));
+          }}
         />
 
         {/* React Query DevTools */}
