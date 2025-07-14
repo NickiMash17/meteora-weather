@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Sun,
-  Cloud,
-  CloudRain,
-  CloudLightning,
+  Sun, 
+  Cloud, 
+  CloudRain, 
+  CloudLightning, 
   Snowflake,
   Wind,
   Thermometer,
@@ -305,7 +305,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
               />
             ))}
           </div>
-        </div>
+      </div>
 
         {/* Skip Button */}
         <button
@@ -335,13 +335,13 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                 <div className={`p-8 rounded-full bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm ${weatherIcons[currentIconIndex].color}`}>
                   {React.createElement(weatherIcons[currentIconIndex].icon, { className: 'w-16 h-16' })}
                 </div>
-              </motion.div>
+            </motion.div>
 
               <div className="space-y-4">
                 {/* Time-based greeting */}
-                <motion.div
+        <motion.div
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
                   className="flex items-center justify-center gap-2 text-lg text-gray-600 dark:text-gray-300"
                 >
                   {React.createElement(getTimeOfDay().icon, { className: 'w-5 h-5' })}
@@ -367,7 +367,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
               </div>
 
               {/* Weather Fact */}
-              <motion.div
+          <motion.div
                 key={currentFactIndex}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -383,9 +383,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                   <p className="text-gray-700 dark:text-gray-200 italic">
                     {weatherFacts[currentFactIndex]}
                   </p>
-                </div>
-              </motion.div>
-
+            </div>
+          </motion.div>
+          
               <div className="flex justify-center gap-4">
                 <button
                   onClick={nextStep}
@@ -400,7 +400,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                   {showParticles ? 'Hide' : 'Show'} Effects
                 </button>
               </div>
-            </motion.div>
+        </motion.div>
           )}
 
           {currentStep === 1 && (
@@ -462,7 +462,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
           )}
 
           {currentStep === 2 && (
-            <motion.div
+        <motion.div
               key="testimonials"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -481,7 +481,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
               {/* Testimonials */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {testimonials.map((testimonial, index) => (
-                  <motion.div
+          <motion.div
                     key={`testimonial-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -499,7 +499,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                     <p className="text-gray-600 dark:text-gray-300 text-xs font-medium">
                       — {testimonial.name}
                     </p>
-                  </motion.div>
+          </motion.div>
                 ))}
               </div>
 
@@ -524,10 +524,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                       <p className="text-xs text-gray-600 dark:text-gray-300">
                         {achievement.description}
                       </p>
-                    </motion.div>
+        </motion.div>
                   ))}
                 </div>
-              </div>
+      </div>
 
               <div className="flex justify-between">
                 <button
@@ -547,7 +547,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
           )}
 
           {currentStep === 3 && (
-            <motion.div
+      <motion.div
               key="search"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -603,13 +603,13 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                 </div>
                 
                 {userLocation && (
-                  <motion.div
+      <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center text-sm text-green-600 dark:text-green-400"
                   >
                     ✓ Location detected: {userLocation}
-                  </motion.div>
+      </motion.div>
                 )}
               </form>
 
@@ -621,7 +621,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                   Back
                 </button>
               </div>
-            </motion.div>
+      </motion.div>
           )}
         </AnimatePresence>
       </div>

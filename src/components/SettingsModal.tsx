@@ -64,7 +64,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+        return (
     <AnimatePresence>
       <motion.div
         className="settings-modal-overlay"
@@ -168,7 +168,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="setting-section">
               <h3 className="setting-title">Sound</h3>
               <div className="toggle-section">
-                <div className="toggle-info">
+                  <div className="toggle-info">
                   <span>Weather sound effects</span>
                   <span className="toggle-description">Play ambient sounds based on weather conditions</span>
                 </div>
@@ -183,7 +183,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   >
                     {soundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
                   </motion.div>
-                </button>
+                  </button>
               </div>
             </div>
 
@@ -206,9 +206,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   >
                     {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
                   </motion.div>
-                </button>
-              </div>
-            </div>
+                    </button>
+                  </div>
+                </div>
 
             {/* App Info */}
             <div className="setting-section">
