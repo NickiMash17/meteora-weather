@@ -490,7 +490,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSearch }) => {
                   >
                     <div className="flex items-center gap-1 mb-3">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                        <Star key={`star-${index}-${i}`} className="w-4 h-4 text-yellow-400 fill-current" />
                       ))}
                     </div>
                     <p className="text-gray-700 dark:text-gray-200 text-sm mb-3 italic">

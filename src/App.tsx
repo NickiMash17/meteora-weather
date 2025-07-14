@@ -125,7 +125,7 @@ function App() {
   ];
 
   // Track user interactions
-  const trackInteraction = useCallback((_action?: string, _data?: unknown) => {
+  const trackInteraction = useCallback(() => {
     // Analytics tracking placeholder
   }, []);
 
@@ -442,7 +442,7 @@ function App() {
                         onClick={() => {
                           startTransition(() => {
                             setActiveTab(tab.id as TabType);
-                            trackInteraction('component_render', { tab: tab.id });
+                            trackInteraction();
                           });
                         }}
                         aria-label={tab.label}
@@ -573,13 +573,13 @@ function App() {
                   <SearchBar
                     value={searchQuery}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                    onSearch={(query: string) => {
-                      startTransition(() => {
-                        setLocation(query);
-                        localStorage.setItem('weather-location', query);
-                        trackInteraction('search', { query });
-                      });
-                    }}
+                                                    onSearch={(query: string) => {
+                                  startTransition(() => {
+                                    setLocation(query);
+                                    localStorage.setItem('weather-location', query);
+                                    trackInteraction();
+                                  });
+                                }}
                     aria-label={t('Search for a city')}
                   />
                 </div>
@@ -611,7 +611,7 @@ function App() {
                                   startTransition(() => {
                                     setLocation(query);
                                     localStorage.setItem('weather-location', query);
-                                    trackInteraction('search', { query });
+                                    trackInteraction();
                                   });
                                 }}
                                 aria-label={t('Search for a city')}
@@ -868,7 +868,7 @@ function App() {
                     onClick={() => {
                       startTransition(() => {
                         setActiveTab(tab.id as TabType);
-                        trackInteraction('component_render', { tab: tab.id });
+                        trackInteraction();
                       });
                     }}
                   >
